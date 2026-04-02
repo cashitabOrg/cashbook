@@ -195,7 +195,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (!row || !row.synced || !row.productId || typeof row.quantitySold !== 'number') return;
 
     // Remove the sale item from the queue safely if it matches our localId
-    await db.offlineQueue.where('payload.local_row_id').equals(localId).delete();
+    await db.offlineQueue.filter(item => item.payload?.local_row_id === localId).delete();
 
     // Refund the stock locally
     const p = await db.products.get(row.productId);
