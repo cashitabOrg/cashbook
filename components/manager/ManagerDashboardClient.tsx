@@ -262,14 +262,14 @@ export default function ManagerDashboardClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20 lg:pb-0">
           {/* Products by Sales */}
           <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Best Sellers</h3>
               <TrendingUp className="w-5 h-5 text-blue-500" />
             </div>
-            <div className="flex-1 overflow-auto max-h-[400px]">
+            <div className="flex-1 overflow-auto h-[400px] lg:max-h-[calc(100vh-320px)]">
               <table className="min-w-full divide-y divide-slate-100">
                 <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <tr>
@@ -305,7 +305,7 @@ export default function ManagerDashboardClient({
               <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Stock Levels</h3>
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
-            <div className="flex-1 overflow-auto max-h-[400px]">
+            <div className="flex-1 overflow-auto h-[400px] lg:max-h-[calc(100vh-320px)]">
               <table className="min-w-full divide-y divide-slate-100">
                 <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <tr>

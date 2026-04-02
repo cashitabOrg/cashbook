@@ -49,7 +49,7 @@ export default async function ManagerDashboardPage({
   }));
 
   return (
-    <div className="lg:p-8 max-w-full mx-auto pb-24">
+    <div className="lg:p-8 max-w-full mx-auto pb-24 lg:pb-0">
       <ManagerDashboardClient 
         storeId={userRole.storeId as string}
         initialProducts={products || []}
