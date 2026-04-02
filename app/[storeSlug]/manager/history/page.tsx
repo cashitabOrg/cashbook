@@ -1,0 +1,135 @@
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireRole } from "@/lib/auth";
+import ManagerHistoryClient from "@/components/manager/ManagerHistoryClient";
+
+export const dynamic = "force-dynamic";
+
+export default async function ManagerHistoryPage({
+  params,
+}: {
+  params: { storeSlug: string };
+}) {
+  const { storeSlug } = await params;
+  const userRole = await requireRole(["manager", "admin", "super_admin"]);
+  // Use supabaseAdmin to bypass RLS — safe in a server component
+  const supabase = supabaseAdmin;
+
+  // 1. Fetch closed sessions for this specific manager
+  const { data: sessions, error: sessionsError } = await supabase
+    .from("sales_sessions")
+    .select("id, started_at, ended_at, total_revenue, status")
+    .eq("store_id", userRole.storeId)
+    .eq("manager_id", userRole.id)
+    .eq("status", "closed")
+    .order("started_at", { ascending: false });
+
+  if (sessionsError) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 text-red-700 p-4 rounded-md">
+          Failed to load history: {sessionsError.message}
+        </div>
+      </div>
+    );
+  }
+
+  // If no sessions, short circuit
+  if (!sessions || sessions.length === 0) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
+            Sales History
+          </h1>
+        </div>
+        <ManagerHistoryClient dailyGroups={[]} />
+      </div>
+    );
+  }
+
+  const sessionIds = sessions.map(s => s.id);
+
+  // 2. Fetch sale_items for those sessions
+  const { data: saleItems, error: itemsError } = await supabase
+    .from("sale_items")
+    .select("id, session_id, product_id, quantity, subtotal, products(name)")
+    .in("session_id", sessionIds);
+
+  // 3. Build structured response
+  // Group by date string YYYY-MM-DD
+  const dailyGroupsMap: Record<string, any> = {};
+
+  sessions.forEach(session => {
+    // We assume backend timezone uniformity, fallback to simple YYYY-MM-DD slicing for MVP
+    const dateStr = session.started_at.split("T")[0];
+    
+    if (!dailyGroupsMap[dateStr]) {
+      dailyGroupsMap[dateStr] = {
+        dateStr,
+        sessions: [],
+        dailyTotalRevenue: 0,
+        dailyTotalItems: 0,
+        productBreakdown: {}
+      };
+    }
+    
+    // Find items for this session
+    const sessionItemsData = (saleItems || []).filter(item => item.session_id === session.id);
+    const sessionItems = sessionItemsData.map(item => ({
+      id: item.id,
+      productId: item.product_id,
+      // @ts-ignore
+      productName: item.products?.name || "Unknown",
+      qtySold: Number(item.quantity),
+      revenue: Number(item.subtotal)
+    }));
+    
+    const itemsCount = sessionItems.reduce((acc, curr) => acc + curr.qtySold, 0);
+    
+    dailyGroupsMap[dateStr].sessions.push({
+      id: session.id,
+      startedAt: session.started_at,
+      endedAt: session.ended_at,
+      totalRevenue: Number(session.total_revenue),
+      itemsCount,
+      items: sessionItems
+    });
+    
+    // Update daily totals
+    dailyGroupsMap[dateStr].dailyTotalRevenue += Number(session.total_revenue);
+    dailyGroupsMap[dateStr].dailyTotalItems += itemsCount;
+    
+    // Update daily product breakdown
+    sessionItems.forEach(item => {
+      const pid = item.productId;
+      if (!dailyGroupsMap[dateStr].productBreakdown[pid]) {
+        dailyGroupsMap[dateStr].productBreakdown[pid] = {
+          productId: pid,
+          productName: item.productName,
+          qtySold: 0,
+          revenue: 0
+        };
+      }
+      dailyGroupsMap[dateStr].productBreakdown[pid].qtySold += item.qtySold;
+      dailyGroupsMap[dateStr].productBreakdown[pid].revenue += item.revenue;
+    });
+  });
+
+  // Convert map to sorted array (most recent date first)
+  const dailyGroupsArray = Object.values(dailyGroupsMap).sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          Sales History
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Your past closed sessions grouped by date, showing total performance and top selling items.
+        </p>
+      </div>
+
+      <ManagerHistoryClient dailyGroups={dailyGroupsArray} />
+    </div>
+  );
+}

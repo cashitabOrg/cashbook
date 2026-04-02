@@ -1,0 +1,11 @@
+=== USER PROFILES ===
+Email: taiwodeveop@gmail.com
+  Role: super_admin
+  StoreID: null
+  ID: d3e09099-6eac-4891-89c8-2b04698131d3
+-------------------
+Email: taiwoadedotunx1@gmail.com
+  Role: admin
+  StoreID: null
+  ID: 7c05260a-d31a-46db-86f9-3450d2d910ba
+-------------------
