@@ -162,25 +162,22 @@ export default function ManagerDashboardClient({
   return (
     <div className="space-y-6">
        {/* Ultra-Compact Unified Header */}
-       <div className="bg-white lg:border border-slate-200 lg:rounded-2xl px-4 lg:px-6 py-4 shadow-sm mb-2">
-         <div className="relative z-10 flex flex-row flex-wrap xl:flex-nowrap items-center justify-between gap-4">
+      <div className="bg-slate-900 lg:border border-slate-800 lg:rounded-2xl px-4 lg:px-6 py-4 shadow-2xl relative overflow-hidden mb-2">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-row flex-wrap xl:flex-nowrap items-center justify-between gap-4">
           {/* Section 1: Title & Search (Now Combined) */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-               <div className="bg-blue-600 p-1 lg:p-1.5 rounded-lg shrink-0 shadow-lg shadow-blue-500/10">
-                  <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-white" />
-               </div>
-               <h1 className="text-sm lg:text-lg font-black text-slate-900 tracking-tight leading-none whitespace-nowrap">{title}</h1>
-            </div>
+            <h1 className="text-sm lg:text-lg font-black text-white tracking-tight leading-none whitespace-nowrap shrink-0">{title}</h1>
             
-            <div className="relative flex-1 max-w-[180px] group">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 group-focus-within:text-blue-600 transition-colors" />
+            <div className="relative flex-1 max-w-[200px] group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-white transition-colors" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border-2 border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-[10px] text-slate-900 font-bold placeholder:text-slate-400 focus:border-blue-500 transition-all outline-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-[11px] text-white placeholder:text-slate-400 focus:bg-slate-700 focus:ring-1 focus:ring-blue-400 transition-all outline-none"
               />
             </div>
           </div>
@@ -189,10 +186,10 @@ export default function ManagerDashboardClient({
           <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
             {/* Range Dropdown */}
             <div className="relative shrink-0">
-               <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-blue-600 pointer-events-none" />
+               <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-400 pointer-events-none" />
                <select
                  onChange={(e) => applyPreset(e.target.value)}
-                 className="bg-white border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-xl pl-8 pr-8 py-1.5 outline-none appearance-none cursor-pointer focus:border-blue-500 transition-all shadow-sm"
+                 className="bg-slate-800 border border-slate-700 text-white text-[10px] font-bold rounded-xl pl-8 pr-8 py-1.5 outline-none appearance-none cursor-pointer focus:bg-slate-700 transition-all"
                >
                  <option value="7d">Last 7 Days</option>
                  <option value="today">Today</option>
@@ -202,20 +199,21 @@ export default function ManagerDashboardClient({
                  <option value="6m">6 Months</option>
                  <option value="1y">1 Year</option>
                </select>
-               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500 pointer-events-none" />
             </div>
 
             {/* Compact Dates */}
-            <div className="flex items-center gap-1 bg-white border-2 border-slate-200 rounded-xl px-2 py-1 shadow-sm shrink-0">
-               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-[10px] text-slate-900 font-bold outline-none w-[95px]" />
-               <span className="text-slate-300 font-bold">-</span>
-               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-[10px] text-slate-900 font-bold outline-none w-[95px]" />
+            <div className="flex items-center gap-1 bg-slate-800/80 border border-slate-700 rounded-xl px-2 py-1 shrink-0">
+               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-[10px] text-white font-bold outline-none w-[90px] [color-scheme:dark]" />
+               <span className="text-slate-600 font-bold">-</span>
+               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-[10px] text-white font-bold outline-none w-[90px] [color-scheme:dark]" />
             </div>
 
-            <button onClick={() => { applyPreset("7d"); setSearchQuery(""); }} className="p-1.5 text-slate-400 hover:text-blue-600 bg-white border-2 border-slate-100 rounded-lg transition-all shadow-sm shrink-0" title="Reset Filters">
-               <RotateCcw className="w-3.5 h-3.5" />
+            <button onClick={() => { applyPreset("7d"); setSearchQuery(""); }} className="p-1.5 text-white hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-slate-700 shrink-0" title="Reset Filters">
+               <RotateCcw className="w-3 h-3" />
             </button>
           </div>
+        </div>
       </div>
       
       <div className="px-2 lg:px-0 space-y-6">
@@ -349,7 +347,6 @@ export default function ManagerDashboardClient({
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
