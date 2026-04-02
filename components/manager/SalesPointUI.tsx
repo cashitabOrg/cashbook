@@ -116,10 +116,10 @@ export default function SalesPointUI({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-50 max-w-full mx-auto">
+    <div className="flex-1 flex flex-col h-[100dvh] bg-slate-50/50 w-full max-w-7xl mx-auto lg:px-8 lg:py-6 lg:h-auto">
       {/* Top Banner */}
       {!isOnline && (
-        <div className="flex items-center justify-center gap-2 text-amber-700 bg-amber-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter shadow-sm shrink-0">
+        <div className="flex items-center justify-center gap-2 text-amber-700 bg-amber-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter shadow-sm shrink-0 lg:rounded-b-xl lg:-mt-6 lg:mb-4">
           <WifiOff className="w-3.5 h-3.5" />
           Offline Mode — changes will sync automatically on reconnect
         </div>
@@ -142,20 +142,20 @@ export default function SalesPointUI({
         <button
           onClick={endSession}
           disabled={isEnding || rows.some(r => !r.synced)}
-          className="relative z-10 inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black text-white shadow-lg hover:bg-slate-800 transition-all active:scale-95 gap-2 uppercase tracking-widest disabled:opacity-50"
+          className="relative z-10 inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-black text-white shadow-lg hover:bg-slate-800 transition-all active:scale-95 gap-2 uppercase tracking-widest disabled:opacity-50"
         >
-          <ShoppingCart className="h-4 w-4" />
+          <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
           End Session
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden px-2 lg:px-0">
+      <div className="flex-1 overflow-visible flex flex-col mb-24 lg:mb-0 px-2 lg:px-0">
 
       {/* Sale Entry Table Container */}
-      <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 flex-1 flex flex-col overflow-hidden min-h-[400px]">
-        <div className="overflow-x-auto flex-1">
+      <div className="bg-white lg:rounded-2xl lg:shadow-xl lg:shadow-slate-200/40 lg:border border-slate-200 flex-1 flex flex-col min-h-[500px]">
+        <div className="overflow-x-auto flex-1 lg:rounded-2xl">
           <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50 sticky top-0 z-10">
+            <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
               <tr>
                 <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 w-12 text-center">#</th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 w-1/3">Product</th>
