@@ -13,8 +13,10 @@ import {
   RefreshCcw, 
   Search, 
   RotateCcw,
-  ChevronDown
+  ChevronDown,
+  Maximize2
 } from "lucide-react";
+import ExpandTableModal from "@/components/shared/ExpandTableModal";
 
 type Product = {
   id: string;
@@ -53,6 +55,8 @@ export default function AdminDashboardClient({
   subtitle: string;
 }) {
   const [products, setProducts] = useState(initialProducts);
+  const [isBestSellersOpen, setIsBestSellersOpen] = useState(false);
+  const [isStockOpen, setIsStockOpen] = useState(false);
   
   // Filtering State - Default to Last 7 Days
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
@@ -273,7 +277,16 @@ export default function AdminDashboardClient({
                 <h3 className="text-lg font-bold text-slate-900">Performance Index</h3>
                 <p className="text-sm text-slate-500">Sales breakdown for selected range.</p>
               </div>
-              <TrendingUp className="w-5 h-5 text-blue-500" />
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-500" />
+                <button
+                  onClick={() => setIsBestSellersOpen(true)}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Expand table"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-auto max-h-[400px]">
               <table className="min-w-full divide-y divide-slate-200">
@@ -308,8 +321,20 @@ export default function AdminDashboardClient({
           {/* Realtime Stock Status */}
           <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-              <h3 className="text-lg font-bold text-slate-900">Inventory Monitor</h3>
-              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-tighter">Live Status</span>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Inventory Monitor</h3>
+                <span className="text-xs font-bold text-slate-400">Live Status</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:block text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-tighter">Live</span>
+                <button
+                  onClick={() => setIsStockOpen(true)}
+                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                  title="Expand table"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-auto max-h-[400px]">
               <table className="min-w-full divide-y divide-slate-200">
@@ -359,6 +384,87 @@ export default function AdminDashboardClient({
           </div>
         </div>
       </div>
+
+      {/* Expand Modals */}
+      <ExpandTableModal
+        isOpen={isBestSellersOpen}
+        onClose={() => setIsBestSellersOpen(false)}
+        title="Performance Index"
+        subtitle="Full sales breakdown for selected date range"
+        icon={<TrendingUp className="w-4 h-4" />}
+      >
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+            <tr>
+              <th className="py-4 px-8 text-left w-12">SN</th>
+              <th className="py-4 px-8 text-left">Product Name</th>
+              <th className="py-4 px-8 text-right">Units Sold</th>
+              <th className="py-4 px-8 text-right">Revenue</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-100">
+            {metrics.topProducts.length === 0 ? (
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No sales data available.</td></tr>
+            ) : (
+              metrics.topProducts.map((p, idx) => (
+                <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
+                  <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
+                  <td className="py-4 px-8 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </ExpandTableModal>
+
+      <ExpandTableModal
+        isOpen={isStockOpen}
+        onClose={() => setIsStockOpen(false)}
+        title="Inventory Monitor"
+        subtitle="Full stock levels for all products"
+        icon={<Package className="w-4 h-4" />}
+      >
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+            <tr>
+              <th className="py-4 px-8 text-left w-12">SN</th>
+              <th className="py-4 px-8 text-left">Product</th>
+              <th className="py-4 px-8 text-right">Stock</th>
+              <th className="py-4 px-8 text-center">Health</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-100">
+            {filteredInventory.length === 0 ? (
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No products found.</td></tr>
+            ) : (
+              filteredInventory.map((p, idx) => {
+                const isLow = p.quantity < p.min_quantity;
+                return (
+                  <tr key={p.id} className={`transition-colors hover:bg-slate-50 ${isLow ? 'bg-red-50/30' : ''}`}>
+                    <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
+                    <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
+                    <td className="py-4 px-8 text-sm text-right">
+                      <span className={`font-mono font-bold ${isLow ? 'text-red-600' : 'text-slate-600'}`}>{p.quantity.toFixed(2)}</span>
+                      <span className="text-slate-400 text-[10px] ml-1 uppercase">{p.unit}</span>
+                    </td>
+                    <td className="py-4 px-8 text-center">
+                      {isLow ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold text-red-700 uppercase">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>Urgent
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold text-green-700 uppercase">Healthy</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </ExpandTableModal>
     </div>
   );
 }
