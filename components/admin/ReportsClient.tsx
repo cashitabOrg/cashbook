@@ -278,6 +278,7 @@ export default function ReportsClient({
                     data={filteredSales}
                     totalQty={totalSalesQty}
                     totalRevenue={totalSalesRevenue}
+                    performanceSummary={performanceArray}
                   />
                 }
                 fileName={`sales-report.pdf`}
