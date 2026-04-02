@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
+import { registerAdmin } from '@/app/actions/auth'
 import { Snowflake, Loader2, ArrowRight } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -18,7 +18,7 @@ export default function RegisterPage() {
     
     const formData = new FormData(e.currentTarget)
     
-    // Check confirm password
+    // Check confirm password client-side before hitting the server
     if (formData.get('password') !== formData.get('confirmPassword')) {
       setError("Passwords do not match.")
       setLoading(false)
@@ -26,32 +26,25 @@ export default function RegisterPage() {
     }
 
     try {
-      const supabase = createClient()
-      
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-        options: {
-          data: {
-            full_name: formData.get('fullName') as string,
-            username: formData.get('username') as string,
-          }
-        }
-      })
+      const result = await registerAdmin(formData)
 
-      if (authError) {
-        throw new Error(authError.message)
+      if (result?.error) {
+        setError(result.error)
+        setLoading(false)
+        return
       }
 
-      if (!authData?.user) {
-        throw new Error('Something went wrong during signup.')
+      if (result?.redirectTo) {
+        // Hard redirect to fully hydrate the application and middleware state
+        window.location.href = result.redirectTo
+        return
       }
 
-      // Hard redirect to fully hydrate the application and middleware state
-      window.location.href = '/onboarding'
+      setError("Something went wrong. Please try again.")
+      setLoading(false)
 
     } catch (err: any) {
-      setError(err?.message || "An unexpected error occurred.")
+      setError(err?.message || "An unexpected error occurred. Please try again.")
       setLoading(false)
     }
   }
