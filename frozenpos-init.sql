@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS sale_items (
     product_id UUID NOT NULL REFERENCES products(id),
     quantity NUMERIC NOT NULL,
     subtotal NUMERIC NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT unique_session_product UNIQUE(session_id, product_id)
 );
 
 -- =========================================================================

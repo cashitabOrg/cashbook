@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { db } from '@/lib/db';
+import { toast } from 'sonner';
 
 export type SaleRow = {
   localId: string; // for UI iteration
@@ -18,6 +19,38 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   const [isStarting, setIsStarting] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+
+  // 1. Initial hydration: Check for active session in localStorage & fetch items
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem(`session_${managerId}_${storeId}`);
+    if (savedSessionId) {
+      setSessionId(savedSessionId);
+      
+      // Fetch existing items for this session from Supabase
+      const fetchItems = async () => {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('sale_items')
+          .select('id, product_id, quantity, subtotal, products(name)')
+          .eq('session_id', savedSessionId);
+          
+        if (data && !error) {
+          const existingRows: SaleRow[] = data.map((item: any) => ({
+            localId: crypto.randomUUID(),
+            dbId: item.id,
+            productId: item.product_id,
+            productName: item.products?.name || 'Unknown',
+            quantitySold: Number(item.quantity),
+            subtotal: Number(item.subtotal),
+            synced: true
+          }));
+          setRows(existingRows);
+        }
+      };
+      
+      if (navigator.onLine) fetchItems();
+    }
+  }, [managerId, storeId]);
 
   // Check network status
   useEffect(() => {
@@ -40,6 +73,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     // Offline-first: generate UUID and queue
     const sessionUuid = crypto.randomUUID();
     setSessionId(sessionUuid);
+    localStorage.setItem(`session_${managerId}_${storeId}`, sessionUuid);
+
     await db.offlineQueue.add({
       store_id: storeId,
       type: 'sale_session',
@@ -77,6 +112,15 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (!sessionId || !row.productId || typeof row.subtotal !== 'number' || typeof row.quantitySold !== 'number') return;
     
     if (row.synced) return; // already committed
+
+    // 1. Validation: Check available stock in Dexie Before Committing
+    const p = await db.products.get(row.productId);
+    if (!p || p.quantity < row.quantitySold) {
+       toast.error(`Insufficient stock for ${row.productName || 'this product'}`, {
+         description: `Available: ${p?.quantity?.toFixed(2) || '0.00'} | Requested: ${row.quantitySold.toFixed(2)}`
+       });
+       return;
+    }
     
     const payload = {
       store_id: storeId,
@@ -105,7 +149,6 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     });
     
     // Locally adjust Dexie cache instantly for realtime UI feedback
-    const p = await db.products.get(row.productId);
     if (p) {
        await db.products.update(p.id, { quantity: p.quantity - row.quantitySold });
     }
@@ -154,6 +197,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     });
 
     setSessionId(null);
+    localStorage.removeItem(`session_${managerId}_${storeId}`);
     setRows([]);
     setIsEnding(false);
   };

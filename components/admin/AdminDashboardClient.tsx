@@ -295,7 +295,7 @@ export default function AdminDashboardClient({
                     <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
                       <td className="py-4 px-6 text-sm font-bold text-slate-900">{p.name}</td>
-                      <td className="py-4 px-6 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold}</td>
+                      <td className="py-4 px-6 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
                       <td className="py-4 px-6 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
                     </tr>
                   ))
@@ -334,7 +334,7 @@ export default function AdminDashboardClient({
                         <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
                         <td className="py-4 px-6 text-sm font-bold text-slate-900">{p.name}</td>
                         <td className="py-4 px-6 text-sm text-right">
-                          <span className={`font-mono font-bold ${isLow ? 'text-red-600' : 'text-slate-600'}`}>{p.quantity}</span>
+                          <span className={`font-mono font-bold ${isLow ? 'text-red-600' : 'text-slate-600'}`}>{p.quantity.toFixed(2)}</span>
                           <span className="text-slate-400 text-[10px] ml-1 uppercase">{p.unit}</span>
                         </td>
                         <td className="py-4 px-6 text-center">

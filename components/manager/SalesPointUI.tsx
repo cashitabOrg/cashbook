@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
-import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag } from "lucide-react";
+import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
 import { useRealtimeStock } from "@/hooks/useRealtimeStock";
+import EditSaleModal from "../admin/EditSaleModal";
 
 export default function SalesPointUI({
   storeSlug,
@@ -110,7 +111,7 @@ export default function SalesPointUI({
         <div className="flex gap-8">
           <div>
             <p className="text-sm font-medium text-slate-500">Total Items</p>
-            <p className="text-2xl font-bold text-slate-900">{totalItems}</p>
+            <p className="text-2xl font-bold text-slate-900">{totalItems.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-slate-500">Session Revenue</p>
@@ -163,7 +164,7 @@ export default function SalesPointUI({
                         <option value="">Select a product...</option>
                         {products.map(p => (
                           <option key={p.id} value={p.id} disabled={p.quantity <= 0}>
-                            {p.name} ({p.quantity} {p.unit} left)
+                            {p.name} ({p.quantity.toFixed(2)} {p.unit} left)
                           </option>
                         ))}
                       </select>
@@ -173,8 +174,9 @@ export default function SalesPointUI({
                         <input
                           type="number"
                           disabled={row.synced || !row.productId}
-                          min="0.1"
-                          step="0.1"
+                          min="0.01"
+                          max={selectedProduct ? selectedProduct.quantity : undefined}
+                          step="0.01"
                           value={row.quantitySold}
                           onChange={(e) => updateRow(row.localId, "quantitySold", parseFloat(e.target.value) || '')}
                           onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
@@ -204,8 +206,17 @@ export default function SalesPointUI({
                     </td>
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                       {row.synced ? (
-                        <div className="flex items-center justify-end text-emerald-600 gap-1 pr-2">
-                           <CheckCircle2 className="w-5 h-5" />
+                        <div className="flex items-center justify-end gap-2 pr-2">
+                           {row.dbId ? (
+                             <EditSaleModal 
+                                itemId={row.dbId} 
+                                initialQty={Number(row.quantitySold)} 
+                                initialRevenue={Number(row.subtotal)} 
+                                productName={selectedProduct?.name || "Product"} 
+                             />
+                           ) : (
+                             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                           )}
                            <span className="sr-only">Saved</span>
                         </div>
                       ) : (

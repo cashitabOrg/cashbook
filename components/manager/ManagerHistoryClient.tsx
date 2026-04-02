@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { ChevronDown, ChevronUp, Calendar, ShoppingCart, DollarSign, Award } from "lucide-react";
-import EditSaleModal from "../admin/EditSaleModal";
 
 type ItemDetail = {
   id?: string;
@@ -101,7 +100,7 @@ export default function ManagerHistoryClient({
                   </div>
                   <div className="hidden sm:block text-right">
                     <p className="text-sm font-medium text-slate-500">Items Sold</p>
-                    <p className="text-lg font-bold text-slate-900">{Math.round(group.dailyTotalItems * 100) / 100}</p>
+                    <p className="text-lg font-bold text-slate-900">{group.dailyTotalItems.toFixed(2)}</p>
                   </div>
                   <div className="text-slate-400">
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -120,7 +119,7 @@ export default function ManagerHistoryClient({
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-slate-500">Items Sold</p>
-                      <p className="font-bold text-slate-900">{Math.round(group.dailyTotalItems * 100) / 100}</p>
+                      <p className="font-bold text-slate-900">{group.dailyTotalItems.toFixed(2)}</p>
                     </div>
                   </div>
 
@@ -136,7 +135,7 @@ export default function ManagerHistoryClient({
                                 {item.productName}
                               </p>
                               <div className="flex justify-between items-center gap-4 mt-2">
-                                <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{Math.round(item.qtySold * 100) / 100} qty</span>
+                                <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.qtySold.toFixed(2)} qty</span>
                                 <span className="text-[10px] font-black text-emerald-600">₦{item.revenue.toFixed(2)}</span>
                               </div>
                            </div>
@@ -171,10 +170,10 @@ export default function ManagerHistoryClient({
                                 <td className="py-3 px-4 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
                                 <td className="py-3 px-4 text-xs text-slate-500 font-medium">{entry.time}</td>
                                 <td className="py-3 px-4 text-xs font-bold text-slate-900">{entry.productName}</td>
-                                <td className="py-3 px-4 text-xs text-slate-600 text-right font-mono">{Math.round(entry.qty * 100) / 100}</td>
+                                <td className="py-3 px-4 text-xs text-slate-600 text-right font-mono">{entry.qty.toFixed(2)}</td>
                                 <td className="py-3 px-4 text-xs font-black text-emerald-600 text-right">₦{entry.revenue.toFixed(2)}</td>
                                 <td className="py-3 px-4 text-right">
-                                   <EditSaleModal itemId={entry.id} initialQty={entry.qty} initialRevenue={entry.revenue} productName={entry.productName} />
+                                   {/* Edits restricted to open session in POS */}
                                 </td>
                               </tr>
                             ))}

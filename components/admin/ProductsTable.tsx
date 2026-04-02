@@ -128,7 +128,7 @@ export default function ProductsTable({
                             {product.name}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-slate-500">
-                            {product.quantity}
+                            {Number(product.quantity || 0).toFixed(2)}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                             {product.unit}

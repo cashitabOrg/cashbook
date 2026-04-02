@@ -5,7 +5,6 @@ import { format, subDays, subMonths, subYears, startOfYesterday, endOfYesterday 
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import SalesReportPDF from "./SalesReportPDF";
 import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award } from "lucide-react";
-import EditSaleModal from "./EditSaleModal";
 
 type SaleRecord = {
   id: string;
@@ -263,7 +262,7 @@ export default function ReportsClient({
                             {item.name}
                           </p>
                           <div className="flex justify-between items-center gap-4 mt-2">
-                            <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{Math.round(item.qty * 100) / 100} qty</span>
+                            <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.qty.toFixed(2)} qty</span>
                             <span className="text-[10px] font-black text-emerald-600">₦{item.revenue.toFixed(2)}</span>
                           </div>
                         </div>
@@ -296,10 +295,10 @@ export default function ReportsClient({
                       <td className="py-4 px-6 text-xs text-slate-500 font-medium">{sale.dateStr}</td>
                       <td className="py-4 px-6 text-xs font-bold text-slate-900">{sale.managerName}</td>
                       <td className="py-4 px-6 text-xs font-bold text-slate-900">{sale.productName}</td>
-                      <td className="py-4 px-6 text-xs text-slate-600 text-right font-mono">{Math.round(sale.qty * 100) / 100}</td>
+                      <td className="py-4 px-6 text-xs text-slate-600 text-right font-mono">{sale.qty.toFixed(2)}</td>
                       <td className="py-4 px-6 text-xs text-emerald-600 font-black text-right">₦{sale.revenue.toFixed(2)}</td>
                       <td className="py-4 px-6 text-right">
-                         <EditSaleModal itemId={sale.id} initialQty={sale.qty} initialRevenue={sale.revenue} productName={sale.productName} />
+                         {/* Edit functionality restricted to Sales Point open sessions */}
                       </td>
                     </tr>
                   ))
@@ -311,7 +310,7 @@ export default function ReportsClient({
               <div className="bg-slate-900 p-6 mt-auto flex justify-between items-center text-white rounded-t-3xl shadow-2xl">
                 <div>
                   <span className="text-[10px] font-black opacity-50 uppercase tracking-widest block">Report Volume</span>
-                  <span className="text-xl font-black">{Math.round(totalSalesQty * 100) / 100} Items</span>
+                  <span className="text-xl font-black">{totalSalesQty.toFixed(2)} Items</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] font-black opacity-50 uppercase tracking-widest block">Total Revenue</span>
@@ -342,7 +341,7 @@ export default function ReportsClient({
                     <td className="py-4 px-6 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
                     <td className="py-4 px-6 text-xs text-slate-500 font-medium">{stock.dateStr}</td>
                     <td className="py-4 px-6 text-xs font-bold text-slate-900">{stock.productName}</td>
-                    <td className="py-4 px-6 text-xs text-emerald-600 font-black text-right">+{stock.qtyAdded}</td>
+                    <td className="py-4 px-6 text-xs text-emerald-600 font-black text-right">+{stock.qtyAdded.toFixed(2)}</td>
                     <td className="py-4 px-6 text-xs font-bold text-slate-500 pl-12">{stock.addedBy}</td>
                     <td className="py-4 px-6 text-xs text-slate-400 italic max-w-xs truncate">{stock.note || "—"}</td>
                   </tr>
