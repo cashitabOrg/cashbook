@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function ReportsPage({
   params,
 }: {
-  params: { storeSlug: string };
+  params: Promise<{ storeSlug: string }>;
 }) {
   const { storeSlug } = await params;
   const userRole = await requireRole(["admin", "super_admin"]);

@@ -11,7 +11,7 @@ export default async function ManagerLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { storeSlug: string };
+  params: Promise<{ storeSlug: string }>;
 }) {
   const { storeSlug } = await params;
   const userRole = await requireRole(["manager", "admin", "super_admin"]);

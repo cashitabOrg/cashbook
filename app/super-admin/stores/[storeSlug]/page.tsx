@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function SuperAdminStoreInspection({
   params,
 }: {
-  params: { storeSlug: string };
+  params: Promise<{ storeSlug: string }>;
 }) {
   const { storeSlug } = await params;
   await requireRole(["super_admin"]);

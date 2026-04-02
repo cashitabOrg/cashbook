@@ -1,5 +1,7 @@
 import { signOut } from "@/app/actions/auth";
 import { LayoutDashboard, Store, Users, CreditCard, LogOut, ShieldAlert } from "lucide-react";
+import { requireRole } from "@/lib/auth";
+import Link from "next/link";
 
 export default async function SuperAdminLayout({
   children,
