@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
-import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart } from "lucide-react";
+import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart, Trash2 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
 import { useRealtimeStock } from "@/hooks/useRealtimeStock";
@@ -65,6 +65,7 @@ export default function SalesPointUI({
     updateRow,
     commitRow,
     removeRow,
+    uncommitRow,
     endSession,
     refreshSession
   } = useSalesSession(storeSlug, storeId, managerId);
@@ -241,7 +242,22 @@ export default function SalesPointUI({
                                 onSuccess={refreshSession}
                              />
                            ) : (
-                             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                             <div className="flex items-center gap-1">
+                               <button
+                                 onClick={() => uncommitRow(row.localId)}
+                                 className="text-amber-500 hover:text-amber-700 bg-amber-50 p-1.5 rounded transition-colors"
+                                 title="Edit recent sale"
+                               >
+                                 <Pencil className="w-5 h-5" />
+                               </button>
+                               <button
+                                 onClick={() => removeRow(row.localId)}
+                                 className="text-rose-500 hover:text-rose-700 bg-rose-50 p-1.5 rounded transition-colors"
+                                 title="Delete recent sale"
+                               >
+                                 <Trash2 className="w-5 h-5" />
+                               </button>
+                             </div>
                            )}
                            <span className="sr-only">Saved</span>
                         </div>

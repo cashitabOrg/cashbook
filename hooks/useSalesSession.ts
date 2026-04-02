@@ -190,6 +190,31 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     setRows(prev => prev.filter(r => r.localId !== localId));
   };
 
+  const uncommitRow = async (localId: string) => {
+    const row = rows.find(r => r.localId === localId);
+    if (!row || !row.synced || !row.productId || typeof row.quantitySold !== 'number') return;
+
+    // Remove the sale item from the queue safely if it matches our localId
+    await db.offlineQueue.where('payload.local_row_id').equals(localId).delete();
+
+    // Refund the stock locally
+    const p = await db.products.get(row.productId);
+    if (p) {
+        await db.products.update(p.id, { quantity: p.quantity + row.quantitySold });
+    }
+
+    // Queue a positive increment globally in case the decrement already fired
+    await db.offlineQueue.add({
+      store_id: storeId,
+      type: 'stock_decrement',
+      payload: { product_id: row.productId, quantity: -row.quantitySold },
+      created_at: Date.now(),
+      status: 'pending'
+    });
+
+    setRows(prev => prev.map(r => r.localId === localId ? { ...r, synced: false, dbId: undefined } : r));
+  };
+
   const endSession = async () => {
     if (!sessionId) return;
     setIsEnding(true);
@@ -222,6 +247,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     updateRow,
     commitRow,
     removeRow,
+    uncommitRow,
     endSession,
     refreshSession
   };
