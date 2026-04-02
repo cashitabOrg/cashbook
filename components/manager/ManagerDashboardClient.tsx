@@ -262,7 +262,7 @@ export default function ManagerDashboardClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20 lg:pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 lg:pb-0">
           {/* Products by Sales */}
           <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
