@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
-import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil } from "lucide-react";
+import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
 import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 import EditSaleModal from "../admin/EditSaleModal";
+import ProductPickerModal from "./ProductPickerModal";
 
 export default function SalesPointUI({
   storeSlug,
@@ -21,6 +22,9 @@ export default function SalesPointUI({
 }) {
   // 1. Listen to realtime changes from Supabase (mutates Dexie)
   useRealtimeStock(storeId);
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [activeRowId, setActiveRowId] = useState<string | null>(null);
 
   // 2. Hydrate Dexie cache initially if online
   useEffect(() => {
@@ -39,16 +43,16 @@ export default function SalesPointUI({
     }
   }, [initialProducts, storeId]);
 
-  // 3. Reactively read products from Dexie
+  // 3. Reactively read products from Dexie and sort A-Z
   const liveProducts = useLiveQuery(
     () => db.products.where('store_id').equals(storeId).toArray(),
     [storeId]
   );
 
-  const products = liveProducts || initialProducts || [];
+  const rawProducts = liveProducts || initialProducts || [];
+  const products = [...rawProducts].sort((a, b) => a.name.localeCompare(b.name));
 
   const {
-
     isOnline,
     sessionId,
     isStarting,
@@ -62,7 +66,22 @@ export default function SalesPointUI({
     commitRow,
     removeRow,
     endSession,
+    refreshSession
   } = useSalesSession(storeSlug, storeId, managerId);
+
+  const handleOpenPicker = (rowId: string) => {
+    setActiveRowId(rowId);
+    setPickerOpen(true);
+  };
+
+  const handleSelectProduct = (product: LocalProduct) => {
+    if (activeRowId) {
+      updateRow(activeRowId, "productId", product.id);
+      updateRow(activeRowId, "productName", product.name);
+    }
+    setPickerOpen(false);
+    setActiveRowId(null);
+  };
 
   // A simple product search capability within the dropdown could be built natively 
   // with a datalist or custom combobox. For simplicity we use a select, but real 
@@ -97,38 +116,43 @@ export default function SalesPointUI({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="flex-1 flex flex-col h-full bg-gray-50 max-w-full mx-auto">
       {/* Top Banner */}
       {!isOnline && (
-        <div className="mb-4 flex items-center justify-center gap-2 text-amber-700 bg-amber-100 px-4 py-2 text-sm font-semibold rounded-md border border-amber-200 shadow-sm">
-          <WifiOff className="w-4 h-4" />
-          Offline Mode — changes will queue locally and sync automatically on reconnect
+        <div className="flex items-center justify-center gap-2 text-amber-700 bg-amber-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter shadow-sm shrink-0">
+          <WifiOff className="w-3.5 h-3.5" />
+          Offline Mode — changes will sync automatically on reconnect
         </div>
       )}
 
       {/* Summary Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6 flex flex-wrap gap-4 justify-between items-center isolate">
-        <div className="flex gap-8">
+      <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 p-4 lg:p-6 mb-2 lg:mb-6 flex flex-wrap gap-4 justify-between items-center isolate relative overflow-hidden shrink-0 border-b border-slate-100">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex gap-4 lg:gap-8">
           <div>
-            <p className="text-sm font-medium text-slate-500">Total Items</p>
-            <p className="text-2xl font-bold text-slate-900">{totalItems.toFixed(2)}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Items</p>
+            <p className="text-xl lg:text-2xl font-black text-slate-900 leading-none">{totalItems.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Session Revenue</p>
-            <p className="text-2xl font-bold text-emerald-600">₦{totalRevenue.toFixed(2)}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session Revenue</p>
+            <p className="text-xl lg:text-2xl font-black text-emerald-600 leading-none">₦{totalRevenue.toFixed(2)}</p>
           </div>
         </div>
+        
         <button
           onClick={endSession}
           disabled={isEnding || rows.some(r => !r.synced)}
-          className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg font-semibold shadow transition-colors disabled:opacity-50 flex items-center gap-2"
+          className="relative z-10 inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black text-white shadow-lg hover:bg-slate-800 transition-all active:scale-95 gap-2 uppercase tracking-widest disabled:opacity-50"
         >
+          <ShoppingCart className="h-4 w-4" />
           End Session
         </button>
       </div>
 
+      <div className="flex-1 overflow-hidden px-2 lg:px-0">
+
       {/* Sale Entry Table Container */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden min-h-[400px]">
+      <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 flex-1 flex flex-col overflow-hidden min-h-[400px]">
         <div className="overflow-x-auto flex-1">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50 sticky top-0 z-10">
@@ -152,22 +176,23 @@ export default function SalesPointUI({
                       {index + 1}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900">
-                      <select
-                        disabled={row.synced}
-                        value={row.productId}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          updateRow(row.localId, "productId", val);
-                        }}
-                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:opacity-50 disabled:bg-slate-50"
-                      >
-                        <option value="">Select a product...</option>
-                        {products.map(p => (
-                          <option key={p.id} value={p.id} disabled={p.quantity <= 0}>
-                            {p.name} ({p.quantity.toFixed(2)} {p.unit} left)
-                          </option>
-                        ))}
-                      </select>
+                      {row.synced ? (
+                        <div className="flex items-center gap-2">
+                           <span className="font-bold text-slate-900">{row.productName}</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenPicker(row.localId)}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg border-2 transition-all flex items-center justify-between group ${
+                            row.productId ? "bg-white border-blue-100 text-slate-900 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-500 hover:border-blue-300"
+                          }`}
+                        >
+                          <span className={`${row.productId ? "font-bold" : "font-medium"}`}>
+                            {row.productName || "Choose product..."}
+                          </span>
+                          <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500" />
+                        </button>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -213,6 +238,7 @@ export default function SalesPointUI({
                                 initialQty={Number(row.quantitySold)} 
                                 initialRevenue={Number(row.subtotal)} 
                                 productName={selectedProduct?.name || "Product"} 
+                                onSuccess={refreshSession}
                              />
                            ) : (
                              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -247,6 +273,14 @@ export default function SalesPointUI({
             </tbody>
           </table>
         </div>
+      </div>
+
+      <ProductPickerModal 
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleSelectProduct}
+        products={products}
+      />
       </div>
     </div>
   );

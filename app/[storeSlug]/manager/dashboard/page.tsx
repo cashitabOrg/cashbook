@@ -41,14 +41,20 @@ export default async function ManagerDashboardPage({
     `)
     .eq("store_id", userRole.storeId);
   if (itemsErr) console.error('[ManagerDashboard] sale_items error:', itemsErr.message);
+  
+  // Normalize data for the client component
+  const normalizedSaleItems = (rawSaleItems || []).map((item: any) => ({
+    ...item,
+    products: Array.isArray(item.products) ? item.products[0] : item.products
+  }));
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="lg:p-8 max-w-full mx-auto pb-24">
       <ManagerDashboardClient 
         storeId={userRole.storeId as string}
         initialProducts={products || []}
         rawSessions={rawSessions || []}
-        rawSaleItems={rawSaleItems || []}
+        rawSaleItems={normalizedSaleItems as any}
         title="Manager Dashboard"
         subtitle="Overview of today's performance, inventory health, and top selling products."
       />

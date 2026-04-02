@@ -49,7 +49,7 @@ export default function ManagerHistoryClient({
   return (
     <div className="space-y-6">
       {dailyGroups.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="text-center py-12 bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200">
           <Calendar className="mx-auto h-12 w-12 text-slate-300 mb-3" />
           <h3 className="text-sm font-medium text-slate-900">No Sales History</h3>
           <p className="mt-1 text-sm text-slate-500">Sales sessions will appear here once completed.</p>
@@ -75,11 +75,11 @@ export default function ManagerHistoryClient({
           ).sort((a, b) => b.time.localeCompare(a.time));
 
           return (
-            <div key={group.dateStr} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-200">
+            <div key={group.dateStr} className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 overflow-hidden transition-all duration-200">
               {/* Header Toggle */}
               <button
                 onClick={() => toggleDate(group.dateStr)}
-                className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-blue-100/60 transition-colors focus:outline-none group"
+                className="w-full px-4 lg:px-6 py-4 flex items-center justify-between bg-white hover:bg-blue-100/60 transition-colors focus:outline-none group"
               >
                 <div className="flex items-center gap-4">
                   <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">

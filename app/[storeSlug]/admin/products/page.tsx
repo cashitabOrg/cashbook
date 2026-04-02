@@ -31,7 +31,7 @@ export default async function AdminProductsPage({
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="lg:p-8 max-w-full mx-auto">
       <ProductsTable storeSlug={storeSlug} products={products || []} />
     </div>
   );

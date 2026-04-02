@@ -10,9 +10,10 @@ interface EditSaleModalProps {
   initialQty: number;
   initialRevenue: number;
   productName: string;
+  onSuccess?: () => void;
 }
 
-export default function EditSaleModal({ itemId, initialQty, initialRevenue, productName }: EditSaleModalProps) {
+export default function EditSaleModal({ itemId, initialQty, initialRevenue, productName, onSuccess }: EditSaleModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [qty, setQty] = useState(initialQty);
@@ -35,6 +36,7 @@ export default function EditSaleModal({ itemId, initialQty, initialRevenue, prod
     } else {
       toast.success('Sale record updated successfully. Inventory reconciled.');
       setIsOpen(false);
+      onSuccess?.();
     }
   };
 
@@ -50,6 +52,7 @@ export default function EditSaleModal({ itemId, initialQty, initialRevenue, prod
        toast.success('Sale deleted perfectly. Stock refunded seamlessly.');
        setConfirmDelete(false);
        setIsOpen(false);
+       onSuccess?.();
     }
   };
 

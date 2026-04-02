@@ -20,37 +20,44 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   const [isEnding, setIsEnding] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
-  // 1. Initial hydration: Check for active session in localStorage & fetch items
+  // 1. Fetching logic refactored for re-use
+  const refreshSession = useCallback(async () => {
+    if (!sessionId) return;
+    
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('sale_items')
+      .select('id, product_id, quantity, subtotal, products(name)')
+      .eq('session_id', sessionId);
+      
+    if (data && !error) {
+      const existingRows: SaleRow[] = data.map((item: any) => ({
+        localId: crypto.randomUUID(),
+        dbId: item.id,
+        productId: item.product_id,
+        productName: item.products?.name || 'Unknown',
+        quantitySold: Number(item.quantity),
+        subtotal: Number(item.subtotal),
+        synced: true
+      }));
+      setRows(existingRows);
+    }
+  }, [sessionId]);
+
+  // Initial hydration: Check for active session in localStorage & fetch items
   useEffect(() => {
     const savedSessionId = localStorage.getItem(`session_${managerId}_${storeId}`);
     if (savedSessionId) {
       setSessionId(savedSessionId);
-      
-      // Fetch existing items for this session from Supabase
-      const fetchItems = async () => {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('sale_items')
-          .select('id, product_id, quantity, subtotal, products(name)')
-          .eq('session_id', savedSessionId);
-          
-        if (data && !error) {
-          const existingRows: SaleRow[] = data.map((item: any) => ({
-            localId: crypto.randomUUID(),
-            dbId: item.id,
-            productId: item.product_id,
-            productName: item.products?.name || 'Unknown',
-            quantitySold: Number(item.quantity),
-            subtotal: Number(item.subtotal),
-            synced: true
-          }));
-          setRows(existingRows);
-        }
-      };
-      
-      if (navigator.onLine) fetchItems();
     }
   }, [managerId, storeId]);
+
+  // Handle re-fetch when session ID becomes available 
+  useEffect(() => {
+    if (sessionId && navigator.onLine) {
+      refreshSession();
+    }
+  }, [sessionId, refreshSession]);
 
   // Check network status
   useEffect(() => {
@@ -215,6 +222,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     updateRow,
     commitRow,
     removeRow,
-    endSession
+    endSession,
+    refreshSession
   };
 }

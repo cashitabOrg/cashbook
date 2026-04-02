@@ -47,8 +47,8 @@ export default async function ReportsPage({
   }
 
   const salesData = (salesRaw || []).map((sale) => {
-    // @ts-ignore
-    const session = sale.sales_sessions;
+    const sessionRaw = sale.sales_sessions;
+    const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
     const timestamp = session?.started_at || new Date().toISOString();
     return {
       id: sale.id,
@@ -99,16 +99,7 @@ export default async function ReportsPage({
   });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
-      <div className="mb-6 shrink-0">
-        <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-          Store Reports
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Analyze your sales performance and track inventory replenishments. Export to PDF for offline records.
-        </p>
-      </div>
-
+    <div className="lg:p-8 max-w-full mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
       <div className="flex-1 min-h-0">
         <ReportsClient
           storeName={store?.name || "Store"}

@@ -64,55 +64,56 @@ export default function ProductsTable({
 
   return (
     <>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Products & Inventory
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            A list of all products in your store including their current stock and unit of measurement.
-          </p>
+      <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 px-4 lg:px-6 py-4 flex items-center justify-between mb-6 shadow-sm border-b border-slate-100">
+        <div className="flex items-center gap-4">
+          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
+            <Archive className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">Products</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Inventory Management</p>
+          </div>
         </div>
-        <div className="mt-4 sm:ml-4 sm:mt-0">
-          <button
-            type="button"
-            onClick={handleAddNew}
-            className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors"
-          >
-            <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-            Add Product
-          </button>
-        </div>
+        
+        <button
+          type="button"
+          onClick={handleAddNew}
+          className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black text-white shadow-lg hover:bg-slate-800 transition-all active:scale-95 gap-2 uppercase tracking-widest"
+        >
+          <Plus className="h-4 w-4" />
+          Add Product
+        </button>
       </div>
 
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table className="min-w-full divide-y divide-slate-300">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">
-                      Name
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                      Stock Level
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                      Unit
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                      Status
-                    </th>
-                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-sm font-semibold text-slate-900">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
-                  {products.length === 0 ? (
+      <div className="px-2 lg:px-0">
+        <div className="mt-8 flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <table className="min-w-full divide-y divide-slate-300">
+                  <thead className="bg-slate-50">
                     <tr>
-                      <td colSpan={5} className="py-12 text-center">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">
+                        Name
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
+                        Stock Level
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
+                        Unit
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
+                        Status
+                      </th>
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-sm font-semibold text-slate-900">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {products.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center">
                         <Archive className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                         <h3 className="text-sm font-medium text-slate-900">No products</h3>
                         <p className="mt-1 text-sm text-slate-500">Get started by adding your first product.</p>
@@ -182,6 +183,7 @@ export default function ProductsTable({
               </table>
             </div>
           </div>
+        </div>
         </div>
       </div>
 

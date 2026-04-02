@@ -132,8 +132,10 @@ export async function loginUser(formData: FormData) {
   return { redirectTo }
 }
 
-export async function signOut() {
+import { redirect } from 'next/navigation'
+
+export async function signOut(formData?: FormData) {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  return { redirectTo: '/login' }
+  redirect('/login')
 }

@@ -41,14 +41,20 @@ export default async function AdminDashboardPage({
     `)
     .eq("store_id", userRole.storeId);
   if (itemsErr) console.error('[AdminDashboard] sale_items error:', itemsErr.message);
+  
+  // Normalize the data for the client component
+  const normalizedSaleItems = (rawSaleItems || []).map((item: any) => ({
+    ...item,
+    products: Array.isArray(item.products) ? item.products[0] : item.products
+  }));
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="lg:p-8 max-w-full mx-auto pb-24">
       <AdminDashboardClient 
         storeId={userRole.storeId as string}
         initialProducts={products || []}
         rawSessions={rawSessions || []}
-        rawSaleItems={rawSaleItems || []}
+        rawSaleItems={normalizedSaleItems as any}
         title="Store Performance Hub"
         subtitle="A real-time overview of your lifetime revenue, inventory health, and core business metrics."
       />

@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 import ManagerHistoryClient from "@/components/manager/ManagerHistoryClient";
+import { History } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export default async function ManagerHistoryPage({
   // If no sessions, short circuit
   if (!sessions || sessions.length === 0) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="lg:p-8 max-w-full mx-auto pb-24 px-4 lg:px-0">
         <div className="mb-8">
           <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
             Sales History
@@ -119,17 +120,23 @@ export default async function ManagerHistoryPage({
   const dailyGroupsArray = Object.values(dailyGroupsMap).sort((a, b) => b.dateStr.localeCompare(a.dateStr));
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-          Sales History
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Your past closed sessions grouped by date, showing total performance and top selling items.
-        </p>
+    <div className="max-w-full mx-auto pb-24">
+      <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 px-4 lg:px-6 py-4 flex items-center justify-between mb-2 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
+            <History className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-sm lg:text-xl font-black text-slate-900 tracking-tight leading-none">History</h1>
+            <p className="text-[8px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Past Sales Sessions</p>
+          </div>
+        </div>
       </div>
 
-      <ManagerHistoryClient dailyGroups={dailyGroupsArray} />
+      <div className="px-2 lg:px-0">
+        <ManagerHistoryClient dailyGroups={dailyGroupsArray} />
+      </div>
     </div>
   );
 }

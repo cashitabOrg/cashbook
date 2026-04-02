@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, subDays, subMonths, subYears, startOfYesterday, endOfYesterday } from "date-fns";
+import { format, subDays, subMonths, subYears, parseISO } from "date-fns";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import SalesReportPDF from "./SalesReportPDF";
-import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award } from "lucide-react";
+import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award, ChevronDown, ChevronUp, ChevronRight, TrendingUp, Package } from "lucide-react";
 
 type SaleRecord = {
   id: string;
@@ -48,6 +48,7 @@ export default function ReportsClient({
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [searchQuery, setSearchQuery] = useState("");
   const [managerFilter, setManagerFilter] = useState("");
+  const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
   const applyPreset = (range: string) => {
     const today = new Date();
@@ -112,11 +113,52 @@ export default function ReportsClient({
     filterByRobustness(item, "timestamp", ["productName", "addedBy", "note"])
   ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+  // Grouping Logic
+  const groupSalesByDate = () => {
+    const groups: Record<string, { items: SaleRecord[], revenue: number, qty: number }> = {};
+    filteredSales.forEach(s => {
+      // Use YYYY-MM-DD from timestamp as the group key for reliable parseISO later
+      const dayKey = s.timestamp.split('T')[0];
+      if (!groups[dayKey]) groups[dayKey] = { items: [], revenue: 0, qty: 0 };
+      groups[dayKey].items.push(s);
+      groups[dayKey].revenue += s.revenue;
+      groups[dayKey].qty += s.qty;
+    });
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  };
+
+  const groupStockByDate = () => {
+    const groups: Record<string, { items: StockInRecord[], totalAdded: number }> = {};
+    filteredStock.forEach(s => {
+      const dayKey = s.timestamp.split('T')[0];
+      if (!groups[dayKey]) groups[dayKey] = { items: [], totalAdded: 0 };
+      groups[dayKey].items.push(s);
+      groups[dayKey].totalAdded += s.qtyAdded;
+    });
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  };
+
+  const groupedSales = groupSalesByDate();
+  const groupedStock = groupStockByDate();
+
+  // Auto-expand latest date when data changes
+  useEffect(() => {
+    if (activeTab === "sales" && groupedSales.length > 0) {
+      setExpandedDates(prev => ({ ...prev, [groupedSales[0][0]]: true }));
+    } else if (activeTab === "stock" && groupedStock.length > 0) {
+      setExpandedDates(prev => ({ ...prev, [groupedStock[0][0]]: true }));
+    }
+  }, [activeTab, filteredSales.length, filteredStock.length]);
+
+  const toggleDate = (dateStr: string) => {
+    setExpandedDates(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
+  };
+
   const managers = Array.from(new Set(salesData.map(s => s.managerName))).filter(Boolean).sort();
   const totalSalesRevenue = filteredSales.reduce((sum, item) => sum + item.revenue, 0);
   const totalSalesQty = filteredSales.reduce((sum, item) => sum + item.qty, 0);
   
-  // Create Performance Summary for the filtered sales
+  // Performance Summary
   const performanceMap: Record<string, { qty: number, revenue: number }> = {};
   filteredSales.forEach(sale => {
     if (!performanceMap[sale.productName]) {
@@ -131,226 +173,342 @@ export default function ReportsClient({
   })).sort((a, b) => b.revenue - a.revenue);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[600px]">
-      {/* Header Controls */}
-      <div className="border-b border-slate-200 px-6 py-5 flex flex-col gap-5 bg-slate-50/30">
-        <div className="flex flex-col lg:flex-row justify-between gap-4 items-start lg:items-center">
-          {/* Top Left: Search & Tabs */}
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+    <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[calc(100dvh-56px)] md:h-full min-h-[500px]">
+      {/* Ultra-Compact Unified Header (Dashboard Style) */}
+      <div className="bg-slate-900 border-b border-slate-800 px-4 lg:px-6 py-4 shadow-2xl relative overflow-hidden shrink-0">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-4">
+          {/* Section 1: Title & Search & Tabs (Now Combined) */}
+          <div className="flex items-center gap-2 lg:gap-6 w-full xl:w-auto overflow-x-auto scrollbar-hide pb-1 xl:pb-0">
+            <h1 className="text-sm lg:text-lg font-black text-white tracking-tight leading-none shrink-0 whitespace-nowrap">Reports</h1>
+            
+            <div className="relative flex-1 min-w-[120px] max-w-[180px] group">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search report..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-[10px] text-white placeholder:text-slate-500 focus:bg-slate-700 focus:ring-1 focus:ring-blue-500/50 transition-all outline-none"
               />
             </div>
-            <div className="flex bg-slate-200/50 p-1 rounded-xl">
+
+            <div className="flex bg-slate-800/50 p-1 rounded-xl border border-slate-700 shrink-0">
               <button
                 onClick={() => setActiveTab("sales")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
-                  activeTab === "sales" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg flex items-center gap-1.5 transition-all ${
+                  activeTab === "sales" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <FileText className="w-3.5 h-3.5" />
+                <FileText className="w-3 h-3" />
                 Sales
               </button>
               <button
                 onClick={() => setActiveTab("stock")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
-                  activeTab === "stock" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg flex items-center gap-1.5 transition-all ${
+                  activeTab === "stock" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <PackagePlus className="w-3.5 h-3.5" />
+                <PackagePlus className="w-3 h-3" />
                 Inventory
               </button>
             </div>
           </div>
 
-          {/* Export Action */}
-          {activeTab === "sales" && isClient && (
-            <PDFDownloadLink
-              document={
-                <SalesReportPDF
-                  storeName={storeName}
-                  period={`${startDate} to ${endDate}`}
-                  data={filteredSales}
-                  totalQty={totalSalesQty}
-                  totalRevenue={totalSalesRevenue}
-                />
-              }
-              fileName={`sales-report.pdf`}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95"
-            >
-              {/* @ts-ignore */}
-              {({ loading }) => (
-                <>
-                  <Download className="w-4 h-4" />
-                  {loading ? "Generating..." : "Export PDF"}
-                </>
-              )}
-            </PDFDownloadLink>
-          )}
-
-          {activeTab === "sales" && !isClient && (
-            <button disabled className="flex items-center gap-2 bg-slate-200 text-slate-400 px-5 py-2.5 rounded-xl text-xs font-black cursor-not-allowed">
-              <Download className="w-4 h-4" />
-              Initializing...
-            </button>
-          )}
-        </div>
-
-        {/* Quick Filters Row */}
-        <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-end justify-between">
-          <div className="space-y-2 w-full xl:w-auto">
-             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quick Presets</label>
-             <div className="flex flex-wrap gap-2">
-                {["today", "yesterday", "7d", "1m", "3m", "6m", "1y"].map(range => (
-                  <button
-                    key={range}
-                    onClick={() => applyPreset(range)}
-                    className="px-3 py-1.5 text-[10px] font-black uppercase tracking-tighter bg-white border border-slate-200 rounded-lg text-slate-600 hover:border-blue-500 hover:text-blue-600 transition-all active:scale-95"
-                  >
-                    {range}
-                  </button>
-                ))}
-             </div>
-          </div>
-
-          <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
-             <div className="space-y-1.5 min-w-[140px]">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">From</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500/10 outline-none" />
-             </div>
-             <div className="space-y-1.5 min-w-[140px]">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">To</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500/10 outline-none" />
-             </div>
-             {activeTab === "sales" && (
-                <div className="space-y-1.5 min-w-[150px]">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Staff</label>
-                  <select value={managerFilter} onChange={(e) => setManagerFilter(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500/10 outline-none appearance-none">
-                    <option value="">All Staff</option>
-                    {managers.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-             )}
-             <button onClick={() => { applyPreset("7d"); setSearchQuery(""); setManagerFilter(""); }} className="p-2.5 text-slate-400 hover:text-slate-600 bg-white border border-slate-200 rounded-xl transition-all" title="Reset">
-                <RotateCcw className="w-4 h-4" />
-             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Report Table Area */}
-      <div className="flex-1 overflow-auto flex flex-col">
-        {activeTab === "sales" ? (
-          <div className="h-full flex flex-col">
-            
-            {/* Dense Performance Summary Section */}
-            {performanceArray.length > 0 && (
-              <div className="bg-slate-50/50 p-4 border-b border-slate-200 shrink-0">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Performance Summary</h4>
-                <div className="flex flex-wrap gap-2">
-                  {performanceArray.map((item, idx) => (
-                    <div key={item.name} className="bg-white border border-slate-200 shadow-sm rounded-lg px-3 py-2 flex items-center min-w-[140px]">
-                        <div className="w-full">
-                          <p className="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
-                            {idx === 0 && <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                            {item.name}
-                          </p>
-                          <div className="flex justify-between items-center gap-4 mt-2">
-                            <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.qty.toFixed(2)} qty</span>
-                            <span className="text-[10px] font-black text-emerald-600">₦{item.revenue.toFixed(2)}</span>
-                          </div>
-                        </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex-1 overflow-auto">
-              <table className="min-w-full divide-y divide-slate-100">
-              <thead className="bg-slate-50/50 sticky top-0 z-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <tr>
-                  <th className="py-4 px-6 text-left w-12">SN</th>
-                  <th className="py-4 px-6 text-left">Date</th>
-                  <th className="py-4 px-6 text-left">Manager</th>
-                  <th className="py-4 px-6 text-left">Item</th>
-                  <th className="py-4 px-6 text-right">Sold</th>
-                  <th className="py-4 px-6 text-right">Total</th>
-                  <th className="py-4 px-6 w-12 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSales.length === 0 ? (
-                  <tr><td colSpan={7} className="py-20 text-center text-slate-400 font-medium italic">No sales found for this filter.</td></tr>
-                ) : (
-                  filteredSales.map((sale, idx) => (
-                    <tr key={sale.id} className="hover:bg-blue-100/60 transition-colors cursor-pointer group">
-                      <td className="py-4 px-6 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                      <td className="py-4 px-6 text-xs text-slate-500 font-medium">{sale.dateStr}</td>
-                      <td className="py-4 px-6 text-xs font-bold text-slate-900">{sale.managerName}</td>
-                      <td className="py-4 px-6 text-xs font-bold text-slate-900">{sale.productName}</td>
-                      <td className="py-4 px-6 text-xs text-slate-600 text-right font-mono">{sale.qty.toFixed(2)}</td>
-                      <td className="py-4 px-6 text-xs text-emerald-600 font-black text-right">₦{sale.revenue.toFixed(2)}</td>
-                      <td className="py-4 px-6 text-right">
-                         {/* Edit functionality restricted to Sales Point open sessions */}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-            
-            {filteredSales.length > 0 && (
-              <div className="bg-slate-900 p-6 mt-auto flex justify-between items-center text-white rounded-t-3xl shadow-2xl">
-                <div>
-                  <span className="text-[10px] font-black opacity-50 uppercase tracking-widest block">Report Volume</span>
-                  <span className="text-xl font-black">{totalSalesQty.toFixed(2)} Items</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-black opacity-50 uppercase tracking-widest block">Total Revenue</span>
-                  <span className="text-2xl font-black text-emerald-400">₦{totalSalesRevenue.toFixed(2)}</span>
-                </div>
-              </div>
-            )}
+          {/* Section 2: Consolidated Controls Row */}
+          <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
+            {/* Range Dropdown */}
+            <div className="relative shrink-0">
+               <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-blue-400 pointer-events-none" />
+               <select
+                 onChange={(e) => applyPreset(e.target.value)}
+                 className="bg-slate-800 border border-slate-700 text-white text-[11px] font-bold rounded-xl pl-8 pr-8 py-1.5 outline-none appearance-none cursor-pointer focus:bg-slate-700 transition-all"
+               >
+                 <option value="7d">Last 7 Days</option>
+                 <option value="today">Today</option>
+                 <option value="yesterday">Yesterday</option>
+                 <option value="1m">Last Month</option>
+                 <option value="3m">3 Months</option>
+                 <option value="6m">6 Months</option>
+                 <option value="1y">1 Year</option>
+               </select>
+               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500 pointer-events-none" />
             </div>
+
+            {/* Compact Dates */}
+            <div className="flex items-center gap-1 bg-slate-800/80 border border-slate-700 rounded-xl px-2 py-1 shrink-0">
+               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-[10px] text-white font-bold outline-none w-[90px] [color-scheme:dark]" />
+               <span className="text-slate-600 font-bold">-</span>
+               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-[10px] text-white font-bold outline-none w-[90px] [color-scheme:dark]" />
+            </div>
+
+
+
+            {/* Staff member dropdown (Sales Only) */}
+            {activeTab === "sales" && (
+              <div className="relative group min-w-[120px]">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                <select 
+                  value={managerFilter} 
+                  onChange={(e) => setManagerFilter(e.target.value)} 
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-4 py-1.5 text-[11px] font-bold text-white outline-none appearance-none cursor-pointer focus:bg-slate-700"
+                >
+                  <option value="">All Managers</option>
+                  {managers.map(m => <option key={m} value={m} className="bg-slate-800">{m}</option>)}
+                </select>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 ml-2">
+            <button 
+              onClick={() => { applyPreset("7d"); setSearchQuery(""); setManagerFilter(""); }} 
+              className="p-1.5 text-slate-400 hover:text-white bg-slate-800 border border-slate-700 rounded-lg transition-all shrink-0" 
+              title="Reset All"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+
+            {activeTab === "sales" && isClient && (
+              <PDFDownloadLink
+                document={
+                  <SalesReportPDF
+                    storeName={storeName}
+                    period={`${startDate} to ${endDate}`}
+                    data={filteredSales}
+                    totalQty={totalSalesQty}
+                    totalRevenue={totalSalesRevenue}
+                  />
+                }
+                fileName={`sales-report.pdf`}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-[10px] font-black transition-all shadow-lg active:scale-95 shrink-0 whitespace-nowrap"
+              >
+                {/* @ts-ignore */}
+                {({ loading }) => (
+                  <>
+                    <Download className="w-3 h-3" />
+                    {loading ? "..." : "EXPORT"}
+                  </>
+                )}
+              </PDFDownloadLink>
+            )}
           </div>
-        ) : (
-          <table className="min-w-full divide-y divide-slate-100">
-            <thead className="bg-slate-50/50 sticky top-0 z-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              <tr>
-                <th className="py-4 px-6 text-left w-12">SN</th>
-                <th className="py-4 px-6 text-left">Date</th>
-                <th className="py-4 px-6 text-left">Item</th>
-                <th className="py-4 px-6 text-right">Added</th>
-                <th className="py-4 px-6 text-left pl-12">By</th>
-                <th className="py-4 px-6 text-left whitespace-nowrap">Notes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredStock.length === 0 ? (
-                <tr><td colSpan={6} className="py-20 text-center text-slate-400 font-medium italic">No inventory moves found.</td></tr>
-              ) : (
-                filteredStock.map((stock, idx) => (
-                  <tr key={stock.id} className="hover:bg-blue-100/60 transition-colors cursor-pointer group">
-                    <td className="py-4 px-6 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                    <td className="py-4 px-6 text-xs text-slate-500 font-medium">{stock.dateStr}</td>
-                    <td className="py-4 px-6 text-xs font-bold text-slate-900">{stock.productName}</td>
-                    <td className="py-4 px-6 text-xs text-emerald-600 font-black text-right">+{stock.qtyAdded.toFixed(2)}</td>
-                    <td className="py-4 px-6 text-xs font-bold text-slate-500 pl-12">{stock.addedBy}</td>
-                    <td className="py-4 px-6 text-xs text-slate-400 italic max-w-xs truncate">{stock.note || "—"}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
+          </div>
+        </div>
       </div>
+
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto bg-slate-50/50 px-2 lg:px-0">
+        <div className="lg:p-6 space-y-4">
+          {activeTab === "sales" ? (
+            groupedSales.length === 0 ? (
+              <div className="py-20 text-center text-slate-400 italic">No sales found for this period.</div>
+            ) : (
+              groupedSales.map(([date, data]) => {
+                // Calculate Daily Performance Summary
+                const productMap: Record<string, { qty: number, revenue: number }> = {};
+                data.items.forEach(item => {
+                  if (!productMap[item.productName]) productMap[item.productName] = { qty: 0, revenue: 0 };
+                  productMap[item.productName].qty += item.qty;
+                  productMap[item.productName].revenue += item.revenue;
+                });
+
+                const sortedPerformance = Object.entries(productMap)
+                  .map(([name, stats]) => ({ name, ...stats }))
+                  .sort((a, b) => b.revenue - a.revenue);
+
+                return (
+                  <div key={date} className="bg-white lg:border border-slate-200 lg:rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+                    <button
+                      onClick={() => toggleDate(date)}
+                      className="w-full px-4 lg:px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-transparent data-[expanded=true]:border-slate-100"
+                      data-expanded={expandedDates[date]}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-sm font-bold text-slate-900">{format(parseISO(date), "EEEE, MMM do yyyy")}</h3>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{data.items.length} records</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-10">
+                        <div className="hidden md:block text-right">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Revenue</p>
+                          <p className="text-sm font-black text-emerald-600">₦{data.revenue.toFixed(2)}</p>
+                        </div>
+                        <div className="hidden md:block text-right text-slate-400">
+                           <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[date] ? "rotate-90" : ""}`} />
+                        </div>
+                      </div>
+                    </button>
+                    
+                    {expandedDates[date] && (
+                      <div className="p-2 lg:p-4 bg-slate-50/30">
+                        {/* Daily Performance Snapshot */}
+                        <div className="mb-4 lg:mb-6">
+                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+                             <TrendingUp className="w-3 h-3 text-blue-500" />
+                             Daily Performance Summary
+                           </h4>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                             {sortedPerformance.map((item) => (
+                               <div key={item.name} className="bg-white border border-slate-200 rounded-lg p-2.5 flex flex-col justify-between hover:border-blue-300 transition-colors shadow-sm">
+                                  <span className="text-[11px] font-bold text-slate-900 truncate mb-1" title={item.name}>{item.name}</span>
+                                  <div className="flex justify-between items-center text-[10px]">
+                                    <span className="text-slate-500 font-mono italic">{item.qty.toFixed(2)} qty</span>
+                                    <span className="text-emerald-600 font-black">₦{item.revenue.toFixed(2)}</span>
+                                  </div>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+
+                        {/* Granular Logs */}
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                           <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Order Activity</span>
+                              <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
+                           </div>
+                           <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-slate-100">
+                                 <thead>
+                                   <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
+                                     <th className="py-2 px-4 text-left w-12">SN</th>
+                                     <th className="py-2 px-4 text-left">Time</th>
+                                     <th className="py-2 px-4 text-left">Manager</th>
+                                     <th className="py-2 px-4 text-left">Product</th>
+                                     <th className="py-2 px-4 text-right">Sold</th>
+                                     <th className="py-2 px-4 text-right pr-6">Revenue</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-slate-50">
+                                   {data.items.map((sale, idx) => (
+                                     <tr key={sale.id} className="hover:bg-blue-50/50 text-[11px] transition-colors">
+                                       <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                                       <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(sale.timestamp), "HH:mm")}</td>
+                                       <td className="py-2 px-4 font-bold text-slate-700">{sale.managerName}</td>
+                                       <td className="py-2 px-4 font-medium text-slate-900">{sale.productName}</td>
+                                       <td className="py-2 px-4 text-slate-600 text-right font-mono">{sale.qty.toFixed(2)}</td>
+                                       <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">₦{sale.revenue.toFixed(2)}</td>
+                                     </tr>
+                                   ))}
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )
+          ) : (
+            groupedStock.length === 0 ? (
+              <div className="py-20 text-center text-slate-400 italic">No inventory moves found.</div>
+            ) : (
+              groupedStock.map(([date, data]) => {
+                // Calculate stock added summary per product
+                const stockMap: Record<string, number> = {};
+                data.items.forEach(item => {
+                  stockMap[item.productName] = (stockMap[item.productName] || 0) + item.qtyAdded;
+                });
+
+                const sortedStock = Object.entries(stockMap)
+                  .map(([name, qty]) => ({ name, qty }))
+                  .sort((a, b) => b.qty - a.qty);
+
+                return (
+                  <div key={date} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200">
+                    <button
+                      onClick={() => toggleDate(date)}
+                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-transparent data-[expanded=true]:border-slate-100"
+                      data-expanded={expandedDates[date]}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
+                          <PackagePlus className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-sm font-bold text-slate-900">{format(parseISO(date), "EEEE, MMM do yyyy")}</h3>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{data.items.length} moves</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-10">
+                        <div className="hidden md:block text-right">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Net Stock Added</p>
+                          <p className="text-sm font-black text-emerald-600">+{data.totalAdded.toFixed(2)} units</p>
+                        </div>
+                        <div className="hidden md:block text-right text-slate-400">
+                           <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[date] ? "rotate-90" : ""}`} />
+                        </div>
+                      </div>
+                    </button>
+
+                    {expandedDates[date] && (
+                      <div className="p-2 lg:p-4 bg-slate-50/30">
+                        {/* Daily Stock Summary */}
+                        <div className="mb-4 lg:mb-6">
+                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+                             <Package className="w-3 h-3 text-emerald-500" />
+                             Daily Replenishment Summary
+                           </h4>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2">
+                             {sortedStock.map((item) => (
+                               <div key={item.name} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between hover:border-emerald-300 transition-colors shadow-sm min-w-0 overflow-hidden">
+                                  <span className="text-[11px] font-bold text-slate-900 truncate flex-1" title={item.name}>{item.name}</span>
+                                  <span className="text-[11px] font-black text-emerald-600 ml-2 whitespace-nowrap">+{item.qty.toFixed(2)}</span>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+
+                        {/* Detailed Move Table */}
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                           <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Restock Log</span>
+                              <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
+                           </div>
+                           <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-slate-100">
+                                 <thead>
+                                   <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
+                                     <th className="py-2 px-4 text-left w-12">SN</th>
+                                     <th className="py-2 px-4 text-left">Time</th>
+                                     <th className="py-2 px-4 text-left">Product</th>
+                                     <th className="py-2 px-4 text-right">Quantity</th>
+                                     <th className="py-2 px-4 text-left pl-6">By</th>
+                                     <th className="py-2 px-4 text-left pr-6">Notes</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-slate-50">
+                                   {data.items.map((stock, idx) => (
+                                     <tr key={stock.id} className="hover:bg-emerald-50/50 text-[11px] transition-colors">
+                                       <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                                       <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(stock.timestamp), "HH:mm")}</td>
+                                       <td className="py-2 px-4 font-bold text-slate-900">{stock.productName}</td>
+                                       <td className="py-2 px-4 text-emerald-600 font-black text-right">+{stock.qtyAdded.toFixed(2)}</td>
+                                       <td className="py-2 px-4 text-slate-600 font-medium pl-6">{stock.addedBy}</td>
+                                       <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{stock.note || "—"}</td>
+                                     </tr>
+                                   ))}
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )
+          )}
+        </div>
+
+      </div>
+
     </div>
   );
 }
