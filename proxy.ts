@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = ['/', '/login', '/register']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     let supabaseResponse = NextResponse.next({
       request,
@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
             if (profile.role === 'manager' && slug) return redirect(`/${slug}/manager/sales`)
           }
         } catch (err) {
-          console.error('[Middleware] Public route profile check error:', err)
+          console.error('[Proxy] Public route profile check error:', err)
         }
       }
       return supabaseResponse
@@ -130,7 +130,7 @@ export async function middleware(request: NextRequest) {
 
     return supabaseResponse
   } catch (error) {
-    console.error('[Middleware] Unhandled exception:', error)
+    console.error('[Proxy] Unhandled exception:', error)
     // On unexpected edge errors, gracefully continue so the app still renders, 
     // or fallback to login if we suspect auth token issues. 
     // NextResponse.next() is safer to avoid redirect loops.

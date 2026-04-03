@@ -35,7 +35,7 @@ export default function RegisterPage() {
       }
 
       if (result?.redirectTo) {
-        // Hard redirect to fully hydrate the application and middleware state
+        // Hard redirect to fully hydrate the application and proxy state
         window.location.href = result.redirectTo
         return
       }

@@ -20,7 +20,7 @@ export async function createClient() {
           } catch (error) {
             console.error('Failed to set cookie in server action:', error)
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
+            // This can be ignored if you have proxy refreshing
             // user sessions.
           }
         },

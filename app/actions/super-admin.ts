@@ -9,7 +9,7 @@ export async function toggleStoreStatus(storeId: string, isActive: boolean) {
   const adminClient = supabaseAdmin;
 
   // Deactivating a store should ideally cascade or logically block logins
-  // By setting is_active = false, middleware or auth logic can reject.
+  // By setting is_active = false, proxy or auth logic can reject.
   const { error } = await adminClient
     .from("stores")
     .update({ is_active: isActive })

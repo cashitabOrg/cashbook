@@ -159,12 +159,13 @@ export default function SyncEngine() {
             // Use upsert + ignoreDuplicates so re-syncing the same sale item
             // after a page refresh doesn't cause a 409 Conflict.
             const { error } = await supabase.from("sale_items").upsert({
+              id: local_row_id, // Use the POS-generated UUID as the DB primary key
               store_id: item.store_id,
               session_id: payload.session_id,
               product_id: payload.product_id,
               quantity: payload.quantity,
               subtotal: payload.subtotal
-            }, { onConflict: 'product_id,session_id', ignoreDuplicates: true });
+            }, { onConflict: 'id', ignoreDuplicates: true });
             success = !error || error?.code === '23505' || error?.message?.includes('duplicate');
             
             if (!success) {

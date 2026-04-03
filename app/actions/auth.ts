@@ -128,7 +128,7 @@ export async function loginUser(formData: FormData) {
     redirectTo = `/${slug}/manager/sales`
   }
 
-  // Return URL for client to navigate — avoids middleware timing issues with cookies
+  // Return URL for client to navigate — avoids proxy timing issues with cookies
   return { redirectTo }
 }
 

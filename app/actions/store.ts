@@ -63,6 +63,6 @@ export async function createStoreProfile(formData: FormData) {
     return { error: 'Failed to link user to store. Please try again.' }
   }
 
-  // Return URL for client to navigate — avoids middleware timing issues with cookies
+  // Return URL for client to navigate — avoids proxy timing issues with cookies
   return { redirectTo: `/${formattedSlug}/admin/dashboard` }
 }
