@@ -76,7 +76,7 @@ export default async function ReportsPage({
       users (full_name)
     `)
     .eq("store_id", userRole.storeId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (stockError) {
     console.error('[Reports] Failed to load stock data:', stockError.message, stockError);

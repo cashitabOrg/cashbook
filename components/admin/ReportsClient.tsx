@@ -107,11 +107,11 @@ export default function ReportsClient({
 
   const filteredSales = salesData.filter((item) => 
     filterByRobustness(item, "timestamp", ["productName", "managerName"])
-  ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   const filteredStock = stockData.filter((item) => 
     filterByRobustness(item, "timestamp", ["productName", "addedBy", "note"])
-  ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   // Grouping Logic
   const groupSalesByDate = () => {
@@ -124,7 +124,7 @@ export default function ReportsClient({
       groups[dayKey].revenue += s.revenue;
       groups[dayKey].qty += s.qty;
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
   const groupStockByDate = () => {
@@ -135,7 +135,7 @@ export default function ReportsClient({
       groups[dayKey].items.push(s);
       groups[dayKey].totalAdded += s.qtyAdded;
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
   const groupedSales = groupSalesByDate();

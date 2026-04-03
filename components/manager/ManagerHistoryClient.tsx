@@ -72,7 +72,7 @@ export default function ManagerHistoryClient({
               qty: item.qtySold,
               revenue: item.revenue
             }))
-          ).sort((a, b) => b.time.localeCompare(a.time));
+          ).sort((a, b) => a.time.localeCompare(b.time));
 
           return (
             <div key={group.dateStr} className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 overflow-hidden transition-all duration-200">
