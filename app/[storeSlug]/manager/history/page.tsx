@@ -61,8 +61,14 @@ export default async function ManagerHistoryPage({
   const dailyGroupsMap: Record<string, any> = {};
 
   sessions.forEach(session => {
-    // We assume backend timezone uniformity, fallback to simple YYYY-MM-DD slicing for MVP
-    const dateStr = session.started_at.split("T")[0];
+    // Use Nigeria/WAT timezone for grouping so that late-night/early-morning 
+    // sessions fall into the correct "Local" calendar day (UTC+1).
+    const dateStr = new Intl.DateTimeFormat('en-CA', { 
+      timeZone: 'Africa/Lagos', 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit' 
+    }).format(new Date(session.started_at));
     
     if (!dailyGroupsMap[dateStr]) {
       dailyGroupsMap[dateStr] = {
