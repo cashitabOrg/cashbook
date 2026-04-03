@@ -23,19 +23,8 @@ export async function deleteSaleItem(itemId: string) {
       return { error: 'Unauthorized permission to delete this record.' };
     }
 
-    // 2. Fetch the product to refund its stock
-    const { data: product } = await supabaseAdmin
-      .from('products')
-      .select('stock_quantity')
-      .eq('id', item.product_id)
-      .single();
-
-    if (product) {
-      await supabaseAdmin
-        .from('products')
-        .update({ stock_quantity: Number(product.stock_quantity) + Number(item.quantity) })
-        .eq('id', item.product_id);
-    }
+    // 2. The stock refund is now handled automatically by the Database Trigger 'trg_sync_stock_on_sale_change' 
+    // whenever a sale_item is deleted.
 
     // 3. Fetch the session to deduct its revenue
     if (item.session_id) {
@@ -102,24 +91,8 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     const qtyDiff = newQty - Number(item.quantity);
     const revDiff = newSubtotal - Number(item.subtotal);
 
-    // 2. Compute stock refund/deduction based on difference
-    if (qtyDiff !== 0) {
-      const { data: product } = await supabaseAdmin
-        .from('products')
-        .select('stock_quantity')
-        .eq('id', item.product_id)
-        .single();
-
-      if (product) {
-        // If qtyDiff is positive (we sold MORE), we deduct from stock (-qtyDiff)
-        // If qtyDiff is negative (we sold LESS), we refund to stock (-qtyDiff = +)
-        const adjustedStock = Number(product.stock_quantity) - qtyDiff;
-        await supabaseAdmin
-          .from('products')
-          .update({ stock_quantity: adjustedStock })
-          .eq('id', item.product_id);
-      }
-    }
+    // 2. The stock adjustment is now handled automatically by the Database Trigger 'trg_sync_stock_on_sale_change'
+    // whenever a sale_item is updated.
 
     // 3. Compute session revenue adjustment
     if (revDiff !== 0 && item.session_id) {

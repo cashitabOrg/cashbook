@@ -146,14 +146,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       status: 'pending'
     });
     
-    // Also queue the decrement globally
-    await db.offlineQueue.add({
-      store_id: storeId,
-      type: 'stock_decrement',
-      payload: { product_id: row.productId, quantity: row.quantitySold },
-      created_at: Date.now(),
-      status: 'pending'
-    });
+    // 2. The stock decrement is now handled automatically by the Database Trigger on the server.
+    // We already adjust the local Dexie product cache below for instant UI feedback.
     
     // Locally adjust Dexie cache instantly for realtime UI feedback
     if (p) {
@@ -168,14 +162,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (!row) return;
 
     if (row.synced && row.productId && typeof row.quantitySold === 'number') {
-      // Offline-first refund: Queue a negative decrement (which adds stock back globally)
-      await db.offlineQueue.add({
-        store_id: storeId,
-        type: 'stock_decrement',
-        payload: { product_id: row.productId, quantity: -row.quantitySold },
-        created_at: Date.now(),
-        status: 'pending'
-      });
+      // 2. The stock refund is now handled automatically by the Database Trigger on the server
+      // whenever a sale_item is removed/deleted.
       
       // We don't have the server ID of the sale_item to delete it directly in offline mode.
       // A robust system queues a "delete_sale_item_by_local_id" command. For now we just refund stock.
@@ -203,14 +191,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
         await db.products.update(p.id, { quantity: p.quantity + row.quantitySold });
     }
 
-    // Queue a positive increment globally in case the decrement already fired
-    await db.offlineQueue.add({
-      store_id: storeId,
-      type: 'stock_decrement',
-      payload: { product_id: row.productId, quantity: -row.quantitySold },
-      created_at: Date.now(),
-      status: 'pending'
-    });
+    // 2. The stock refund is handled by the server trigger if the sale already synced.
+    // If it hasn't synced, we simply deleted it from the queue above.
 
     setRows(prev => prev.map(r => r.localId === localId ? { ...r, synced: false, dbId: undefined } : r));
   };

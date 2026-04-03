@@ -179,30 +179,10 @@ export default function SyncEngine() {
             }
           } 
           
+          // The 'stock_decrement' type is now handled automatically by Database Triggers
+          // when 'sale_item' records are synced. This prevent double-deduction.
           else if (item.type === "stock_decrement") {
-            if (item.payload.product_id && item.payload.quantity) {
-              const { data: p } = await supabase
-                .from('products')
-                .select('quantity')
-                .eq('id', item.payload.product_id)
-                .single();
-                
-              if (p) {
-                const { error } = await supabase
-                  .from('products')
-                  .update({ quantity: Number(p.quantity) - Number(item.payload.quantity) })
-                  .eq('id', item.payload.product_id);
-                success = !error;
-                
-                if (error) {
-                    console.error('SyncEngine: Stock update rejected:', error.message);
-                }
-              } else {
-                success = true; 
-              }
-            } else {
-              success = true;
-            }
+            success = true; // Mark as done to clear from queue
           }
 
           if (success && item.id) {
