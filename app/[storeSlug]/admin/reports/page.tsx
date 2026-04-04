@@ -36,17 +36,28 @@ export default async function ReportsPage({
       products (name),
       sales_sessions!inner (
         started_at,
+        status,
         users!manager_id (full_name)
       )
     `)
-    .eq("store_id", userRole.storeId);
+    .eq("store_id", userRole.storeId)
+    .eq("sales_sessions.status", "closed");
 
   if (salesError) {
     console.error('[Reports] Failed to load sales data:', salesError.message, salesError);
     return <div className="p-8 text-red-600">Error loading sales data: {salesError.message}</div>;
   }
 
-  const salesData = (salesRaw || []).map((sale) => {
+  // De-duplicate: Join might return multiple rows per sale_item if relations are duplicated
+  const uniqueSalesMap = new Map();
+  (salesRaw || []).forEach(item => {
+    if (!uniqueSalesMap.has(item.id)) {
+      uniqueSalesMap.set(item.id, item);
+    }
+  });
+  const uniqueSales = Array.from(uniqueSalesMap.values());
+
+  const salesData = uniqueSales.map((sale) => {
     const sessionRaw = sale.sales_sessions;
     const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
     const timestamp = session?.started_at || new Date().toISOString();
