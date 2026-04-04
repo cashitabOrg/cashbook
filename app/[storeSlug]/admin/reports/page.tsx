@@ -33,6 +33,7 @@ export default async function ReportsPage({
       id,
       quantity,
       subtotal,
+      created_at,
       products (name),
       sales_sessions!inner (
         started_at,
@@ -60,7 +61,7 @@ export default async function ReportsPage({
   const salesData = uniqueSales.map((sale) => {
     const sessionRaw = sale.sales_sessions;
     const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
-    const timestamp = session?.started_at || new Date().toISOString();
+    const timestamp = sale.created_at || session?.started_at || new Date().toISOString();
     return {
       id: sale.id,
       timestamp,

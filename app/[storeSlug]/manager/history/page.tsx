@@ -53,7 +53,7 @@ export default async function ManagerHistoryPage({
   // 2. Fetch sale_items for those sessions
   const { data: saleItems, error: itemsError } = await supabase
     .from("sale_items")
-    .select("id, session_id, product_id, quantity, subtotal, products(name)")
+    .select("id, session_id, product_id, quantity, subtotal, created_at, products(name)")
     .in("session_id", sessionIds);
 
   // 3. Build structured response
@@ -88,7 +88,8 @@ export default async function ManagerHistoryPage({
       // @ts-ignore
       productName: item.products?.name || "Unknown",
       qtySold: Number(item.quantity),
-      revenue: Number(item.subtotal)
+      revenue: Number(item.subtotal),
+      createdAt: item.created_at
     }));
     
     const itemsCount = sessionItems.reduce((acc, curr) => acc + curr.qtySold, 0);

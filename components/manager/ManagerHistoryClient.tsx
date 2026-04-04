@@ -10,6 +10,7 @@ type ItemDetail = {
   productName: string;
   qtySold: number;
   revenue: number;
+  createdAt?: string;
 };
 
 type SessionSummary = {
@@ -67,7 +68,7 @@ export default function ManagerHistoryClient({
           const dailyHistoryItems = group.sessions.flatMap(session => 
             session.items.map(item => ({
               id: item.id || '',
-              time: format(parseISO(session.startedAt), "HH:mm"),
+              time: format(parseISO(item.createdAt || session.startedAt), "HH:mm"),
               productName: item.productName,
               qty: item.qtySold,
               revenue: item.revenue
