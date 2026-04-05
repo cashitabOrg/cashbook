@@ -8,8 +8,11 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FrozenPOS - Multi-Tenant Point of Sale",
-  description: "SaaS POS, Inventory & Sales Management Platform for Frozen Food Stores",
+  title: "CASHITAB - Smart POS & Inventory",
+  description: "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
+  icons: {
+    icon: '/favicon.ico',
+  }
 };
 
 export default function RootLayout({

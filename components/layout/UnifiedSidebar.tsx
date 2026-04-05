@@ -76,15 +76,15 @@ export default function UnifiedSidebar({
       }`}
     >
       {/* Header */}
-      <div className={`h-14 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-4 gap-2"}`}>
-        <div className="h-6 w-6 text-slate-900 bg-white rounded flex items-center justify-center font-bold italic text-xs shrink-0 select-none">f</div>
+      <div className={`h-20 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-5 gap-3 relative"}`}>
+        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-xl shadow-blue-500/10 shrink-0 select-none">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+        </div>
         {!isCollapsed && (
-          <>
-            <span className="font-semibold text-white truncate text-sm">{storeName}</span>
-            <span className={`ml-auto text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded text-white ${accentColor}`}>
-              {roleLabel}
-            </span>
-          </>
+          <div className="flex flex-col min-w-0">
+            <span className="font-black text-white truncate text-sm tracking-tighter uppercase italic leading-none">CASHITAB</span>
+            <span className="text-[10px] text-slate-500 font-bold truncate mt-1.5">{storeName}</span>
+          </div>
         )}
       </div>
 

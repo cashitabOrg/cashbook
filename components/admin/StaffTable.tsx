@@ -95,8 +95,90 @@ export default function StaffTable({
         </button>
       </div>
 
-      <div className="px-2 lg:px-0">
-        <div className="mt-8 flow-root">
+      <div className="px-2 lg:px-0 mt-6 lg:mt-8">
+        {/* Mobile View: High-Density Cards */}
+        <div className="lg:hidden space-y-4">
+          {staffList.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-sm">
+              <UsersRound className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+              <h3 className="text-sm font-medium text-slate-900">No managers found</h3>
+              <p className="mt-1 text-sm text-slate-500">Add a manager so they can start processing sales.</p>
+            </div>
+          ) : (
+            staffList.map((staff) => (
+              <div key={staff.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative group overflow-hidden transition-all active:ring-2 active:ring-blue-500/20">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl pointer-events-none" />
+                
+                <div className="flex justify-between items-start mb-4 relative z-10">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h3 className="text-base font-bold text-slate-900 truncate tracking-tight">{staff.full_name}</h3>
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">@{staff.username}</p>
+                  </div>
+                  
+                  {staff.is_active ? (
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-tighter border border-emerald-100/50">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Active
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold text-rose-700 uppercase tracking-tighter border border-rose-100/50">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                      Inactive
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-50 relative z-10">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Joined</span>
+                    <span className="text-[11px] font-bold text-slate-600 mt-1">{new Date(staff.created_at).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' })}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 isolate">
+                    {staff.is_active ? (
+                      <button
+                        onClick={() => handleToggleStatus(staff.id, staff.full_name, false)}
+                        disabled={isProcessing === staff.id || isPending}
+                        className="text-orange-600 bg-orange-50 p-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50 border border-orange-100/50 shadow-sm"
+                        title="Deactivate"
+                      >
+                        <ShieldBan className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggleStatus(staff.id, staff.full_name, true)}
+                        disabled={isProcessing === staff.id || isPending}
+                        className="text-emerald-600 bg-emerald-50 p-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50 border border-emerald-100/50 shadow-sm"
+                        title="Activate"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleEdit(staff)}
+                      disabled={isProcessing === staff.id}
+                      className="text-blue-600 bg-blue-50 p-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50 border border-blue-100/50 shadow-sm"
+                      title="Edit"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(staff.id, staff.full_name)}
+                      disabled={isProcessing === staff.id}
+                      className="text-rose-600 bg-rose-50 p-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50 border border-rose-100/50 shadow-sm"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Traditional Table */}
+        <div className="hidden lg:block flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
