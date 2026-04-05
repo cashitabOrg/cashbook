@@ -12,12 +12,12 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <header className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg shadow-cyan-500/20 shrink-0">
-            <Snowflake className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/20 shrink-0 border border-white/10 overflow-hidden w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center">
+            <img src="/logo-icon.png" alt="CASHITAB" className="w-full h-full object-contain" />
           </div>
-          <span className="text-xl sm:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-500">
-            FrozenPOS
+          <span className="text-xl sm:text-2xl font-black tracking-tighter text-white uppercase select-none">
+            CASHITAB
           </span>
         </div>
         <nav className="flex items-center gap-3 sm:gap-6">
@@ -37,10 +37,10 @@ export default function LandingPage() {
           <span className="text-[10px] sm:text-xs font-medium text-slate-300 uppercase tracking-wide">v2.0 Early Access is Live</span>
         </div>
         
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-[1.15] mb-6 md:mb-8">
-          The Ultimate SaaS POS for <br className="hidden sm:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 block sm:inline mt-2 sm:mt-0">
-            Frozen Food Stores.
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-[ -0.04em] max-w-4xl mx-auto leading-[1.1] mb-6 md:mb-8 text-white uppercase">
+          The Ultimate Smart POS for <br className="hidden sm:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 block sm:inline mt-2 sm:mt-0 tracking-tighter">
+            CASHITAB.
           </span>
         </h1>
         

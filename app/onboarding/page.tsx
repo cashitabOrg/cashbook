@@ -50,12 +50,26 @@ export default function OnboardingPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-900/20 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+        {/* Background Image with Blue Overlay */}
+        <div 
+          className="absolute inset-0 z-[-1] bg-cover bg-center bg-no-repeat fixed"
+          style={{ backgroundImage: "url('/login-bg.png')" }}
+        >
+          <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-[2px]" />
+        </div>
+
         <div className="text-center mb-8">
-          <div className="mx-auto bg-slate-800/80 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-xl border border-slate-700/50">
-            <Store className="w-8 h-8 text-cyan-400" />
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-4 group transition-transform hover:scale-105 active:scale-95 border-4 border-white/20 relative overflow-hidden">
+              <img src="/logo-icon.png" alt="CASHITAB Logo" className="w-full h-full object-contain" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter uppercase select-none text-white leading-none">
+              CASHITAB
+            </h1>
+            <p className="text-blue-200 font-bold tracking-[0.2em] uppercase text-[8px] mt-2 opacity-60">Store Setup</p>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Set up your store</h1>
-          <p className="text-slate-400 font-light">Tell us a bit about your business to get started.</p>
+          <h2 className="text-xl font-bold text-white mb-1 tracking-tight">Set up your store</h2>
+          <p className="text-slate-400 font-medium text-sm">Tell us a bit about your business to get started.</p>
         </div>
 
         <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl">
