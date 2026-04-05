@@ -76,14 +76,17 @@ export default function UnifiedSidebar({
       }`}
     >
       {/* Header */}
-      <div className={`h-20 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-5 gap-3 relative"}`}>
-        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-xl shadow-blue-500/10 shrink-0 select-none">
-          <img src="/logo-icon.png" alt="Logo" className="w-full h-full object-contain" />
+      <div className={`h-22 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-5 py-6 gap-3 relative"}`}>
+        <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0 select-none border border-white/10 relative">
+          <span className="text-xl font-black text-white italic tracking-tighter">C</span>
+          <div className="absolute w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.6)]" />
         </div>
         {!isCollapsed && (
           <div className="flex flex-col min-w-0">
-            <span className="font-black text-white truncate text-sm tracking-tighter uppercase italic leading-none">CASHITAB</span>
-            <span className="text-[10px] text-slate-500 font-bold truncate mt-1.5">{storeName}</span>
+            <span className="font-black tracking-tighter uppercase italic leading-none text-base text-white">
+              CASHITABE
+            </span>
+            <span className="text-[10px] text-slate-500 font-bold truncate mt-1.5 opacity-60 tracking-wider uppercase">{storeName}</span>
           </div>
         )}
       </div>
