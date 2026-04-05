@@ -82,7 +82,7 @@ export default function UnifiedSidebar({
         </div>
         {!isCollapsed && (
           <div className="flex flex-col min-w-0">
-            <span className="font-black tracking-tighter uppercase italic leading-none text-base text-white">
+            <span className="font-black tracking-tighter uppercase leading-none text-base text-white underline decoration-blue-500/30">
               CASHITAB
             </span>
             <span className="text-[10px] text-slate-500 font-bold truncate mt-1.5 opacity-60 tracking-wider uppercase">{storeName}</span>

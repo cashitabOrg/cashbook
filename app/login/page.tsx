@@ -57,7 +57,7 @@ export default function LoginPage() {
             <div className="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-6 group transition-transform hover:scale-105 active:scale-95 border-4 border-white/20 relative overflow-hidden">
               <img src="/logo-icon.png" alt="CASHITAB Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-5xl font-black tracking-tighter uppercase italic select-none text-white">
+            <h1 className="text-5xl font-black tracking-tighter uppercase select-none text-white">
               CASHITAB
             </h1>
             <p className="text-blue-200 font-bold tracking-[0.2em] uppercase text-[10px] mt-3 opacity-60">Smart POS Intelligence</p>
