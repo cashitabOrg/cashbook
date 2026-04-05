@@ -3,12 +3,17 @@ import { ArrowRight, Snowflake, BarChart3, ShieldCheck, WifiOff, Store } from 'l
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-50 overflow-hidden font-sans selection:bg-cyan-500/30">
-      {/* Background Effects */}
-      <div className="absolute top-0 inset-x-0 h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-900/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-900/20 blur-[150px]" />
+    <div className="min-h-screen text-slate-50 overflow-hidden font-sans selection:bg-cyan-500/30 relative bg-slate-950">
+      {/* Background Image with Blue Overlay */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat fixed"
+        style={{ backgroundImage: "url('/login-bg.png')" }}
+      >
+        <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-[2px]" />
       </div>
+
+      {/* Background glow shadow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Navbar */}
       <header className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between">
