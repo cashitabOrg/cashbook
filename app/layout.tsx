@@ -8,7 +8,7 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Cashitabe - Smart POS & Inventory",
+  title: "Cashitab - Smart POS & Inventory",
   description: "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
   icons: {
     icon: '/logo-icon.png',
