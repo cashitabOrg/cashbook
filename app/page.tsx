@@ -96,8 +96,8 @@ export default function LandingPage() {
               </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-3xl blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl overflow-hidden aspect-[16/10] flex items-center justify-center">
-                  <img src="/dashboard-mockup.png" alt="CASHITAB Intelligence Dashboard" className="w-full h-full object-cover" />
+                <div className="relative bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center p-0">
+                  <img src="/dashboard-mockup.png" alt="CASHITAB Intelligence Dashboard" className="w-full h-auto object-contain max-h-[450px]" />
                   <div className="absolute top-6 right-6 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-xl">Performance: 92%</div>
                 </div>
               </div>
