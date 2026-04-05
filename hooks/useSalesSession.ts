@@ -135,6 +135,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       product_id: row.productId,
       quantity: row.quantitySold,
       subtotal: row.subtotal,
+      unit_price: p.selling_price || 0, // Transaction snapshot
+      unit_cost: p.cost_price || 0,   // Transaction snapshot
     };
 
     // Offline-first: Always queue offline

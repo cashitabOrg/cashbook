@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { format, subDays, subMonths, subYears, parseISO } from "date-fns";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import SalesReportPDF from "./SalesReportPDF";
-import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award, ChevronDown, ChevronUp, ChevronRight, TrendingUp, Package } from "lucide-react";
+import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award, ChevronDown, ChevronUp, ChevronRight, TrendingUp, Package, CheckCircle2, Clock } from "lucide-react";
+import { approveDailySales } from "@/app/actions/sales";
+import { toast } from "sonner";
 
 type SaleRecord = {
   id: string;
@@ -15,6 +17,10 @@ type SaleRecord = {
   qty: number;
   price: number;
   revenue: number;
+  cost: number;
+  profit: number;
+  sessionId?: string;
+  approvalStatus?: string;
 };
 
 type StockInRecord = {
@@ -23,21 +29,26 @@ type StockInRecord = {
   timestamp: string;
   productName: string;
   qtyAdded: number;
+  unitCost: number;
+  totalCost: number;
   addedBy: string;
   note: string | null;
 };
 
 export default function ReportsClient({
+  storeId,
   storeName,
   salesData,
   stockData,
 }: {
+  storeId: string;
   storeName: string;
   salesData: SaleRecord[];
   stockData: StockInRecord[];
 }) {
   const [activeTab, setActiveTab] = useState<"sales" | "stock">("sales");
   const [isClient, setIsClient] = useState(false);
+  const [approvingDate, setApprovingDate] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -49,6 +60,7 @@ export default function ReportsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [managerFilter, setManagerFilter] = useState("");
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, "logs" | "intel">>( {});
 
   const applyPreset = (range: string) => {
     const today = new Date();
@@ -115,14 +127,24 @@ export default function ReportsClient({
 
   // Grouping Logic
   const groupSalesByDate = () => {
-    const groups: Record<string, { items: SaleRecord[], revenue: number, qty: number }> = {};
+    const groups: Record<string, { 
+      items: SaleRecord[], 
+      revenue: number, 
+      expectedRevenue: number,
+      qty: number, 
+      isFullyApproved: boolean 
+    }> = {};
+    
     filteredSales.forEach(s => {
-      // Use YYYY-MM-DD from timestamp as the group key for reliable parseISO later
       const dayKey = s.timestamp.split('T')[0];
-      if (!groups[dayKey]) groups[dayKey] = { items: [], revenue: 0, qty: 0 };
+      if (!groups[dayKey]) groups[dayKey] = { items: [], revenue: 0, expectedRevenue: 0, qty: 0, isFullyApproved: true };
       groups[dayKey].items.push(s);
       groups[dayKey].revenue += s.revenue;
+      groups[dayKey].expectedRevenue += s.qty * s.price; // s.price is the snapshot of 'official' price
       groups[dayKey].qty += s.qty;
+      if (s.approvalStatus !== 'approved') {
+        groups[dayKey].isFullyApproved = false;
+      }
     });
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   };
@@ -154,8 +176,28 @@ export default function ReportsClient({
     setExpandedDates(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
   };
 
+  const handleApproveDay = async (dateStr: string) => {
+    setApprovingDate(dateStr);
+    const reason = window.prompt(`Are you sure you want to approve all sales on ${dateStr}? This will permanently lock them. You can optionally type a reason/note here:`);
+    if (reason === null) {
+      // Prompt was cancelled
+      setApprovingDate(null);
+      return;
+    }
+    
+    // Attempt approval server action
+    const res = await approveDailySales(dateStr, storeId, reason);
+    if (res?.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`Successfully approved sales for ${dateStr}!`);
+    }
+    setApprovingDate(null);
+  }
+
   const managers = Array.from(new Set(salesData.map(s => s.managerName))).filter(Boolean).sort();
   const totalSalesRevenue = filteredSales.reduce((sum, item) => sum + item.revenue, 0);
+  const totalSalesProfit = filteredSales.reduce((sum, item) => sum + item.profit, 0);
   const totalSalesQty = filteredSales.reduce((sum, item) => sum + item.qty, 0);
   
   // Performance Summary
@@ -278,6 +320,7 @@ export default function ReportsClient({
                     data={filteredSales}
                     totalQty={totalSalesQty}
                     totalRevenue={totalSalesRevenue}
+                    totalProfit={totalSalesProfit}
                     performanceSummary={performanceArray}
                   />
                 }
@@ -307,17 +350,36 @@ export default function ReportsClient({
               <div className="py-20 text-center text-slate-400 italic">No sales found for this period.</div>
             ) : (
               groupedSales.map(([date, data]) => {
-                // Calculate Daily Performance Summary
-                const productMap: Record<string, { qty: number, revenue: number }> = {};
+                // Calculate Daily Performance & Intelligence Summary
+                const productSummary: Record<string, { 
+                  qty: number, 
+                  recordedRevenue: number, 
+                  expectedRevenue: number,
+                  unitPrice: number,
+                  unitCost: number
+                }> = {};
+                
                 data.items.forEach(item => {
-                  if (!productMap[item.productName]) productMap[item.productName] = { qty: 0, revenue: 0 };
-                  productMap[item.productName].qty += item.qty;
-                  productMap[item.productName].revenue += item.revenue;
+                  if (!productSummary[item.productName]) {
+                    productSummary[item.productName] = { 
+                      qty: 0, 
+                      recordedRevenue: 0, 
+                      expectedRevenue: 0,
+                      unitPrice: item.price,
+                      unitCost: item.cost
+                    };
+                  }
+                  productSummary[item.productName].qty += item.qty;
+                  productSummary[item.productName].recordedRevenue += item.revenue;
+                  productSummary[item.productName].expectedRevenue += item.qty * item.price;
                 });
 
-                const sortedPerformance = Object.entries(productMap)
-                  .map(([name, stats]) => ({ name, ...stats }))
-                  .sort((a, b) => b.revenue - a.revenue);
+                const sortedIntelligence = Object.entries(productSummary)
+                  .map(([name, stats]) => ({ name, ...stats, variance: stats.recordedRevenue - stats.expectedRevenue }))
+                  .sort((a, b) => b.recordedRevenue - a.recordedRevenue);
+
+                // Original simple performance map for the restored cards
+                const sortedPerformance = sortedIntelligence.map(s => ({ name: s.name, qty: s.qty, revenue: s.recordedRevenue }));
 
                 return (
                   <div key={date} className="bg-white lg:border border-slate-200 lg:rounded-xl shadow-sm overflow-hidden transition-all duration-200">
@@ -327,20 +389,33 @@ export default function ReportsClient({
                       data-expanded={expandedDates[date]}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                          <Calendar className="w-5 h-5" />
+                        <div className={`p-2 rounded-lg ${data.isFullyApproved ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                          {data.isFullyApproved ? <CheckCircle2 className="w-5 h-5" /> : <Calendar className="w-5 h-5" />}
                         </div>
-                        <div className="text-left">
-                          <h3 className="text-sm font-bold text-slate-900">{format(parseISO(date), "EEEE, MMM do yyyy")}</h3>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{data.items.length} records</p>
+                        <div className="text-left flex items-center gap-3">
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-900">{format(parseISO(date), "EEEE, MMM do yyyy")}</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{data.items.length} records</p>
+                          </div>
+                          {data.isFullyApproved ? (
+                            <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Approved</span>
+                          ) : (
+                            <span className="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:flex items-center gap-1"><Clock className="w-3 h-3"/> Pending</span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-10">
+                      <div className="flex items-center gap-6 md:gap-10">
+                        <div className="hidden md:block text-right">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Variance (Audit)</p>
+                          <p className={`text-sm font-black ${(data.revenue - data.expectedRevenue) < -1 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                            { (data.revenue - data.expectedRevenue) < -1 ? `₦${(data.revenue - data.expectedRevenue).toFixed(2)}` : 'MATCH' }
+                          </p>
+                        </div>
                         <div className="hidden md:block text-right">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Revenue</p>
                           <p className="text-sm font-black text-emerald-600">₦{data.revenue.toFixed(2)}</p>
                         </div>
-                        <div className="hidden md:block text-right text-slate-400">
+                        <div className="text-slate-400">
                            <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[date] ? "rotate-90" : ""}`} />
                         </div>
                       </div>
@@ -348,11 +423,27 @@ export default function ReportsClient({
                     
                     {expandedDates[date] && (
                       <div className="p-2 lg:p-4 bg-slate-50/30">
-                        {/* Daily Performance Snapshot */}
-                        <div className="mb-4 lg:mb-6">
+                        {!data.isFullyApproved && (
+                          <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-white border border-amber-200 p-4 rounded-xl shadow-sm">
+                            <div>
+                               <h4 className="text-xs font-bold text-slate-900">Approve Sales for {date}</h4>
+                               <p className="text-[11px] text-slate-500">Approving these records will permanently lock them and prevent managers from making edits.</p>
+                            </div>
+                            <button 
+                               onClick={(e) => { e.stopPropagation(); handleApproveDay(date); }}
+                               disabled={approvingDate === date}
+                               className="mt-3 sm:mt-0 w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                            >
+                               {approvingDate === date ? 'Approving...' : 'Approve Daily Sales'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* RESTORED: Daily Performance Summary Grid (Original Look) */}
+                        <div className="mb-6">
                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
                              <TrendingUp className="w-3 h-3 text-blue-500" />
-                             Daily Performance Summary
+                             Product Performance Summary
                            </h4>
                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                              {sortedPerformance.map((item) => (
@@ -367,39 +458,97 @@ export default function ReportsClient({
                            </div>
                         </div>
 
-                        {/* Granular Logs */}
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                           <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Order Activity</span>
-                              <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
-                           </div>
-                           <div className="overflow-x-auto">
-                              <table className="min-w-full divide-y divide-slate-100">
-                                 <thead>
-                                   <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
-                                     <th className="py-2 px-4 text-left w-12">SN</th>
-                                     <th className="py-2 px-4 text-left">Time</th>
-                                     <th className="py-2 px-4 text-left">Manager</th>
-                                     <th className="py-2 px-4 text-left">Product</th>
-                                     <th className="py-2 px-4 text-right">Sold</th>
-                                     <th className="py-2 px-4 text-right pr-6">Revenue</th>
-                                   </tr>
-                                 </thead>
-                                 <tbody className="divide-y divide-slate-50">
-                                   {data.items.map((sale, idx) => (
-                                     <tr key={sale.id} className="hover:bg-blue-50/50 text-[11px] transition-colors">
-                                       <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
-                                       <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(sale.timestamp), "HH:mm")}</td>
-                                       <td className="py-2 px-4 font-bold text-slate-700">{sale.managerName}</td>
-                                       <td className="py-2 px-4 font-medium text-slate-900">{sale.productName}</td>
-                                       <td className="py-2 px-4 text-slate-600 text-right font-mono">{sale.qty.toFixed(2)}</td>
-                                       <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">₦{sale.revenue.toFixed(2)}</td>
-                                     </tr>
-                                   ))}
-                                 </tbody>
-                              </table>
-                           </div>
+                        {/* NEW: Sub-Tab Switcher for Logs vs Intelligence */}
+                        <div className="flex bg-slate-200/50 p-1 rounded-xl mb-4 w-fit border border-slate-200">
+                          <button
+                            onClick={() => setActiveSubTabs(prev => ({ ...prev, [date]: "logs" }))}
+                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                              (activeSubTabs[date] || "logs") === "logs" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                            }`}
+                          >
+                            Sales Logs
+                          </button>
+                          <button
+                            onClick={() => setActiveSubTabs(prev => ({ ...prev, [date]: "intel" }))}
+                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                              activeSubTabs[date] === "intel" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                            }`}
+                          >
+                            Sales Intelligence
+                          </button>
                         </div>
+
+                        {(activeSubTabs[date] || "logs") === "intel" ? (
+                           /* Sales Intelligence Tab */
+                           <div className="mb-6 animate-in fade-in duration-300">
+                              <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                                 <div className="overflow-x-auto">
+                                   <table className="min-w-full divide-y divide-slate-100">
+                                      <thead>
+                                         <tr className="bg-slate-50/50 text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                           <th className="py-2.5 px-4 text-left">Product</th>
+                                           <th className="py-2.5 px-4 text-right">Qty Sold</th>
+                                           <th className="py-2.5 px-4 text-right">Unit Cost</th>
+                                           <th className="py-2.5 px-4 text-right">Official Selling Price</th>
+                                           <th className="py-2.5 px-4 text-right">Manager Sales</th>
+                                           <th className="py-2.5 px-4 text-right">Expected Revenue</th>
+                                           <th className="py-2.5 px-4 text-right pr-6">Audited Variance</th>
+                                         </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-slate-50">
+                                         {sortedIntelligence.map((stats) => (
+                                           <tr key={stats.name} className="text-[11px] hover:bg-blue-50/60 transition-colors cursor-default">
+                                             <td className="py-3 px-4 font-bold text-slate-900">{stats.name}</td>
+                                             <td className="py-3 px-4 text-right text-slate-500 font-mono">{stats.qty.toFixed(2)}</td>
+                                             <td className="py-3 px-4 text-right text-slate-400 font-mono italic">₦{stats.unitCost.toFixed(2)}</td>
+                                             <td className="py-3 px-4 text-right text-slate-400 font-mono italic">₦{stats.unitPrice.toFixed(2)}</td>
+                                             <td className="py-3 px-4 text-right font-bold text-slate-900">₦{stats.recordedRevenue.toFixed(2)}</td>
+                                             <td className="py-3 px-4 text-right text-slate-500 font-bold">₦{stats.expectedRevenue.toFixed(2)}</td>
+                                             <td className={`py-3 px-4 text-right font-black pr-6 ${stats.variance < -1 ? 'text-rose-600' : stats.variance > 1 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                               {stats.variance < -1 ? `-₦${Math.abs(stats.variance).toFixed(2)}` : stats.variance > 1 ? `+₦${stats.variance.toFixed(2)}` : 'MATCH'}
+                                             </td>
+                                           </tr>
+                                         ))}
+                                      </tbody>
+                                   </table>
+                                 </div>
+                              </div>
+                           </div>
+                        ) : (
+                           /* Sales Activity Tab (Original Log Appearance) */
+                           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Sales Activity</span>
+                                 <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
+                              </div>
+                              <div className="overflow-x-auto">
+                                 <table className="min-w-full divide-y divide-slate-100">
+                                    <thead>
+                                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
+                                        <th className="py-2 px-4 text-left w-12">SN</th>
+                                        <th className="py-2 px-4 text-left">Time</th>
+                                        <th className="py-2 px-4 text-left">Manager</th>
+                                        <th className="py-2 px-4 text-left">Product</th>
+                                        <th className="py-2 px-4 text-right">Sold</th>
+                                        <th className="py-2 px-4 text-right pr-6">Revenue</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                      {data.items.map((sale, idx) => (
+                                        <tr key={sale.id} className="hover:bg-blue-50/50 text-[11px] transition-colors">
+                                          <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                                          <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(sale.timestamp), "HH:mm")}</td>
+                                          <td className="py-2 px-4 font-bold text-slate-700">{sale.managerName}</td>
+                                          <td className="py-2 px-4 font-medium text-slate-900">{sale.productName}</td>
+                                          <td className="py-2 px-4 text-slate-600 text-right font-mono">{sale.qty.toFixed(2)}</td>
+                                          <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">₦{sale.revenue.toFixed(2)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -442,7 +591,7 @@ export default function ReportsClient({
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Net Stock Added</p>
                           <p className="text-sm font-black text-emerald-600">+{data.totalAdded.toFixed(2)} units</p>
                         </div>
-                        <div className="hidden md:block text-right text-slate-400">
+                        <div className="text-slate-400">
                            <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[date] ? "rotate-90" : ""}`} />
                         </div>
                       </div>
@@ -479,7 +628,9 @@ export default function ReportsClient({
                                      <th className="py-2 px-4 text-left w-12">SN</th>
                                      <th className="py-2 px-4 text-left">Time</th>
                                      <th className="py-2 px-4 text-left">Product</th>
-                                     <th className="py-2 px-4 text-right">Quantity</th>
+                                     <th className="py-2 px-4 text-right">Qty</th>
+                                     <th className="py-2 px-4 text-right">Unit cost</th>
+                                     <th className="py-2 px-4 text-right pr-6">Total Exp.</th>
                                      <th className="py-2 px-4 text-left pl-6">By</th>
                                      <th className="py-2 px-4 text-left pr-6">Notes</th>
                                    </tr>
@@ -490,7 +641,9 @@ export default function ReportsClient({
                                        <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
                                        <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(stock.timestamp), "HH:mm")}</td>
                                        <td className="py-2 px-4 font-bold text-slate-900">{stock.productName}</td>
-                                       <td className="py-2 px-4 text-emerald-600 font-black text-right">+{stock.qtyAdded.toFixed(2)}</td>
+                                       <td className="py-2 px-4 text-slate-900 font-bold text-right">{stock.qtyAdded.toFixed(2)}</td>
+                                       <td className="py-2 px-4 text-slate-500 text-right font-mono">₦{stock.unitCost.toFixed(2)}</td>
+                                       <td className="py-2 px-4 font-black text-blue-600 text-right pr-6">₦{stock.totalCost.toFixed(2)}</td>
                                        <td className="py-2 px-4 text-slate-600 font-medium pl-6">{stock.addedBy}</td>
                                        <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{stock.note || "—"}</td>
                                      </tr>

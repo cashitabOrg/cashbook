@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { ChevronDown, ChevronUp, Calendar, ShoppingCart, DollarSign, Award } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, ShoppingCart, DollarSign, Award, CheckCircle2, Clock } from "lucide-react";
+import EditSaleModal from "@/components/admin/EditSaleModal";
+import { useRouter } from "next/navigation";
 
 type ItemDetail = {
   id?: string;
@@ -19,6 +21,7 @@ type SessionSummary = {
   endedAt: string | null;
   totalRevenue: number;
   itemsCount: number;
+  approvalStatus: string;
   items: ItemDetail[];
 };
 
@@ -27,18 +30,23 @@ type DailyGroup = {
   sessions: SessionSummary[];
   dailyTotalRevenue: number;
   dailyTotalItems: number;
+  isFullyApproved: boolean;
   productBreakdown: Record<string, ItemDetail>;
 };
 
 export default function ManagerHistoryClient({
   dailyGroups,
+  availableProducts = [],
 }: {
   dailyGroups: DailyGroup[];
+  availableProducts?: { id: string; name: string; }[];
 }) {
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
     // Expand the first date by default
     dailyGroups.length > 0 ? { [dailyGroups[0].dateStr]: true } : {}
   );
+
+  const router = useRouter();
 
   const toggleDate = (dateStr: string) => {
     setExpandedDates((prev) => ({
@@ -69,9 +77,11 @@ export default function ManagerHistoryClient({
             session.items.map(item => ({
               id: item.id || '',
               time: format(parseISO(item.createdAt || session.startedAt), "HH:mm"),
+              productId: item.productId,
               productName: item.productName,
               qty: item.qtySold,
-              revenue: item.revenue
+              revenue: item.revenue,
+              isApproved: session.approvalStatus === 'approved'
             }))
           ).sort((a, b) => a.time.localeCompare(b.time));
 
@@ -83,14 +93,21 @@ export default function ManagerHistoryClient({
                 className="w-full px-4 lg:px-6 py-4 flex items-center justify-between bg-white hover:bg-blue-100/60 transition-colors focus:outline-none group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                    <Calendar className="w-5 h-5" />
+                  <div className={`p-2 rounded-lg ${group.isFullyApproved ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                    {group.isFullyApproved ? <CheckCircle2 className="w-5 h-5" /> : <Calendar className="w-5 h-5" />}
                   </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-bold text-slate-900">
-                      {format(parseISO(group.dateStr), "EEEE, MMMM do yyyy")}
-                    </h3>
-                    <p className="text-sm text-slate-500">{group.sessions.length} session(s)</p>
+                  <div className="text-left flex items-center gap-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        {format(parseISO(group.dateStr), "EEEE, MMMM do yyyy")}
+                      </h3>
+                      <p className="text-sm text-slate-500">{group.sessions.length} session(s)</p>
+                    </div>
+                    {group.isFullyApproved ? (
+                      <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> Approved</span>
+                    ) : (
+                      <span className="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:flex items-center gap-1"><Clock className="w-3 h-3"/> Pending</span>
+                    )}
                   </div>
                 </div>
 
@@ -174,7 +191,17 @@ export default function ManagerHistoryClient({
                                 <td className="py-3 px-4 text-xs text-slate-600 text-right font-mono">{entry.qty.toFixed(2)}</td>
                                 <td className="py-3 px-4 text-xs font-black text-emerald-600 text-right">₦{entry.revenue.toFixed(2)}</td>
                                 <td className="py-3 px-4 text-right">
-                                   {/* Edits restricted to open session in POS */}
+                                   {!entry.isApproved && (
+                                     <EditSaleModal
+                                       itemId={entry.id}
+                                       productId={entry.productId}
+                                       initialQty={entry.qty}
+                                       initialRevenue={entry.revenue}
+                                       productName={entry.productName}
+                                       availableProducts={availableProducts}
+                                       onSuccess={() => router.refresh()}
+                                     />
+                                   )}
                                 </td>
                               </tr>
                             ))}

@@ -129,6 +129,8 @@ type SaleRecord = {
   qty: number;
   price: number;
   revenue: number;
+  cost: number;
+  profit: number;
 };
 
 type PerformanceRecord = {
@@ -143,6 +145,7 @@ export default function SalesReportPDF({
   data,
   totalQty,
   totalRevenue,
+  totalProfit,
   performanceSummary,
 }: {
   storeName: string;
@@ -150,6 +153,7 @@ export default function SalesReportPDF({
   data: SaleRecord[];
   totalQty: number;
   totalRevenue: number;
+  totalProfit: number;
   performanceSummary: PerformanceRecord[];
 }) {
   return (
@@ -171,6 +175,10 @@ export default function SalesReportPDF({
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total Sales Revenue</Text>
             <Text style={[styles.summaryValue, styles.revenueValue]}>NGN {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Est. Total Profit</Text>
+            <Text style={[styles.summaryValue, { color: "#2563eb" }]}>NGN {totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
           </View>
         </View>
 

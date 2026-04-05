@@ -7,6 +7,8 @@ export interface LocalProduct {
   unit: string;
   quantity: number;
   min_quantity: number;
+  cost_price?: number;
+  selling_price?: number;
   last_synced: number;
 }
 
@@ -27,7 +29,7 @@ export class FrozenPOSDatabase extends Dexie {
 
   constructor() {
     super('FrozenPOSDatabase');
-    this.version(2).stores({
+    this.version(3).stores({
       products: 'id, store_id, name', 
       offlineQueue: '++id, store_id, status, type, created_at'
     });

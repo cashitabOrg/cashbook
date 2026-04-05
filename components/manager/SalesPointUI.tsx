@@ -37,6 +37,8 @@ export default function SalesPointUI({
           unit: p.unit,
           quantity: p.quantity,
           min_quantity: p.min_quantity || 0,
+          cost_price: Number(p.cost_price || 0),
+          selling_price: Number(p.selling_price || 0),
           last_synced: Date.now()
         }))
       ).catch(err => console.error("Initial product hydration failed:", err));

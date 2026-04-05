@@ -4,11 +4,17 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { requireRole } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
+interface ActionResponse {
+  success?: boolean;
+  error?: string;
+}
+
 export async function deleteSaleItem(itemId: string) {
   try {
     const userRole = await requireRole(["manager", "admin", "super_admin"]);
 
     // 1. Fetch the sale item to get its original quantity, product_id, session_id, and subtotal
+    // Also fetch the session's approval status
     const { data: item, error: fetchError } = await supabaseAdmin
       .from('sale_items')
       .select('id, store_id, product_id, quantity, subtotal, session_id')
@@ -17,6 +23,18 @@ export async function deleteSaleItem(itemId: string) {
 
     if (fetchError || !item) {
       return { error: 'Sale record not found.' };
+    }
+
+    // Fetch the session separately since the schema is not strongly relationship typed in the query
+    const { data: sessionData } = await supabaseAdmin
+      .from('sales_sessions')
+      .select('approval_status')
+      .eq('id', item.session_id)
+      .single();
+
+    const isApproved = sessionData?.approval_status === 'approved';
+    if (isApproved && userRole.role === 'manager') {
+      return { error: 'This sale has been approved by an administrator and can no longer be modified.' };
     }
 
     if (userRole.role !== 'super_admin' && item.store_id !== userRole.storeId) {
@@ -61,7 +79,7 @@ export async function deleteSaleItem(itemId: string) {
   }
 }
 
-export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtotalRaw: number) {
+export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtotalRaw: number, newProductId?: string) {
   try {
     const userRole = await requireRole(["manager", "admin", "super_admin"]);
     
@@ -82,6 +100,18 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
 
     if (fetchError || !item) {
       return { error: 'Sale record not found.' };
+    }
+
+    // Fetch the session properties directly to check approval
+    const { data: sessionData } = await supabaseAdmin
+      .from('sales_sessions')
+      .select('approval_status')
+      .eq('id', item.session_id)
+      .single();
+
+    const isApproved = sessionData?.approval_status === 'approved';
+    if (isApproved && userRole.role === 'manager') {
+      return { error: 'This sale has been approved by an administrator and can no longer be modified.' };
     }
 
     if (userRole.role !== 'super_admin' && item.store_id !== userRole.storeId) {
@@ -112,9 +142,14 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     }
 
     // 4. Update the actual item
+    const updatePayload: any = { quantity: newQty, subtotal: newSubtotal };
+    if (newProductId && newProductId !== item.product_id) {
+       updatePayload.product_id = newProductId;
+    }
+    
     const { error: updateError } = await supabaseAdmin
       .from('sale_items')
-      .update({ quantity: newQty, subtotal: newSubtotal })
+      .update(updatePayload)
       .eq('id', itemId);
 
     if (updateError) {
@@ -124,6 +159,58 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     // 5. Invalidate the entire routing cache
     revalidatePath('/', 'layout');
 
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function approveDailySales(dateStr: string, storeId: string, reason?: string): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const userRole = await requireRole(["admin", "super_admin"]);
+    
+    if (userRole.role !== 'super_admin' && storeId !== userRole.storeId) {
+      return { error: 'Unauthorized permission to approve records for this store.' };
+    }
+
+    const { data: allSessions, error: fetchError } = await supabaseAdmin
+      .from('sales_sessions')
+      .select('id, started_at')
+      .eq('store_id', storeId)
+      .eq('status', 'closed');
+      
+    if (fetchError || !allSessions) {
+      return { error: 'Failed to fetch sessions for approval.' };
+    }
+
+    const sessionIdsToApprove = allSessions.filter(s => {
+      const sDateStr = new Intl.DateTimeFormat('en-CA', { 
+        timeZone: 'Africa/Lagos', 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      }).format(new Date(s.started_at));
+      return sDateStr === dateStr;
+    }).map(s => s.id);
+
+    if (sessionIdsToApprove.length === 0) {
+      return { error: 'No closed sessions found for this date.' };
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('sales_sessions')
+      .update({
+        approval_status: 'approved',
+        approved_by: userRole.id,
+        approval_reason: reason || null
+      })
+      .in('id', sessionIdsToApprove);
+
+    if (updateError) {
+      return { error: 'Failed to update approval status.' };
+    }
+
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred.' };

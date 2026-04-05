@@ -15,6 +15,8 @@ type ProductModalProps = {
     name: string;
     unit: string;
     min_quantity: number;
+    cost_price?: number;
+    selling_price?: number;
   } | null;
 };
 
@@ -134,6 +136,41 @@ export default function ProductModal({
                       defaultValue={product?.min_quantity || 0}
                       className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border text-slate-900"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="costPrice" className="block text-sm font-medium text-slate-700">
+                        Unit Cost (₦)
+                      </label>
+                      <input
+                        type="number"
+                        name="costPrice"
+                        id="costPrice"
+                        required
+                        min="0"
+                        step="0.01"
+                        defaultValue={product?.cost_price || 0}
+                        className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border text-slate-900"
+                        placeholder="Cost"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="sellingPrice" className="block text-sm font-medium text-slate-700">
+                        Unit Selling (₦)
+                      </label>
+                      <input
+                        type="number"
+                        name="sellingPrice"
+                        id="sellingPrice"
+                        required
+                        min="0"
+                        step="0.01"
+                        defaultValue={product?.selling_price || 0}
+                        className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border text-slate-900"
+                        placeholder="Selling"
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-100">

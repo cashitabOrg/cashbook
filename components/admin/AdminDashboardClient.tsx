@@ -24,6 +24,8 @@ type Product = {
   quantity: number;
   min_quantity: number;
   unit: string;
+  cost_price?: number;
+  selling_price?: number;
 };
 
 type RawSession = {
@@ -166,6 +168,9 @@ export default function AdminDashboardClient({
   }, [products, searchQuery]);
 
   const lowStockCount = products.filter((p) => p.quantity < p.min_quantity).length;
+  const totalStockCost = products.reduce((acc, curr) => acc + (curr.quantity * (curr.cost_price || 0)), 0);
+  const totalRetailValue = products.reduce((acc, curr) => acc + (curr.quantity * (curr.selling_price || 0)), 0);
+  const potentialProfit = totalRetailValue - totalStockCost;
 
   return (
     <div className="space-y-6">
@@ -225,16 +230,16 @@ export default function AdminDashboardClient({
       </div>
       
       <div className="px-2 lg:px-0 space-y-6">
-        <div className="grid grid-cols-3 gap-2 lg:gap-5">
-          <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-5">
+          <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm col-span-2">
             <div className="p-3 lg:p-6">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-5">
+              <div className="flex items-center lg:gap-5">
                 <div className="flex-shrink-0 bg-blue-50 rounded-xl p-2 lg:p-4">
                   <DollarSign className="h-4 w-4 lg:h-6 lg:w-6 text-blue-600" />
                 </div>
-                <div className="text-center lg:text-left mt-2 lg:mt-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Revenue</p>
-                  <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1 truncate">₦{metrics.totalRevenue.toFixed(0)}</div>
+                <div className="ml-3 lg:ml-0">
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Revenue ({startDate === endDate ? 'Today' : 'Range'})</p>
+                  <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">₦{metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</div>
                 </div>
               </div>
             </div>
@@ -242,12 +247,12 @@ export default function AdminDashboardClient({
 
           <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm">
             <div className="p-3 lg:p-6">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-5">
+              <div className="flex items-center lg:gap-5">
                 <div className="flex-shrink-0 bg-emerald-50 rounded-xl p-2 lg:p-4">
                   <Package className="h-4 w-4 lg:h-6 lg:w-6 text-emerald-600" />
                 </div>
-                <div className="text-center lg:text-left mt-2 lg:mt-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Total Products</p>
+                <div className="ml-3 lg:ml-0">
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Products</p>
                   <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">{products.length}</div>
                 </div>
               </div>
@@ -256,12 +261,12 @@ export default function AdminDashboardClient({
 
           <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm">
             <div className="p-3 lg:p-6">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-5">
+              <div className="flex items-center lg:gap-5">
                 <div className="flex-shrink-0 bg-red-50 rounded-xl p-2 lg:p-4">
                   <AlertCircle className="h-4 w-4 lg:h-6 lg:w-6 text-red-600" />
                 </div>
-                <div className="text-center lg:text-left mt-2 lg:mt-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Low Stock</p>
+                <div className="ml-3 lg:ml-0">
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Low Stock</p>
                   <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">{lowStockCount}</div>
                 </div>
               </div>
@@ -380,6 +385,39 @@ export default function AdminDashboardClient({
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Valuation Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-5">
+          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4">
+            <div className="bg-amber-50 p-2 lg:p-3 rounded-xl text-amber-600">
+               <TrendingUp className="w-4 h-4 lg:w-6 lg:h-6" />
+            </div>
+            <div>
+              <p className="text-[8px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">Stock Cost</p>
+              <p className="text-xs lg:text-xl font-black text-slate-900">₦{totalStockCost.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+            </div>
+          </div>
+          
+          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4">
+            <div className="bg-blue-50 p-2 lg:p-3 rounded-xl text-blue-600">
+               <Package className="w-4 h-4 lg:w-6 lg:h-6" />
+            </div>
+            <div>
+              <p className="text-[8px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">Retail Value</p>
+              <p className="text-xs lg:text-xl font-black text-slate-900">₦{totalRetailValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+            </div>
+          </div>
+
+          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4 col-span-2 lg:col-span-1">
+            <div className="bg-emerald-50 p-2 lg:p-3 rounded-xl text-emerald-600">
+               <DollarSign className="w-4 h-4 lg:w-6 lg:h-6" />
+            </div>
+            <div>
+              <p className="text-[8px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">Est. Profit Margin</p>
+              <p className="text-xs lg:text-xl font-black text-emerald-600">₦{potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
             </div>
           </div>
         </div>

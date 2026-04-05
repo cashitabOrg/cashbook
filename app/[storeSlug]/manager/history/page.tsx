@@ -18,7 +18,7 @@ export default async function ManagerHistoryPage({
   // 1. Fetch closed sessions for this specific manager
   const { data: sessions, error: sessionsError } = await supabase
     .from("sales_sessions")
-    .select("id, started_at, ended_at, total_revenue, status")
+    .select("id, started_at, ended_at, total_revenue, status, approval_status")
     .eq("store_id", userRole.storeId)
     .eq("manager_id", userRole.id)
     .eq("status", "closed")
@@ -56,6 +56,15 @@ export default async function ManagerHistoryPage({
     .select("id, session_id, product_id, quantity, subtotal, created_at, products(name)")
     .in("session_id", sessionIds);
 
+  // 2.5 Fetch products for swapping in Edit Modal
+  const { data: storeProducts } = await supabase
+    .from("products")
+    .select("id, name")
+    .eq("store_id", userRole.storeId)
+    .order("name", { ascending: true });
+  
+  const availableProducts = storeProducts || [];
+
   // 3. Build structured response
   // Group by date string YYYY-MM-DD
   const dailyGroupsMap: Record<string, any> = {};
@@ -76,8 +85,13 @@ export default async function ManagerHistoryPage({
         sessions: [],
         dailyTotalRevenue: 0,
         dailyTotalItems: 0,
+        isFullyApproved: true,
         productBreakdown: {}
       };
+    }
+    
+    if (session.approval_status !== 'approved') {
+      dailyGroupsMap[dateStr].isFullyApproved = false;
     }
     
     // Find items for this session
@@ -100,6 +114,7 @@ export default async function ManagerHistoryPage({
       endedAt: session.ended_at,
       totalRevenue: Number(session.total_revenue),
       itemsCount,
+      approvalStatus: session.approval_status || 'pending',
       items: sessionItems
     });
     
@@ -142,7 +157,10 @@ export default async function ManagerHistoryPage({
       </div>
 
       <div className="px-2 lg:px-0">
-        <ManagerHistoryClient dailyGroups={dailyGroupsArray} />
+        <ManagerHistoryClient 
+          dailyGroups={dailyGroupsArray} 
+          availableProducts={availableProducts}
+        />
       </div>
     </div>
   );

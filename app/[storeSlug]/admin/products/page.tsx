@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
-import ProductsTable from "@/components/admin/ProductsTable";
+import AdminProductsClient from "@/components/admin/AdminProductsClient";
 import { requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -31,8 +31,6 @@ export default async function AdminProductsPage({
   }
 
   return (
-    <div className="lg:p-8 max-w-full mx-auto">
-      <ProductsTable storeSlug={storeSlug} products={products || []} />
-    </div>
+    <AdminProductsClient storeSlug={storeSlug} products={products || []} />
   );
 }

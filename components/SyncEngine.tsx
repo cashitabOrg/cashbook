@@ -143,6 +143,7 @@ export default function SyncEngine() {
                   id: payload.session_id,
                   store_id: item.store_id || (currentUser ? currentUser.user_metadata?.store_id : payload.store_id),
                   manager_id: payload.manager_id || currentUser?.id || item.payload.manager_id, 
+                  started_at: payload.started_at || new Date(item.created_at).toISOString(),
                   status: "open",
                   total_revenue: 0,
                 }, { onConflict: 'id', ignoreDuplicates: true });
@@ -164,7 +165,10 @@ export default function SyncEngine() {
               session_id: payload.session_id,
               product_id: payload.product_id,
               quantity: payload.quantity,
-              subtotal: payload.subtotal
+              subtotal: payload.subtotal,
+              unit_price: payload.unit_price || 0,
+              unit_cost: payload.unit_cost || 0,
+              created_at: new Date(item.created_at).toISOString()
             }, { onConflict: 'id', ignoreDuplicates: true });
             success = !error || error?.code === '23505' || error?.message?.includes('duplicate');
             

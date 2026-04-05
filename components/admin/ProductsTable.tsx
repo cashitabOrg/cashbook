@@ -3,9 +3,10 @@
 import { useState } from "react";
 import ProductModal from "./ProductModal";
 import AddStockModal from "./AddStockModal";
+import StockAdjustmentModal from "./StockAdjustmentModal";
 import { deleteProduct } from "@/app/actions/products";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, AlertTriangle, Archive } from "lucide-react";
+import { Plus, Edit, Trash2, AlertTriangle, Archive, Scale } from "lucide-react";
 
 type Product = {
   id: string;
@@ -13,6 +14,8 @@ type Product = {
   unit: string;
   quantity: number;
   min_quantity: number;
+  cost_price?: number;
+  selling_price?: number;
   created_at: string;
 };
 
@@ -25,6 +28,7 @@ export default function ProductsTable({
 }) {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [stockModalOpen, setStockModalOpen] = useState(false);
+  const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
   
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -42,6 +46,11 @@ export default function ProductsTable({
   const handleAddNew = () => {
     setActiveProduct(null);
     setProductModalOpen(true);
+  };
+
+  const handleAdjustStock = (product: Product) => {
+    setActiveProduct(product);
+    setAdjustmentModalOpen(true);
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -165,6 +174,14 @@ export default function ProductsTable({
                                 <span className="sr-only">Edit</span>
                               </button>
                               <button
+                                onClick={() => handleAdjustStock(product)}
+                                className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded transition-colors"
+                                title="Adjust Stock (Spoilage/Correction)"
+                              >
+                                <Scale className="w-4 h-4" />
+                                <span className="sr-only">Adjust</span>
+                              </button>
+                              <button
                                 onClick={() => handleDelete(product.id, product.name)}
                                 disabled={isDeleting === product.id}
                                 className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded transition-colors disabled:opacity-50"
@@ -201,6 +218,16 @@ export default function ProductsTable({
         isOpen={stockModalOpen}
         onClose={() => {
           setStockModalOpen(false);
+          setActiveProduct(null);
+        }}
+        storeSlug={storeSlug}
+        product={activeProduct}
+      />
+
+      <StockAdjustmentModal
+        isOpen={adjustmentModalOpen}
+        onClose={() => {
+          setAdjustmentModalOpen(false);
           setActiveProduct(null);
         }}
         storeSlug={storeSlug}

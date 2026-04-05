@@ -7,18 +7,32 @@ import { editSaleItem, deleteSaleItem } from '@/app/actions/sales'
 
 interface EditSaleModalProps {
   itemId: string;
+  productId?: string;
   initialQty: number;
   initialRevenue: number;
   productName: string;
+  availableProducts?: { id: string; name: string }[];
   onSuccess?: () => void;
 }
 
-export default function EditSaleModal({ itemId, initialQty, initialRevenue, productName, onSuccess }: EditSaleModalProps) {
+export default function EditSaleModal({ itemId, productId, initialQty, initialRevenue, productName, availableProducts = [], onSuccess }: EditSaleModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [qty, setQty] = useState(initialQty);
   const [revenue, setRevenue] = useState(initialRevenue);
+  const [selectedProductId, setSelectedProductId] = useState(productId || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Derive unit price from original sale for auto-recalculation
+  const unitPrice = initialQty > 0 ? initialRevenue / initialQty : 0;
+
+  const handleQtyChange = (newQty: number) => {
+    setQty(newQty);
+    // Auto-recalculate revenue based on original unit price
+    if (unitPrice > 0) {
+      setRevenue(parseFloat((newQty * unitPrice).toFixed(2)));
+    }
+  };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +42,7 @@ export default function EditSaleModal({ itemId, initialQty, initialRevenue, prod
     }
 
     setIsSaving(true);
-    const res = await editSaleItem(itemId, qty, revenue);
+    const res = await editSaleItem(itemId, qty, revenue, selectedProductId);
     setIsSaving(false);
 
     if (res?.error) {
@@ -81,25 +95,40 @@ export default function EditSaleModal({ itemId, initialQty, initialRevenue, prod
                  <div className="bg-white p-1.5 rounded shadow-sm text-blue-600 shrink-0">
                     <Pencil className="w-4 h-4" />
                  </div>
-                 <div>
-                    <p className="text-xs font-bold text-slate-700">{productName}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Changing values will automatically reconcile store inventory.</p>
+                 <div className="w-full">
+                    {availableProducts && availableProducts.length > 0 ? (
+                      <select
+                        value={selectedProductId}
+                        onChange={(e) => setSelectedProductId(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-md text-xs font-bold text-slate-700 p-1.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      >
+                        {availableProducts.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-xs font-bold text-slate-700">{productName}</p>
+                    )}
+                    <p className="text-[10px] text-slate-500 mt-1">Changing this product will automatically re-allocate inventory.</p>
                  </div>
               </div>
 
               {!confirmDelete ? (
                 <form onSubmit={handleEdit} className="space-y-4">
-                  <div>
+                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Quantity Sold</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={qty}
-                      onChange={(e) => setQty(parseFloat(e.target.value))}
+                      onChange={(e) => handleQtyChange(parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium text-slate-900"
                       required
                     />
+                    {unitPrice > 0 && (
+                      <p className="text-[10px] text-slate-400 mt-1">Unit price: ₦{unitPrice.toFixed(2)} · Revenue updates automatically</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Total Revenue (₦)</label>

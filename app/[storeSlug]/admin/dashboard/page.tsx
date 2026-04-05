@@ -17,7 +17,7 @@ export default async function AdminDashboardPage({
   // 1. Fetch products for inventory table
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, quantity, min_quantity, unit")
+    .select("id, name, quantity, min_quantity, unit, cost_price, selling_price")
     .eq("store_id", userRole.storeId)
     .order("name");
 

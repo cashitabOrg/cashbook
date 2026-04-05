@@ -33,16 +33,21 @@ export default async function ReportsPage({
       id,
       quantity,
       subtotal,
+      unit_price,
+      unit_cost,
       created_at,
       products (name),
       sales_sessions!inner (
+        id,
         started_at,
         status,
+        approval_status,
         users!manager_id (full_name)
       )
     `)
     .eq("store_id", userRole.storeId)
-    .eq("sales_sessions.status", "closed");
+    .eq("sales_sessions.status", "closed")
+    .order("created_at", { ascending: true });
 
   if (salesError) {
     console.error('[Reports] Failed to load sales data:', salesError.message, salesError);
@@ -71,8 +76,12 @@ export default async function ReportsPage({
       // @ts-ignore
       productName: sale.products?.name || "Unknown Product",
       qty: Number(sale.quantity),
-      price: 0, // No longer tracked per field, available via subtotal/quantity if needed
+      price: Number(sale.unit_price || (Number(sale.subtotal) / Number(sale.quantity))), 
       revenue: Number(sale.subtotal),
+      cost: Number(sale.unit_cost || 0),
+      profit: Number(sale.subtotal) - (Number(sale.quantity) * Number(sale.unit_cost || 0)),
+      sessionId: session?.id,
+      approvalStatus: session?.approval_status || 'pending',
     };
   });
 
@@ -82,6 +91,7 @@ export default async function ReportsPage({
     .select(`
       id,
       quantity_added,
+      unit_cost,
       note,
       created_at,
       products (name),
@@ -104,6 +114,8 @@ export default async function ReportsPage({
       // @ts-ignore
       productName: stock.products?.name || "Unknown Product",
       qtyAdded: Number(stock.quantity_added),
+      unitCost: Number(stock.unit_cost || 0),
+      totalCost: Number(stock.quantity_added) * Number(stock.unit_cost || 0),
       // @ts-ignore
       addedBy: stock.users?.full_name || "Unknown Admin",
       note: stock.note,
@@ -114,6 +126,7 @@ export default async function ReportsPage({
     <div className="lg:p-8 max-w-full mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
       <div className="flex-1 min-h-0">
         <ReportsClient
+          storeId={userRole.storeId}
           storeName={store?.name || "Store"}
           salesData={salesData}
           stockData={stockData}
