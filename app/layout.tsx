@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   title: "CASHITAB - Smart POS & Inventory",
   description: "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logo-icon.png',
+    shortcut: '/logo-icon.png',
+    apple: '/logo-icon.png',
   }
 };
 

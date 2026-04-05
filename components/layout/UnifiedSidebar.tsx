@@ -77,8 +77,8 @@ export default function UnifiedSidebar({
     >
       {/* Header */}
       <div className={`h-20 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-5 gap-3 relative"}`}>
-        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-xl shadow-blue-500/10 shrink-0 select-none">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-xl shadow-blue-500/10 shrink-0 select-none">
+          <img src="/logo-icon.png" alt="Logo" className="w-full h-full object-contain" />
         </div>
         {!isCollapsed && (
           <div className="flex flex-col min-w-0">

@@ -53,8 +53,8 @@ export default function LoginPage() {
 
       <div className="w-full max-w-sm relative z-10 flex flex-col items-center">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl shadow-cyan-500/20 mb-6 overflow-experimental-bg-white bg-white overflow-hidden">
-            <img src="/logo.png" alt="CASHITAB Logo" className="w-full h-full object-cover" />
+          <div className="mx-auto w-24 h-16 rounded-2xl flex items-center justify-center p-2 shadow-xl shadow-cyan-500/20 mb-6 bg-white overflow-hidden">
+            <img src="/logo-wide.png" alt="CASHITAB Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-4xl font-black text-white mb-2 tracking-tighter uppercase italic">CASHITAB</h1>
           <p className="text-slate-400 font-medium tracking-tight">Smart Retail & Inventory Management</p>
