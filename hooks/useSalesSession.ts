@@ -28,20 +28,39 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const supabase = createClient();
     const { data, error } = await supabase
       .from('sale_items')
-      .select('id, product_id, quantity, subtotal, products(name)')
+      .select('id, product_id, quantity, subtotal, created_at, products(name)')
+      .order('created_at', { ascending: true })
       .eq('session_id', sessionId);
       
     if (data && !error) {
-      const existingRows: SaleRow[] = data.map((item: any) => ({
-        localId: crypto.randomUUID(),
-        dbId: item.id,
-        productId: item.product_id,
-        productName: item.products?.name || 'Unknown',
-        quantitySold: Number(item.quantity),
-        subtotal: Number(item.subtotal),
-        synced: true
-      }));
-      setRows(existingRows);
+      // Find which of our local rows are still pending in the queue
+      const pendingQueueItems = await db.offlineQueue
+        .filter(q => q.type === 'sale_item' && q.status === 'pending')
+        .toArray();
+      const pendingLocalIds = pendingQueueItems.map(q => q.payload?.local_row_id);
+
+      setRows(prevRows => {
+        const existingRows: SaleRow[] = data.map((item: any) => {
+          const existing = prevRows.find(r => r.dbId === item.id);
+          return {
+            localId: existing ? existing.localId : crypto.randomUUID(),
+            dbId: item.id,
+            productId: item.product_id,
+            productName: item.products?.name || 'Unknown',
+            quantitySold: Number(item.quantity),
+            subtotal: Number(item.subtotal),
+            synced: true
+          };
+        });
+
+        // Keep unsynced drafting rows
+        const draftingRows = prevRows.filter(r => !r.synced);
+        
+        // Keep synced rows that are STILL in the offline queue (not yet in Supabase)
+        const pendingOfflineRows = prevRows.filter(r => r.synced && pendingLocalIds.includes(r.localId));
+        
+        return [...existingRows, ...pendingOfflineRows, ...draftingRows];
+      });
     }
   }, [sessionId]);
 
@@ -51,6 +70,19 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
     if (savedSessionId) {
       setSessionId(savedSessionId);
+
+      // Restore rows from local storage immediately
+      const savedRowsStr = localStorage.getItem(`session_rows_${managerId}_${storeId}`);
+      if (savedRowsStr) {
+        try {
+          const parsed = JSON.parse(savedRowsStr);
+          if (Array.isArray(parsed)) {
+            setRows(parsed);
+          }
+        } catch(e) {
+          console.error("Failed to parse saved session rows", e);
+        }
+      }
 
       // Check if session is from a previous day (WAT)
       if (savedStart) {
@@ -67,6 +99,13 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       setIsStale(false);
     }
   }, [managerId, storeId]);
+
+  // Save rows to localStorage whenever they change
+  useEffect(() => {
+    if (sessionId) {
+      localStorage.setItem(`session_rows_${managerId}_${storeId}`, JSON.stringify(rows));
+    }
+  }, [rows, sessionId, managerId, storeId]);
 
   // Handle re-fetch when session ID becomes available 
   useEffect(() => {
@@ -251,6 +290,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     setIsStale(false);
     localStorage.removeItem(`session_${managerId}_${storeId}`);
     localStorage.removeItem(`session_start_${managerId}_${storeId}`);
+    localStorage.removeItem(`session_rows_${managerId}_${storeId}`);
     setRows([]);
     setIsEnding(false);
   };
