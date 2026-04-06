@@ -35,7 +35,7 @@ export default function SyncEngine() {
     // Optional: periodic check in case events drop
     const interval = setInterval(() => {
       if (navigator.onLine) processQueue();
-    }, 15000);
+    }, 10000); // Check every 10 seconds (was 15)
 
     return () => {
       window.removeEventListener("online", handleOnline);

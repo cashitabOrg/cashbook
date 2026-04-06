@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
-import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart, Trash2 } from "lucide-react";
+import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart, Trash2, RefreshCw } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
 import { useRealtimeStock } from "@/hooks/useRealtimeStock";
@@ -53,6 +53,12 @@ export default function SalesPointUI({
 
   const rawProducts = liveProducts || initialProducts || [];
   const products = [...rawProducts].sort((a, b) => a.name.localeCompare(b.name));
+
+  // 4. Listen to offline queue count for sync feedback
+  const pendingSyncCount = useLiveQuery(
+    () => db.offlineQueue.count(),
+    []
+  ) ?? 0;
 
   const {
     isOnline,
@@ -139,7 +145,7 @@ export default function SalesPointUI({
       {/* Summary Bar */}
       <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 p-4 lg:p-6 mb-2 lg:mb-6 flex flex-wrap gap-4 justify-between items-center isolate relative overflow-hidden shrink-0 border-b border-slate-100">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex gap-4 lg:gap-8">
+        <div className="relative z-10 flex gap-4 lg:gap-8 items-center">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Items</p>
             <p className="text-xl lg:text-2xl font-black text-slate-900 leading-none">{totalItems.toFixed(2)}</p>
@@ -147,6 +153,24 @@ export default function SalesPointUI({
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session Revenue</p>
             <p className="text-xl lg:text-2xl font-black text-emerald-600 leading-none">₦{totalRevenue.toFixed(2)}</p>
+          </div>
+          
+          {/* SYNC STATUS BADGE */}
+          <div className="h-10 w-px bg-slate-100 mx-2 hidden sm:block" />
+          
+          <div className="flex flex-col">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Sync Status</p>
+            {pendingSyncCount > 0 ? (
+              <div className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 animate-pulse transition-all">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span className="text-[10px] font-black uppercase tracking-tight">{pendingSyncCount} Items Syncing...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100 transition-all">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-black uppercase tracking-tight">Cloud Synced</span>
+              </div>
+            )}
           </div>
         </div>
         
