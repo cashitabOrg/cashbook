@@ -27,6 +27,16 @@ export default async function CorrectionSalesPage({
     .eq("store_id", userRole.storeId)
     .order("name");
 
+  const { data: sessions } = await supabase
+    .from("sales_sessions")
+    .select("started_at")
+    .eq("store_id", userRole.storeId);
+    
+  // Extract unique YYYY-MM-DD dates from the sessions
+  const availableDates = Array.from(new Set(
+    (sessions || []).map(s => s.started_at.split('T')[0])
+  )).sort().reverse(); // Newest dates first
+
   return (
     <div className="h-full flex flex-col">
       <CorrectionSalesUI 
@@ -34,6 +44,7 @@ export default async function CorrectionSalesPage({
         storeId={userRole.storeId as string}
         managerId={userRole.id}
         initialProducts={products || []} 
+        availableDates={availableDates}
       />
     </div>
   );
