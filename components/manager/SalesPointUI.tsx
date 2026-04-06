@@ -56,7 +56,7 @@ export default function SalesPointUI({
 
   // 4. Listen to offline queue count for sync feedback
   const pendingSyncCount = useLiveQuery(
-    () => db.offlineQueue.count(),
+    () => db.offlineQueue.filter(item => item.status === 'pending' || item.status === 'syncing').count(),
     []
   ) ?? 0;
 
