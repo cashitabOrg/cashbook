@@ -49,14 +49,12 @@ export default function SyncEngine() {
     isSyncing.current = true;
 
     try {
-      // Master Reset: Force retry items that failed during the setup phase
+      // Master Reset: Force retry items that failed
       await db.offlineQueue
         .where("status").equals("failed")
         .modify(item => {
-           if ((item.retry_count || 0) < 100) { 
              item.status = "pending";
-             item.retry_count = (item.retry_count || 0) + 1;
-           }
+             item.retry_count = 0;
         });
 
       // Orphan Recovery: Reset items stuck in "syncing" state (left over from
