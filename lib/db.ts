@@ -18,7 +18,7 @@ export interface OfflineQueueItem {
   type: 'sale_session' | 'sale_item' | 'stock_decrement' | 'sale_item_delete';
   payload: any;
   created_at: number;
-  status: 'pending' | 'syncing' | 'failed';
+  status: 'pending' | 'syncing' | 'failed' | 'fatal';
   error?: string;
   retry_count?: number;
 }
