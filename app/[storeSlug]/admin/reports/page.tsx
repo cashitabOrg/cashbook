@@ -122,6 +122,42 @@ export default async function ReportsPage({
     };
   });
 
+  // 4. Fetch Stock Adjustments
+  const { data: adjRaw, error: adjError } = await supabase
+    .from("stock_adjustments")
+    .select(`
+      id,
+      quantity_change,
+      reason,
+      note,
+      created_at,
+      products (name),
+      users (full_name)
+    `)
+    .eq("store_id", userRole.storeId)
+    .order("created_at", { ascending: true });
+
+  if (adjError) {
+    console.error('[Reports] Failed to load adjustment data:', adjError.message, adjError);
+    // Don't fail the whole page, just log empty
+  }
+
+  const adjustmentData = (adjRaw || []).map((adj) => {
+    const timestamp = adj.created_at || new Date().toISOString();
+    return {
+      id: adj.id,
+      timestamp,
+      dateStr: format(parseISO(timestamp), "MMM do, yyyy HH:mm"),
+      // @ts-ignore
+      productName: adj.products?.name || "Unknown Product",
+      qtyChange: Number(adj.quantity_change),
+      reason: adj.reason || "Adjustment",
+      // @ts-ignore
+      adjustedBy: adj.users?.full_name || "Unknown Admin",
+      note: adj.note,
+    };
+  });
+
   return (
     <div className="lg:p-8 max-w-full mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
       <div className="flex-1 min-h-0">
@@ -130,6 +166,7 @@ export default async function ReportsPage({
           storeName={store?.name || "Store"}
           salesData={salesData}
           stockData={stockData}
+          adjustmentData={adjustmentData}
         />
       </div>
     </div>

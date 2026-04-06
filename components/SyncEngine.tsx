@@ -183,6 +183,17 @@ export default function SyncEngine() {
             }
           } 
           
+          else if (item.type === "sale_item_delete") {
+            const { local_row_id } = item.payload;
+            // Delete from cloud using the POS-generated UUID (which is the DB PK)
+            const { error } = await supabase
+              .from("sale_items")
+              .delete()
+              .eq("id", local_row_id);
+            // Treat 404 (already deleted) or success as success
+            success = !error;
+          } 
+          
           // The 'stock_decrement' type is now handled automatically by Database Triggers
           // when 'sale_item' records are synced. This prevent double-deduction.
           else if (item.type === "stock_decrement") {

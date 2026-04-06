@@ -35,21 +35,35 @@ type StockInRecord = {
   note: string | null;
 };
 
+type StockAdjustmentRecord = {
+  id: string;
+  dateStr: string;
+  timestamp: string;
+  productName: string;
+  qtyChange: number;
+  reason: string;
+  adjustedBy: string;
+  note: string | null;
+};
+
 export default function ReportsClient({
   storeId,
   storeName,
   salesData,
   stockData,
+  adjustmentData = [],
 }: {
   storeId: string;
   storeName: string;
   salesData: SaleRecord[];
   stockData: StockInRecord[];
+  adjustmentData: StockAdjustmentRecord[];
 }) {
   const [activeTab, setActiveTab] = useState<"sales" | "stock">("sales");
+  const [stockSubTab, setStockSubTab] = useState<"restocks" | "adjustments">("restocks");
   const [isClient, setIsClient] = useState(false);
   const [approvingDate, setApprovingDate] = useState<string | null>(null);
-
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -125,6 +139,10 @@ export default function ReportsClient({
     filterByRobustness(item, "timestamp", ["productName", "addedBy", "note"])
   ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
+  const filteredAdjustments = adjustmentData.filter((item) => 
+    filterByRobustness(item, "timestamp", ["productName", "adjustedBy", "note", "reason"])
+  ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
   // Grouping Logic
   const groupSalesByDate = () => {
     const groups: Record<string, { 
@@ -157,11 +175,23 @@ export default function ReportsClient({
       groups[dayKey].items.push(s);
       groups[dayKey].totalAdded += s.qtyAdded;
     });
-    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0])); // Changed to descending (newest first)
+  };
+
+  const groupAdjustmentsByDate = () => {
+    const groups: Record<string, { items: StockAdjustmentRecord[], netChange: number }> = {};
+    filteredAdjustments.forEach(s => {
+      const dayKey = s.timestamp.split('T')[0];
+      if (!groups[dayKey]) groups[dayKey] = { items: [], netChange: 0 };
+      groups[dayKey].items.push(s);
+      groups[dayKey].netChange += s.qtyChange;
+    });
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0])); // Changed to descending (newest first)
   };
 
   const groupedSales = groupSalesByDate();
   const groupedStock = groupStockByDate();
+  const groupedAdjustments = groupAdjustmentsByDate();
 
   // Auto-expand latest date when data changes
   useEffect(() => {
@@ -599,59 +629,129 @@ export default function ReportsClient({
 
                     {expandedDates[date] && (
                       <div className="p-2 lg:p-4 bg-slate-50/30">
-                        {/* Daily Stock Summary */}
-                        <div className="mb-4 lg:mb-6">
-                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                             <Package className="w-3 h-3 text-emerald-500" />
-                             Daily Replenishment Summary
-                           </h4>
-                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2">
-                             {sortedStock.map((item) => (
-                               <div key={item.name} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between hover:border-emerald-300 transition-colors shadow-sm min-w-0 overflow-hidden">
-                                  <span className="text-[11px] font-bold text-slate-900 truncate flex-1" title={item.name}>{item.name}</span>
-                                  <span className="text-[11px] font-black text-emerald-600 ml-2 whitespace-nowrap">+{item.qty.toFixed(2)}</span>
-                               </div>
-                             ))}
-                           </div>
+                        {/* Sub-Tab Switcher for Stock moves */}
+                        <div className="flex bg-slate-200/50 p-1 rounded-xl mb-4 w-fit border border-slate-200">
+                          <button
+                            onClick={() => setStockSubTab("restocks")}
+                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                              stockSubTab === "restocks" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                            }`}
+                          >
+                            Restock Logs
+                          </button>
+                          <button
+                            onClick={() => setStockSubTab("adjustments")}
+                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                              stockSubTab === "adjustments" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                            }`}
+                          >
+                            Adjustment Logs
+                          </button>
                         </div>
 
-                        {/* Detailed Move Table */}
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                           <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Restock Log</span>
-                              <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
-                           </div>
-                           <div className="overflow-x-auto">
-                              <table className="min-w-full divide-y divide-slate-100">
-                                 <thead>
-                                   <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
-                                     <th className="py-2 px-4 text-left w-12">SN</th>
-                                     <th className="py-2 px-4 text-left">Time</th>
-                                     <th className="py-2 px-4 text-left">Product</th>
-                                     <th className="py-2 px-4 text-right">Qty</th>
-                                     <th className="py-2 px-4 text-right">Unit cost</th>
-                                     <th className="py-2 px-4 text-right pr-6">Total Exp.</th>
-                                     <th className="py-2 px-4 text-left pl-6">By</th>
-                                     <th className="py-2 px-4 text-left pr-6">Notes</th>
-                                   </tr>
-                                 </thead>
-                                 <tbody className="divide-y divide-slate-50">
-                                   {data.items.map((stock, idx) => (
-                                     <tr key={stock.id} className="hover:bg-emerald-50/50 text-[11px] transition-colors">
-                                       <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
-                                       <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(stock.timestamp), "HH:mm")}</td>
-                                       <td className="py-2 px-4 font-bold text-slate-900">{stock.productName}</td>
-                                       <td className="py-2 px-4 text-slate-900 font-bold text-right">{stock.qtyAdded.toFixed(2)}</td>
-                                       <td className="py-2 px-4 text-slate-500 text-right font-mono">₦{stock.unitCost.toFixed(2)}</td>
-                                       <td className="py-2 px-4 font-black text-blue-600 text-right pr-6">₦{stock.totalCost.toFixed(2)}</td>
-                                       <td className="py-2 px-4 text-slate-600 font-medium pl-6">{stock.addedBy}</td>
-                                       <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{stock.note || "—"}</td>
-                                     </tr>
-                                   ))}
-                                 </tbody>
-                              </table>
-                           </div>
-                        </div>
+                        {stockSubTab === "restocks" ? (
+                          <>
+                            {/* Daily Stock Summary */}
+                            <div className="mb-4 lg:mb-6">
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+                                <Package className="w-3 h-3 text-emerald-500" />
+                                Daily Replenishment Summary
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2">
+                                {sortedStock.map((item) => (
+                                  <div key={item.name} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between hover:border-emerald-300 transition-colors shadow-sm min-w-0 overflow-hidden">
+                                      <span className="text-[11px] font-bold text-slate-900 truncate flex-1" title={item.name}>{item.name}</span>
+                                      <span className="text-[11px] font-black text-emerald-600 ml-2 whitespace-nowrap">+{item.qty.toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Detailed Move Table */}
+                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Restock Activity</span>
+                                  <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
+                              </div>
+                              <div className="overflow-x-auto">
+                                  <table className="min-w-full divide-y divide-slate-100">
+                                    <thead>
+                                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
+                                        <th className="py-2 px-4 text-left w-12">SN</th>
+                                        <th className="py-2 px-4 text-left">Time</th>
+                                        <th className="py-2 px-4 text-left">Product</th>
+                                        <th className="py-2 px-4 text-right">Qty</th>
+                                        <th className="py-2 px-4 text-right">Unit cost</th>
+                                        <th className="py-2 px-4 text-right pr-6">Total Exp.</th>
+                                        <th className="py-2 px-4 text-left pl-6">By</th>
+                                        <th className="py-2 px-4 text-left pr-6">Notes</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                      {data.items.map((stock, idx) => (
+                                        <tr key={stock.id} className="hover:bg-emerald-50/50 text-[11px] transition-colors">
+                                          <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                                          <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(stock.timestamp), "HH:mm")}</td>
+                                          <td className="py-2 px-4 font-bold text-slate-900">{stock.productName}</td>
+                                          <td className="py-2 px-4 text-slate-900 font-bold text-right">{stock.qtyAdded.toFixed(2)}</td>
+                                          <td className="py-2 px-4 text-slate-500 text-right font-mono">₦{stock.unitCost.toFixed(2)}</td>
+                                          <td className="py-2 px-4 font-black text-blue-600 text-right pr-6">₦{stock.totalCost.toFixed(2)}</td>
+                                          <td className="py-2 px-4 text-slate-600 font-medium pl-6">{stock.addedBy}</td>
+                                          <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{stock.note || "—"}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Stock Adjustment Table */}
+                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-amber-600">Inventory Adjustments (Spoilage/Corrections)</span>
+                                  <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
+                              </div>
+                              <div className="overflow-x-auto">
+                                  <table className="min-w-full divide-y divide-slate-100">
+                                    <thead>
+                                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
+                                        <th className="py-2 px-4 text-left w-12">SN</th>
+                                        <th className="py-2 px-4 text-left">Time</th>
+                                        <th className="py-2 px-4 text-left">Product</th>
+                                        <th className="py-2 px-4 text-right">Adjustment</th>
+                                        <th className="py-2 px-4 text-left pl-6">Reason</th>
+                                        <th className="py-2 px-4 text-left pl-6">By</th>
+                                        <th className="py-2 px-4 text-left pr-6">Notes</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                      {(groupedAdjustments.find(g => g[0] === date)?.[1]?.items || []).length === 0 ? (
+                                        <tr>
+                                          <td colSpan={7} className="py-8 text-center text-slate-400 italic text-[11px]">No adjustments recorded for this date.</td>
+                                        </tr>
+                                      ) : (
+                                        (groupedAdjustments.find(g => g[0] === date)?.[1]?.items || []).map((adj, idx) => (
+                                          <tr key={adj.id} className="hover:bg-amber-50/50 text-[11px] transition-colors">
+                                            <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                                            <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(adj.timestamp), "HH:mm")}</td>
+                                            <td className="py-2 px-4 font-bold text-slate-900">{adj.productName}</td>
+                                            <td className={`py-2 px-4 text-right font-black ${adj.qtyChange < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                              {adj.qtyChange < 0 ? '-' : '+'}{Math.abs(adj.qtyChange).toFixed(2)}
+                                            </td>
+                                            <td className="py-2 px-4 text-slate-600 pl-6"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">{adj.reason}</span></td>
+                                            <td className="py-2 px-4 text-slate-600 font-medium pl-6">{adj.adjustedBy}</td>
+                                            <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{adj.note || "—"}</td>
+                                          </tr>
+                                        ))
+                                      )}
+                                    </tbody>
+                                  </table>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

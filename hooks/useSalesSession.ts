@@ -187,9 +187,15 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       // 2. The stock refund is now handled automatically by the Database Trigger on the server
       // whenever a sale_item is removed/deleted.
       
-      // We don't have the server ID of the sale_item to delete it directly in offline mode.
-      // A robust system queues a "delete_sale_item_by_local_id" command. For now we just refund stock.
-      
+      // Queue a deletion in the cloud
+      await db.offlineQueue.add({
+        store_id: storeId,
+        type: 'sale_item_delete',
+        payload: { local_row_id: localId },
+        created_at: Date.now(),
+        status: 'pending'
+      });
+
       // Locally restore Dexie cache instantly
       const p = await db.products.get(row.productId);
       if (p) {
@@ -212,6 +218,15 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (p) {
         await db.products.update(p.id, { quantity: p.quantity + row.quantitySold });
     }
+
+    // Queue a deletion in the cloud (in case it already synced)
+    await db.offlineQueue.add({
+      store_id: storeId,
+      type: 'sale_item_delete',
+      payload: { local_row_id: localId },
+      created_at: Date.now(),
+      status: 'pending'
+    });
 
     // 2. The stock refund is handled by the server trigger if the sale already synced.
     // If it hasn't synced, we simply deleted it from the queue above.

@@ -154,12 +154,11 @@ export async function addStock(storeSlug: string, formData: FormData) {
 
   if (logError) return { error: logError.message };
 
-  // 3. Update products
-  const newQuantity = Number(product.quantity) + quantityAdded;
-  const { error: updateError } = await supabase
-    .from('products')
-    .update({ quantity: newQuantity })
-    .eq('id', id);
+  // 3. Update products atomically via RPC to prevent race conditions
+  const { error: updateError } = await supabase.rpc('increment_stock', { 
+    product_id: id, 
+    amount: quantityAdded 
+  });
 
   if (updateError) return { error: updateError.message };
 
@@ -236,12 +235,11 @@ export async function adjustStock(storeSlug: string, formData: FormData) {
 
   if (logError) return { error: logError.message };
 
-  // 3. Update Product Quantity
-  const newQuantity = Number(product.quantity) + quantityChange;
-  const { error: updateError } = await supabase
-    .from("products")
-    .update({ quantity: Math.max(0, newQuantity) })
-    .eq("id", productId);
+  // 3. Update products atomically via RPC to prevent race conditions
+  const { error: updateError } = await supabase.rpc('increment_stock', { 
+    product_id: productId, 
+    amount: quantityChange 
+  });
 
   if (updateError) return { error: updateError.message };
 

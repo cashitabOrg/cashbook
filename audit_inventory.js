@@ -31,7 +31,11 @@ async function auditInventory() {
     const { data: sold } = await supabase.from('sale_items').select('quantity').eq('product_id', p.id);
     const totalSold = (sold || []).reduce((acc, curr) => acc + Number(curr.quantity), 0);
     
-    const theoreticalStock = totalAdded - totalSold;
+    // 4. Total Adjusted
+    const { data: adj } = await supabase.from('stock_adjustments').select('quantity_change').eq('product_id', p.id);
+    const totalAdjusted = (adj || []).reduce((acc, curr) => acc + Number(curr.quantity_change), 0);
+    
+    const theoreticalStock = totalAdded + totalAdjusted - totalSold;
     const actualStock = Number(p.quantity);
     const discrepancy = actualStock - theoreticalStock;
     

@@ -1,0 +1,27 @@
+--- INVENTORY STATE AFTER RECONCILIATION ---
+Alaran (Titus Fish)       | Correct Qty: 43.45
+Alaska                    | Correct Qty: 19.45
+Alaska fish               | Correct Qty: 4.00
+Chicken Head/Leg          | Correct Qty: 25.00
+Croaker                   | Correct Qty: 8.10
+Egg                       | Correct Qty: 712.50
+Express                   | Correct Qty: 4.75
+Farm Chicken              | Correct Qty: 126.55
+Farm chicken              | Correct Qty: 255.00
+Gizzard                   | Correct Qty: -12.00
+Hake Fish                 | Correct Qty: 28.95
+Hake fish                 | Correct Qty: 200.00
+Kote Fish                 | Correct Qty: 49.00
+Liver                     | Correct Qty: 0.00
+Mullet Fish               | Correct Qty: 5.07
+Neck                      | Correct Qty: 3.00
+Obokun                    | Correct Qty: 8.70
+Orobo Chicken             | Correct Qty: 31.45
+Owere                     | Correct Qty: 19.35
+Panla Wewe                | Correct Qty: 2.40
+Ponmo                     | Correct Qty: 5.00
+Sausage                   | Correct Qty: 38.00
+Shawa Fish                | Correct Qty: 20.45
+Tilapia Fish              | Correct Qty: 20.50
+Turkey Shoulder           | Correct Qty: 8.35
+Turkey wings              | Correct Qty: 39.95
