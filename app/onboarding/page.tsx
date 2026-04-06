@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createStoreProfile } from '@/app/actions/store'
-import { Store, Loader2, ArrowRight } from 'lucide-react'
+import { Store, Loader2, ArrowRight, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isShaking, setIsShaking] = useState(false)
   
   // Auto-slug generation
   const [storeName, setStoreName] = useState('')
@@ -33,12 +35,19 @@ export default function OnboardingPage() {
       const result = await createStoreProfile(formData)
       if (result?.error) {
         setError(result.error)
+        toast.error(result.error)
+        setIsShaking(true)
+        setTimeout(() => setIsShaking(false), 500)
       } else if (result?.redirectTo) {
+        toast.success("Store created successfully!")
         window.location.href = result.redirectTo
       }
     } catch (err: any) {
-      console.error('Onboarding error:', err)
-      setError(err?.message || JSON.stringify(err) || "An unexpected error occurred.")
+      const msg = err?.message || JSON.stringify(err) || "An unexpected error occurred."
+      setError(msg)
+      toast.error(msg)
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 500)
     } finally {
       setLoading(false)
     }
@@ -72,10 +81,11 @@ export default function OnboardingPage() {
           <p className="text-slate-400 font-medium text-sm">Tell us a bit about your business to get started.</p>
         </div>
 
-        <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl">
+        <div className={`w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl transition-transform ${isShaking ? 'animate-shake' : ''}`}>
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl text-sm font-medium text-center">
-              {error}
+            <div className="mb-6 p-4 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 

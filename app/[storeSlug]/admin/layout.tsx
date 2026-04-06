@@ -38,8 +38,8 @@ export default async function AdminLayout({
   const navItems = [
     { name: "Dashboard", href: `/${storeSlug}/admin/dashboard`, icon: "LayoutDashboard" },
     { name: "Products & Stock", href: `/${storeSlug}/admin/products`, icon: "PackageSearch" },
-    { name: "Staff", href: `/${storeSlug}/admin/staff`, icon: "Users" },
     { name: "Reports", href: `/${storeSlug}/admin/reports`, icon: "FileText" },
+    { name: "Staff", href: `/${storeSlug}/admin/staff`, icon: "Users" },
   ];
 
   return (

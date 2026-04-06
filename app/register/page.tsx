@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { registerAdmin } from '@/app/actions/auth'
-import { Snowflake, Loader2, ArrowRight } from 'lucide-react'
+import { Snowflake, Loader2, ArrowRight, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isShaking, setIsShaking] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -20,7 +22,11 @@ export default function RegisterPage() {
     
     // Check confirm password client-side before hitting the server
     if (formData.get('password') !== formData.get('confirmPassword')) {
-      setError("Passwords do not match.")
+      const msg = "Passwords do not match."
+      setError(msg)
+      toast.error(msg)
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 500)
       setLoading(false)
       return
     }
@@ -30,21 +36,31 @@ export default function RegisterPage() {
 
       if (result?.error) {
         setError(result.error)
+        toast.error(result.error)
+        setIsShaking(true)
+        setTimeout(() => setIsShaking(false), 500)
         setLoading(false)
         return
       }
 
       if (result?.redirectTo) {
+        toast.success("Registration successful! Taking you to onboarding...")
         // Hard redirect to fully hydrate the application and proxy state
         window.location.href = result.redirectTo
         return
       }
 
-      setError("Something went wrong. Please try again.")
+      const msg = "Something went wrong. Please try again."
+      setError(msg)
+      toast.error(msg)
       setLoading(false)
 
     } catch (err: any) {
-      setError(err?.message || "An unexpected error occurred. Please try again.")
+      const msg = err?.message || "An unexpected error occurred. Please try again."
+      setError(msg)
+      toast.error(msg)
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 500)
       setLoading(false)
     }
   }
@@ -77,10 +93,11 @@ export default function RegisterPage() {
           <p className="text-slate-400 font-medium text-sm">Start managing your business with intelligence.</p>
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl">
+        <div className={`bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl transition-transform ${isShaking ? 'animate-shake' : ''}`}>
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl text-sm font-medium">
-              {error}
+            <div className="mb-6 p-4 bg-red-500/5 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 

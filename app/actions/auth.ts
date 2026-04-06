@@ -54,22 +54,58 @@ export async function registerAdmin(formData: FormData) {
 }
 
 export async function loginUser(formData: FormData) {
-  const identifier = formData.get('email') as string // This can be email or username
-  const password = formData.get('password') as string
+  const rawIdentifier = formData.get('email') as string
+  const rawPassword = formData.get('password') as string
+  
+  const identifier = rawIdentifier?.trim()
+  const password = rawPassword
+
+  if (!identifier || !password) {
+    return { error: 'Email/Username and password are required.' }
+  }
 
   const supabase = await createClient()
   let email = identifier
 
-  // Always try to find a user by username first to handle managers
-  // especially if they use an email-like string as their username
-  const { data: userProfile } = await supabaseAdmin
+  // PRIORITIZED LOOKUP STRATEGY (Non-destructive for existing users)
+  
+  // 1. Check for EXACT Email Match (Safety for existing admins)
+  const { data: emailMatch } = await supabaseAdmin
     .from('users')
     .select('email')
-    .eq('username', identifier)
+    .eq('email', identifier)
     .single()
-  
-  if (userProfile?.email) {
-    email = userProfile.email
+
+  if (emailMatch) {
+    email = emailMatch.email
+    console.log(`[Auth] Resolved via Step 1: Exact Email Match (${email})`)
+  } else {
+    // 2. Check for EXACT Username Match (Existing behavior)
+    const { data: exactUsername } = await supabaseAdmin
+      .from('users')
+      .select('email')
+      .eq('username', identifier)
+      .single()
+
+    if (exactUsername) {
+      email = exactUsername.email
+      console.log(`[Auth] Resolved via Step 2: Exact Username Match (${email})`)
+    } else {
+      // 3. Check for CASE-INSENSITIVE Username Match (New improvement)
+      const { data: ilikeMatches } = await supabaseAdmin
+        .from('users')
+        .select('email')
+        .ilike('username', identifier)
+
+      if (ilikeMatches && ilikeMatches.length === 1) {
+        email = ilikeMatches[0].email
+        console.log(`[Auth] Resolved via Step 3: Case-Insensitive Username Match (${email})`)
+      } else if (ilikeMatches && ilikeMatches.length > 1) {
+        console.log(`[Auth] Ambiguous username lookup (${ilikeMatches.length} matches). Falling back to raw input.`)
+      } else {
+        console.log(`[Auth] No database match found. Using raw input as email.`)
+      }
+    }
   }
 
   let authData: any = null;
