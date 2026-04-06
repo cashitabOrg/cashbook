@@ -172,6 +172,14 @@ export default function SyncEngine() {
             
             if (!success) {
               console.error('SyncEngine: Sale item rejected:', error.message, error.code);
+              
+              if (error.code === '23503') {
+                // 23503 is Foreign Key Violation. The product or session was deleted from the DB!
+                console.error("FATAL: Product or Session no longer exists in DB. Cancelling sync for this item.");
+                if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
+                continue;
+              }
+              
               if (error.message.includes('permission denied') || error.message.includes('trigger')) {
                 toast.error("Database Permission Error: Contact your store administrator.", {
                   description: "Your sales are waiting in a queue until the database permission is fixed.",
