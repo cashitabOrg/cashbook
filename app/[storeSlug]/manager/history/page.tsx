@@ -77,7 +77,7 @@ export default async function ManagerHistoryPage({
       year: 'numeric', 
       month: '2-digit', 
       day: '2-digit' 
-    }).format(new Date(session.started_at));
+    }).format(new Date(session.ended_at || session.started_at));
     
     if (!dailyGroupsMap[dateStr]) {
       dailyGroupsMap[dateStr] = {

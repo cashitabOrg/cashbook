@@ -19,6 +19,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   const [isStarting, setIsStarting] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [isStale, setIsStale] = useState(false);
 
   // 1. Fetching logic refactored for re-use
   const refreshSession = useCallback(async () => {
@@ -44,11 +45,26 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     }
   }, [sessionId]);
 
-  // Initial hydration: Check for active session in localStorage & fetch items
   useEffect(() => {
     const savedSessionId = localStorage.getItem(`session_${managerId}_${storeId}`);
+    const savedStart = localStorage.getItem(`session_start_${managerId}_${storeId}`);
+
     if (savedSessionId) {
       setSessionId(savedSessionId);
+
+      // Check if session is from a previous day (WAT)
+      if (savedStart) {
+        const todayWAT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(new Date());
+        const sessionDateWAT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(new Date(savedStart));
+        
+        if (todayWAT !== sessionDateWAT) {
+          setIsStale(true);
+        } else {
+          setIsStale(false);
+        }
+      }
+    } else {
+      setIsStale(false);
     }
   }, [managerId, storeId]);
 
@@ -79,13 +95,17 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     setIsStarting(true);
     // Offline-first: generate UUID and queue
     const sessionUuid = crypto.randomUUID();
+    const now = new Date().toISOString();
+    
     setSessionId(sessionUuid);
+    setIsStale(false);
     localStorage.setItem(`session_${managerId}_${storeId}`, sessionUuid);
+    localStorage.setItem(`session_start_${managerId}_${storeId}`, now);
 
     await db.offlineQueue.add({
       store_id: storeId,
       type: 'sale_session',
-      payload: { id: sessionUuid, manager_id: managerId, started_at: new Date().toISOString() },
+      payload: { id: sessionUuid, manager_id: managerId, started_at: now },
       created_at: Date.now(),
       status: 'pending'
     });
@@ -213,7 +233,9 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     });
 
     setSessionId(null);
+    setIsStale(false);
     localStorage.removeItem(`session_${managerId}_${storeId}`);
+    localStorage.removeItem(`session_start_${managerId}_${storeId}`);
     setRows([]);
     setIsEnding(false);
   };
@@ -223,6 +245,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     sessionId,
     isStarting,
     isEnding,
+    isStale,
     rows,
     totalRevenue,
     totalItems,

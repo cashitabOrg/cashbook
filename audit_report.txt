@@ -1,0 +1,115 @@
+Auditing detailed sessions for store: Frozenpay Foodies (2d46e24a-a378-4312-a871-cc893635bf58)
+
+Total sessions in range: 14
+ID: 9a8b1713-f507-4acc-be49-12211f0bccbd
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T16:27:24.112+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 2000
+---
+ID: 92ddf7d1-72b5-4180-ba1d-0572bc3844c4
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T16:39:35.786+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 1100
+---
+ID: a646c1bf-e103-4de7-8f45-5b860a006653
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T16:43:22.897+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 1000
+---
+ID: e126c7f8-6c83-4456-b5fe-0df3631861df
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T17:05:41.88+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 370300
+---
+ID: d4046afe-3ee9-4ed7-b15f-21ebff7ec5b0
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T17:08:49.457+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 3500
+---
+ID: 9ba4872a-5c8d-4696-8ccb-872d18e0b311
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T18:20:15.741+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 75800
+---
+ID: 5a623ac1-4cac-4c28-9b14-0cb5d59ff7cf
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T20:02:20.982+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 4400
+---
+ID: a5923e96-e91e-4295-95f9-4e2f6fb86d4d
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-03T20:39:07.941+00:00
+  Local Date (WAT): 2026-04-03
+  Status: closed
+  Revenue: 0
+---
+ID: 5133b5e8-8684-48e8-8a39-0c874855a7c5
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-04T17:08:41.343957+00:00
+  Local Date (WAT): 2026-04-04
+  Status: closed
+  Revenue: 22900
+---
+ID: f45fd544-e1eb-4da6-97f5-ecbb5a97fd56
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-04T17:10:31.855+00:00
+  Local Date (WAT): 2026-04-04
+  Status: closed
+  Revenue: 993080
+---
+ID: 2a32018e-aa7b-465a-b501-1e9c07462c9d
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-04T21:22:54.46279+00:00
+  Local Date (WAT): 2026-04-04
+  Status: closed
+  Revenue: 62900
+---
+ID: 07932311-ffce-4672-be8a-28fc1e8cca09
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-04T21:26:15.106+00:00
+  Local Date (WAT): 2026-04-04
+  Status: closed
+  Revenue: 0
+---
+ID: 08375589-a1ff-410a-9da1-a05096e140c9
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-05T08:28:46.673+00:00
+  Local Date (WAT): 2026-04-05
+  Status: closed
+  Revenue: 637100
+---
+ID: d5865ad6-e63b-480b-b8e4-1fc758a94b56
+  Store ID: 2d46e24a-a378-4312-a871-cc893635bf58
+  Manager ID: b0417c76-b323-451e-98a6-623a5456918d
+  Started (UTC): 2026-04-05T18:29:33.225+00:00
+  Local Date (WAT): 2026-04-05
+  Status: open
+  Revenue: 0
+---
