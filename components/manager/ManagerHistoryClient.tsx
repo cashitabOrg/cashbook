@@ -77,13 +77,14 @@ export default function ManagerHistoryClient({
             session.items.map(item => ({
               id: item.id || '',
               time: format(parseISO(item.createdAt || session.startedAt), "HH:mm"),
+              timestamp: new Date(item.createdAt || session.startedAt).getTime(),
               productId: item.productId,
               productName: item.productName,
               qty: item.qtySold,
               revenue: item.revenue,
               isApproved: session.approvalStatus === 'approved'
             }))
-          ).sort((a, b) => a.time.localeCompare(b.time));
+          ).sort((a, b) => a.timestamp - b.timestamp);
 
           return (
             <div key={group.dateStr} className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 overflow-hidden transition-all duration-200">
