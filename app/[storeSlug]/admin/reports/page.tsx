@@ -123,7 +123,7 @@ export default async function ReportsPage({
   });
 
   // 4. Fetch Stock Adjustments
-  let { data: adjRaw, error: adjError } = await supabase
+  const { data: adjRaw, error: adjError } = await supabase
     .from("stock_adjustments")
     .select(`
       id,
@@ -132,35 +132,13 @@ export default async function ReportsPage({
       note,
       created_at,
       products (name),
-      users!admin_id (full_name)
+      users:admin_id (full_name)
     `)
     .eq("store_id", userRole.storeId)
     .order("created_at", { ascending: true });
 
   if (adjError) {
-    if (!adjError.message.includes("relationship")) {
-      console.error('[Reports] Failed to load adjustment data:', adjError.message, adjError);
-    }
-    
-    // Fallback if relationship join fails
-    if (adjError.message.includes("relationship")) {
-      const { data: fallbackAdj } = await supabase
-        .from("stock_adjustments")
-        .select(`id, quantity_change, reason, note, created_at, product_id`)
-        .eq("store_id", userRole.storeId)
-        .order("created_at", { ascending: true });
-      
-      if (fallbackAdj) {
-        const productIds = fallbackAdj.map(a => a.product_id);
-        const { data: prodNames } = await supabase.from('products').select('id, name').in('id', productIds);
-        
-        (adjRaw as any) = fallbackAdj.map(a => ({
-          ...a,
-          products: prodNames?.find(p => p.id === a.product_id) || { name: 'Unknown' },
-          users: { full_name: 'Admin' }
-        }));
-      }
-    }
+    console.error('[Reports] Failed to load adjustment data:', adjError.message, adjError);
   }
 
   const adjustmentData = (adjRaw || []).map((adj) => {
