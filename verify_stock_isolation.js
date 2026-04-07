@@ -4,7 +4,7 @@ const fs = require('fs');
 // 1. Setup Supabase
 const env = {};
 fs.readFileSync('.env.local', 'utf-8').split('\n').filter(l => l.includes('=')).map(l => l.trim()).forEach(l => {
-    if(l.includes('=')) {
+    if (l.includes('=')) {
         const [k, ...v] = l.split('=');
         env[k] = v.join('=');
     }
@@ -13,7 +13,7 @@ const supabase = createClient(env['NEXT_PUBLIC_SUPABASE_URL'], env['SUPABASE_SER
 
 async function verifyIsolation() {
     console.log('--- STARTING STOCK ISOLATION VERIFICATION ---');
-    
+
     const storeA_Id = '2d46e24a-a378-4312-a871-cc893635bf58'; // Frozenpay
     const storeB_Id = '3aa2d844-61f2-4407-855c-2e952a936f7c'; // Kenny Store
 
@@ -48,7 +48,7 @@ async function verifyIsolation() {
         p_id: targetB.id,
         p_quantity: 50
     });
-    
+
     if (adjErr) {
         console.error('Adjustment in Store B failed:', adjErr.message);
     } else {
@@ -57,23 +57,23 @@ async function verifyIsolation() {
 
     // 5. Verify Store A's Sentinel
     const { data: sentinelAfter } = await supabase.from('products').select('quantity').eq('id', sentinel.id).single();
-    
+
     console.log(`\n--- RESULTS ---`);
     console.log(`Store A Sentinel BEFORE: ${sentinel.quantity}`);
     console.log(`Store A Sentinel AFTER:  ${sentinelAfter.quantity}`);
-    
+
     if (sentinel.quantity === sentinelAfter.quantity) {
         console.log('✅ PROOF: Stocks are independent. Changes in Store B did NOT leak into Store A.');
     } else {
         console.log('❌ ALERT: Stocks changed in Store A! Isolation breach detected.');
     }
-    
+
     // 6. Final check: Check if product names cross-pollinate in queries
     const { data: allNames } = await supabase.from('products').select('name').eq('store_id', storeA_Id);
     if (allNames.some(n => n.name === 'Isolation Test Item')) {
-       console.log('❌ ALERT: Product naming leakage detected.');
+        console.log('❌ ALERT: Product naming leakage detected.');
     } else {
-       console.log('✅ PROOF: Product metadata is correctly scoped to store_id.');
+        console.log('✅ PROOF: Product metadata is correctly scoped to store_id.');
     }
 }
 
