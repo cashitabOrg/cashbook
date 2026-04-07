@@ -116,6 +116,8 @@ export async function addStock(storeSlug: string, formData: FormData) {
   const id = formData.get("product_id") as string;
   const quantityAdded = Number(formData.get("quantityAdded"));
   const unitCost = Number(formData.get("unitCost") || 0);
+  const unitSelling = Number(formData.get("unitSelling") || 0);
+  const syncPrice = formData.get("syncPrice") === "true";
   const note = formData.get("note") as string;
 
   if (quantityAdded <= 0) {
@@ -124,23 +126,7 @@ export async function addStock(storeSlug: string, formData: FormData) {
 
   const supabase = await createClient();
 
-  // Next.js actions don't wrap in PG transaction natively without raw SQL,
-  // but we can execute sequential queries or use a custom RPC.
-  // For standard Supabase setups, best way is RPC or sequential here if RLS blocks RPC.
-  // Let's do sequential for now.
-  
-  // 1. Get current product qty
-  const { data: product, error: findError } = await supabase
-    .from('products')
-    .select('quantity')
-    .eq('id', id)
-    .single();
-
-  if (findError || !product) {
-    return { error: "Failed to locate product." };
-  }
-
-  // 2. Insert stock_additions log
+  // 1. Insert stock_additions log
   const { error: logError } = await supabase
     .from('stock_additions')
     .insert({
@@ -154,13 +140,50 @@ export async function addStock(storeSlug: string, formData: FormData) {
 
   if (logError) return { error: logError.message };
 
-  // 3. Update products atomically via RPC to prevent race conditions
+  // 2. Update products quantity atomically via RPC
   const { error: updateError } = await supabase.rpc('increment_stock', { 
     product_id: id, 
     amount: quantityAdded 
   });
 
   if (updateError) return { error: updateError.message };
+
+  // 3. Optionally update the default prices of the product & log changes
+  if (syncPrice) {
+    // 3a. Fetch current prices first to see if they actually changed
+    const { data: currentProduct } = await supabase
+      .from("products")
+      .select("cost_price, selling_price")
+      .eq("id", id)
+      .single();
+
+    if (currentProduct) {
+      const costChanged = unitCost > 0 && Number(currentProduct.cost_price) !== unitCost;
+      const sellingChanged = unitSelling > 0 && Number(currentProduct.selling_price) !== unitSelling;
+
+      if (costChanged || sellingChanged) {
+        // Log the price change for audit history
+        await supabase.from("product_price_logs").insert({
+          product_id: id,
+          old_cost: currentProduct.cost_price,
+          new_cost: unitCost > 0 ? unitCost : currentProduct.cost_price,
+          old_selling: currentProduct.selling_price,
+          new_selling: unitSelling > 0 ? unitSelling : currentProduct.selling_price,
+          changed_by: userRole.id,
+        });
+
+        // Update the main products table
+        await supabase
+          .from('products')
+          .update({ 
+            cost_price: unitCost > 0 ? unitCost : currentProduct.cost_price,
+            selling_price: unitSelling > 0 ? unitSelling : currentProduct.selling_price 
+          })
+          .eq('id', id)
+          .eq('store_id', userRole.storeId);
+      }
+    }
+  }
 
   revalidatePath(`/${storeSlug}/admin/products`);
   return { success: true };
@@ -185,7 +208,7 @@ export async function getPriceHistory(productId: string) {
     .order("created_at", { ascending: false });
 
   // 3. Fetch Adjustment Logs (Spoilage, Damage, etc)
-  const { data: adjustmentLogs } = await supabase
+  let { data: adjustmentLogs, error: adjErr } = await supabase
     .from("stock_adjustments")
     .select("*, users!admin_id(full_name)")
     .eq("product_id", productId)

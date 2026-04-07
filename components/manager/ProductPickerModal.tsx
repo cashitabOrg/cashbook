@@ -10,6 +10,7 @@ interface ProductPickerModalProps {
   onClose: () => void;
   onSelect: (product: LocalProduct) => void;
   products: LocalProduct[];
+  allowOutOfStock?: boolean;
 }
 
 export default function ProductPickerModal({
@@ -17,6 +18,7 @@ export default function ProductPickerModal({
   onClose,
   onSelect,
   products,
+  allowOutOfStock = false,
 }: ProductPickerModalProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,8 +92,8 @@ export default function ProductPickerModal({
                     <input
                       ref={inputRef}
                       type="text"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold placeholder:text-slate-400 focus:bg-white focus:border-blue-500 transition-all outline-none text-slate-900"
-                      placeholder="Search product..."
+                      className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-3 text-sm font-black placeholder:text-slate-500 focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-black shadow-sm"
+                      placeholder="Type to search product..."
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
@@ -115,9 +117,9 @@ export default function ProductPickerModal({
                           <button
                             key={p.id}
                             onClick={() => onSelect(p)}
-                            disabled={isOutOfStock}
+                            disabled={isOutOfStock && !allowOutOfStock}
                             className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group ${
-                              isOutOfStock
+                              isOutOfStock && !allowOutOfStock
                                 ? "opacity-40 cursor-not-allowed bg-slate-50"
                                 : "hover:bg-blue-50/50 hover:pl-4 border border-transparent hover:border-blue-100"
                             }`}
@@ -140,7 +142,9 @@ export default function ProductPickerModal({
                               </span>
                               <div className="flex justify-end mt-0.5">
                                  {isOutOfStock ? (
-                                   <span className="text-[8px] font-black text-rose-600 uppercase bg-rose-50 px-1 rounded">Out of Stock</span>
+                                   <span className={`text-[8px] font-black uppercase px-1 rounded ${allowOutOfStock ? "text-blue-600 bg-blue-50" : "text-rose-600 bg-rose-50"}`}>
+                                     {allowOutOfStock ? "Will be Refunded" : "Out of Stock"}
+                                   </span>
                                  ) : isStockLow ? (
                                    <span className="text-[8px] font-black text-rose-600 uppercase bg-rose-50 px-1 rounded animate-pulse">Low Stock</span>
                                  ) : (

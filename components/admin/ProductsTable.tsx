@@ -156,39 +156,40 @@ export default function ProductsTable({
                             )}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <div className="flex justify-end gap-2 isolate">
+                            <div className="flex justify-end items-center gap-1">
                               <button
                                 onClick={() => handleAddStock(product)}
-                                className="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded transition-colors"
-                                title="Add Stock"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all active:scale-95 border border-emerald-200/50"
                               >
-                                <Plus className="w-4 h-4" />
-                                <span className="sr-only">Add stock</span>
+                                <Plus className="w-3.5 h-3.5" />
+                                Restock
                               </button>
+                              
+                              <div className="h-4 w-px bg-slate-200 mx-1" />
+
                               <button
                                 onClick={() => handleEdit(product)}
-                                className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-1.5 rounded transition-colors"
-                                title="Edit Product"
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                title="Edit Identity"
                               >
                                 <Edit className="w-4 h-4" />
-                                <span className="sr-only">Edit</span>
                               </button>
+
                               <button
                                 onClick={() => handleAdjustStock(product)}
-                                className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded transition-colors"
-                                title="Adjust Stock (Spoilage/Correction)"
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                title="Correction / Spoilage"
                               >
                                 <Scale className="w-4 h-4" />
-                                <span className="sr-only">Adjust</span>
                               </button>
+
                               <button
                                 onClick={() => handleDelete(product.id, product.name)}
                                 disabled={isDeleting === product.id}
-                                className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded transition-colors disabled:opacity-50"
-                                title="Delete Product"
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                                title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                <span className="sr-only">Delete</span>
                               </button>
                             </div>
                           </td>

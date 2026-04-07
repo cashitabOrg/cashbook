@@ -46,6 +46,7 @@ export default function AdminDashboardClient({
   initialProducts,
   rawSessions,
   rawSaleItems,
+  recentAdjustments,
   title,
   subtitle,
 }: {
@@ -53,6 +54,7 @@ export default function AdminDashboardClient({
   initialProducts: Product[];
   rawSessions: RawSession[];
   rawSaleItems: RawSaleItem[];
+  recentAdjustments?: any[];
   title: string;
   subtitle: string;
 }) {
@@ -276,7 +278,7 @@ export default function AdminDashboardClient({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Products by Sales */}
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
+          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[450px]">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Performance Index</h3>
@@ -293,7 +295,7 @@ export default function AdminDashboardClient({
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto max-h-[400px]">
+            <div className="flex-1 overflow-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
                   <tr>
@@ -324,7 +326,7 @@ export default function AdminDashboardClient({
           </div>
 
           {/* Realtime Stock Status */}
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
+          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[450px]">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Inventory Monitor</h3>
@@ -341,7 +343,7 @@ export default function AdminDashboardClient({
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto max-h-[400px]">
+            <div className="flex-1 overflow-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
                   <tr>
@@ -386,6 +388,57 @@ export default function AdminDashboardClient({
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        {/* Stock Adjustment Log Section */}
+        <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
+          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Stock Adjustment Log</h3>
+              <p className="text-sm text-slate-500">Most recent inventory corrections and spoilage logs.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-100 italic">Adjustment Archive</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+                <tr>
+                  <th className="py-3 px-6 text-left w-12">SN</th>
+                  <th className="py-3 px-6 text-left">Time</th>
+                  <th className="py-3 px-6 text-left">Product</th>
+                  <th className="py-3 px-6 text-right">Adjustment</th>
+                  <th className="py-3 px-6 text-left pl-6">Reason</th>
+                  <th className="py-3 px-6 text-left pl-6">Admin</th>
+                  <th className="py-3 px-6 text-left pr-6">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-100">
+                {!recentAdjustments || recentAdjustments.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-sm text-slate-500 font-medium italic">No recent adjustments found.</td>
+                  </tr>
+                ) : (
+                  recentAdjustments.map((adj, idx) => (
+                    <tr key={adj.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
+                      <td className="py-4 px-6 text-xs text-slate-500">{format(new Date(adj.created_at), "MMM d, HH:mm")}</td>
+                      <td className="py-4 px-6 text-sm font-bold text-slate-900">{adj.products?.name}</td>
+                      <td className={`py-4 px-6 text-sm font-black text-right ${adj.quantity_change < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {adj.quantity_change < 0 ? '-' : '+'}{Math.abs(adj.quantity_change).toFixed(2)}
+                      </td>
+                      <td className="py-4 px-6 text-xs font-bold pl-6">
+                        <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md uppercase tracking-tighter border border-slate-200 shadow-sm">{adj.reason}</span>
+                      </td>
+                      <td className="py-4 px-6 text-sm text-slate-700 pl-6 font-medium">{adj.users?.full_name || "Admin"}</td>
+                      <td className="py-4 px-6 text-[11px] text-slate-400 italic pr-6 truncate max-w-[200px]">{adj.note || "—"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

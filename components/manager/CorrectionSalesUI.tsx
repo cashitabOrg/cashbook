@@ -175,14 +175,14 @@ export default function CorrectionSalesUI({
                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                         <button
                           onClick={() => handleOpenPicker(row.localId)}
-                          className={`w-full text-left px-3 py-1.5 rounded-lg border-2 flex items-center justify-between group ${
-                            row.productId ? "bg-white border-purple-200 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-400"
+                          className={`w-full text-left px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between group ${
+                            row.productId ? "bg-white border-purple-300 text-slate-900 shadow-sm" : "bg-white border-slate-300 text-slate-700 hover:border-purple-500"
                           }`}
                         >
-                          <span className={row.productId ? "font-bold" : "font-medium"}>
-                            {row.productName || "Choose product..."}
+                          <span className={row.productId ? "font-black" : "font-black"}>
+                            {row.productName || "Type to Select Product..."}
                           </span>
-                          <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600" />
+                          <Search className="w-4 h-4 text-slate-400 group-hover:text-purple-600" />
                         </button>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-right">
@@ -193,19 +193,24 @@ export default function CorrectionSalesUI({
                           min="0.01"
                           value={row.quantitySold}
                           onChange={(e) => updateRow(row.localId, "quantitySold", parseFloat(e.target.value) || '')}
-                          className="block w-24 border border-slate-300 rounded px-2 py-1 text-right disabled:opacity-50"
+                          className="block w-24 border-2 border-slate-300 rounded-lg px-3 py-2 text-right text-slate-900 font-black bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all disabled:opacity-30"
+                          placeholder="0.00"
                         />
-                        <span className="text-xs text-slate-400">{selectedProduct?.unit || ''}</span>
+                        <span className="text-xs font-bold text-slate-500 w-8 text-left">{selectedProduct?.unit || ''}</span>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-right">
-                      <input
-                        type="number"
-                        disabled={!row.productId}
-                        value={row.subtotal}
-                        onChange={(e) => updateRow(row.localId, "subtotal", parseFloat(e.target.value) || '')}
-                        className="block w-full border border-slate-300 rounded px-2 py-1 text-right text-purple-700 font-bold disabled:opacity-50"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₦</span>
+                        <input
+                          type="number"
+                          disabled={!row.productId}
+                          value={row.subtotal}
+                          onChange={(e) => updateRow(row.localId, "subtotal", parseFloat(e.target.value) || '')}
+                          className="block w-full border-2 border-slate-300 rounded-lg pl-7 pr-3 py-2 text-right text-purple-700 font-black bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all disabled:opacity-30"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </td>
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right">
                         <button onClick={() => removeRow(row.localId)} className="text-red-500 bg-red-50 hover:bg-red-100 p-1.5 rounded transition-colors">
@@ -232,6 +237,7 @@ export default function CorrectionSalesUI({
         onClose={() => setPickerOpen(false)}
         onSelect={handleSelectProduct}
         products={products}
+        allowOutOfStock={true}
       />
       </div>
     </div>

@@ -1,0 +1,140 @@
+[
+  {
+    "name": "Farm chicken ",
+    "store_id": "3aa2d844-61f2-4407-855c-2e952a936f7c",
+    "quantity": 381.54999999999995,
+    "id": "b1e5457e-cabb-4d52-9ea4-9868e5c03177"
+  },
+  {
+    "name": "Hake fish ",
+    "store_id": "3aa2d844-61f2-4407-855c-2e952a936f7c",
+    "quantity": 228.95,
+    "id": "c294bffd-d852-49a8-b80f-ab3a13ca8474"
+  },
+  {
+    "name": "Obokun",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 8.7,
+    "id": "459049d2-67ca-4646-98fa-a2efec5cd7cd"
+  },
+  {
+    "name": "Tilapia Fish",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 20.5,
+    "id": "39624108-16d3-4503-9c1d-832118da5ca1"
+  },
+  {
+    "name": "Owere",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 16.75,
+    "id": "507fa233-27de-4c35-a70e-1b64dd7f1585"
+  },
+  {
+    "name": "Express",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 4.749999999999999,
+    "id": "f1d6f2e8-ae17-4739-8af6-aab4c56e3ae7"
+  },
+  {
+    "name": "Panla Wewe",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 2.2000000000000006,
+    "id": "c6a272db-5765-43f2-a65d-2c7d49cbfa54"
+  },
+  {
+    "name": "Gizzard",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 6.300000000000001,
+    "id": "834bd51e-0130-4bc7-a15a-3bc12a1cdb63"
+  },
+  {
+    "name": "Alaska",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 22.549999999999997,
+    "id": "0160a7df-97d6-482a-a372-a8a398a25ec9"
+  },
+  {
+    "name": "Chicken Head/Leg",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 19,
+    "id": "a675fe4e-b432-4d70-ad5e-e7df9998c2dd"
+  },
+  {
+    "name": "Ponmo",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 3,
+    "id": "aaf75b5f-12b2-41a8-8fa7-15a903ee3455"
+  },
+  {
+    "name": "Orobo Chicken",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 25.95,
+    "id": "1d8a7812-b311-4238-9d25-d128be2431ab"
+  },
+  {
+    "name": "Egg",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 374.5,
+    "id": "a7e9198f-479c-4562-aae8-6466fae90e8f"
+  },
+  {
+    "name": "Sausage",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 37,
+    "id": "29af55bf-c155-46b1-881b-b644675c6b0b"
+  },
+  {
+    "name": "Liver",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 0,
+    "id": "2fa3bdf3-d722-463c-a351-319e1419c951"
+  },
+  {
+    "name": "Turkey wings",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 39.949999999999996,
+    "id": "6bf0dc31-5981-45bb-98ce-c47a9075e10d"
+  },
+  {
+    "name": "Mullet Fish",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 3.77,
+    "id": "9fb68b3e-640d-44b1-aa88-1bb1310f468f"
+  },
+  {
+    "name": "Neck",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 1,
+    "id": "77dcd71b-94d6-40f4-b8fb-2ad625c0c6b7"
+  },
+  {
+    "name": "Croaker",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 6.3,
+    "id": "070aa70a-b98f-4602-9ce6-4d2a6e57644e"
+  },
+  {
+    "name": "Turkey Shoulder",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 0.350000000000001,
+    "id": "907a482a-f0d3-4a81-9a08-a61af0e21f08"
+  },
+  {
+    "name": "Alaran (Titus Fish)",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 35.74999999999999,
+    "id": "3883fbb3-e9dc-49c7-8277-6678b580edb0"
+  },
+  {
+    "name": "Shawa Fish",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 15.450000000000006,
+    "id": "83b48e82-1314-4c83-8a87-a0a604585d5b"
+  },
+  {
+    "name": "Kote Fish",
+    "store_id": "2d46e24a-a378-4312-a871-cc893635bf58",
+    "quantity": 46,
+    "id": "02d43533-481f-47a4-b90c-bd34c376a7f1"
+  }
+]

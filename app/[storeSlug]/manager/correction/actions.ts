@@ -76,6 +76,7 @@ export async function wipeAndOverwriteDay(
   // Calculate items and deduct inventory
   const itemsToInsert = [];
   const deductTotals: Record<string, number> = {};
+  let currentTimestamp = new Date(BACKDATED_TIMESTAMP).getTime();
 
   for (const row of rows) {
     if (!row.productId) continue;
@@ -85,8 +86,9 @@ export async function wipeAndOverwriteDay(
       product_id: row.productId,
       quantity: row.quantitySold,
       subtotal: row.subtotal,
-      created_at: BACKDATED_TIMESTAMP
+      created_at: new Date(currentTimestamp).toISOString()
     });
+    currentTimestamp += 10; // Offset by 10ms to maintain strict order
     deductTotals[row.productId] = (deductTotals[row.productId] || 0) + Number(row.quantitySold);
   }
 

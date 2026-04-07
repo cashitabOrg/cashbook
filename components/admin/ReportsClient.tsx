@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { format, subDays, subMonths, subYears, parseISO } from "date-fns";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import SalesReportPDF from "./SalesReportPDF";
-import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award, ChevronDown, ChevronUp, ChevronRight, TrendingUp, Package, CheckCircle2, Clock } from "lucide-react";
+import { Download, FileText, PackagePlus, Calendar, Filter, Search, RotateCcw, Award, ChevronDown, ChevronUp, ChevronRight, TrendingUp, Package, CheckCircle2, Clock, Scale } from "lucide-react";
 import { approveDailySales } from "@/app/actions/sales";
 import { toast } from "sonner";
 
@@ -59,8 +59,8 @@ export default function ReportsClient({
   stockData: StockInRecord[];
   adjustmentData: StockAdjustmentRecord[];
 }) {
-  const [activeTab, setActiveTab] = useState<"sales" | "stock">("sales");
-  const [stockSubTab, setStockSubTab] = useState<"restocks" | "adjustments">("restocks");
+  const [activeTab, setActiveTab] = useState<"sales" | "inventory">("sales");
+  const [inventoryGrouping, setInventoryGrouping] = useState<"day" | "product">("day");
   const [isClient, setIsClient] = useState(false);
   const [approvingDate, setApprovingDate] = useState<string | null>(null);
   
@@ -143,6 +143,14 @@ export default function ReportsClient({
     filterByRobustness(item, "timestamp", ["productName", "adjustedBy", "note", "reason"])
   ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
+  // UNIFIED ACTIVITY DATA (Restocks + Adjustments)
+  const unifiedActivity = [
+    ...stockData.map(s => ({ ...s, type: 'restock' as const })),
+    ...adjustmentData.map(a => ({ ...a, type: 'adjustment' as const }))
+  ].filter(item => 
+    filterByRobustness(item, "timestamp", ["productName", "note", "addedBy", "adjustedBy", "reason"])
+  ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Latest first
+
   // Grouping Logic
   const groupSalesByDate = () => {
     const groups: Record<string, { 
@@ -167,40 +175,119 @@ export default function ReportsClient({
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
-  const groupStockByDate = () => {
-    const groups: Record<string, { items: StockInRecord[], totalAdded: number }> = {};
-    filteredStock.forEach(s => {
-      const dayKey = s.timestamp.split('T')[0];
-      if (!groups[dayKey]) groups[dayKey] = { items: [], totalAdded: 0 };
-      groups[dayKey].items.push(s);
-      groups[dayKey].totalAdded += s.qtyAdded;
+  const renderActivityTable = (items: any[]) => (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm animate-in fade-in duration-300">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-100">
+          <thead>
+            <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50 text-left">
+              <th className="py-2.5 px-4 w-12">SN</th>
+              <th className="py-2.5 px-4 w-24">Time</th>
+              <th className="py-2.5 px-4">Action</th>
+              <th className="py-2.5 px-4">Product</th>
+              <th className="py-2.5 px-4 text-right">Qty</th>
+              <th className="py-2.5 px-4 text-right">Value/Reason</th>
+              <th className="py-2.5 px-4 pl-6">Performed By</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {items.map((item, idx) => (
+              <tr key={item.id} className={`text-[11px] hover:bg-slate-50 transition-colors ${item.type === 'adjustment' ? 'bg-amber-50/20' : ''}`}>
+                <td className="py-2.5 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
+                <td className="py-2.5 px-4 text-slate-500 font-medium">
+                  {inventoryGrouping === 'product' 
+                    ? format(parseISO(item.timestamp), "MMM do, HH:mm")
+                    : format(parseISO(item.timestamp), "HH:mm")
+                  }
+                </td>
+                <td className="py-2.5 px-4">
+                  {item.type === 'restock' ? (
+                    <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 w-fit uppercase tracking-tighter">
+                       <PackagePlus className="w-3 h-3" /> Restock
+                    </span>
+                  ) : (
+                    <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 w-fit uppercase tracking-tighter">
+                       <Scale className="w-3 h-3" /> Adjustment
+                    </span>
+                  )}
+                </td>
+                <td className="py-2.5 px-4 font-bold text-slate-900">{item.productName}</td>
+                <td className={`py-2.5 px-4 text-right font-black ${item.type === 'restock' || (item.qtyChange && item.qtyChange > 0) ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {item.type === 'restock' ? `+${item.qtyAdded.toFixed(2)}` : (item.qtyChange > 0 ? `+${item.qtyChange.toFixed(2)}` : `${item.qtyChange.toFixed(2)}`)}
+                </td>
+                <td className="py-2.5 px-4 text-right">
+                   {item.type === 'restock' ? (
+                     <span className="font-mono text-blue-600 font-bold">₦{item.totalCost.toLocaleString()}</span>
+                   ) : (
+                     <span className="text-slate-500 italic bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{item.reason}</span>
+                   )}
+                </td>
+                <td className="py-2.5 px-4 pl-6 text-slate-600 font-medium">{item.addedBy || item.adjustedBy}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const groupInventoryByDay = () => {
+    const groups: Record<string, { 
+      items: any[],
+      totalAdded: number,
+      netAdjusted: number
+    }> = {};
+
+    unifiedActivity.forEach(item => {
+      const dayKey = item.timestamp.split('T')[0];
+      if (!groups[dayKey]) groups[dayKey] = { items: [], totalAdded: 0, netAdjusted: 0 };
+      groups[dayKey].items.push(item);
+      if (item.type === 'restock') {
+        groups[dayKey].totalAdded += item.qtyAdded;
+      } else {
+        groups[dayKey].netAdjusted += item.qtyChange;
+      }
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0])); // Changed to descending (newest first)
+
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
   };
 
-  const groupAdjustmentsByDate = () => {
-    const groups: Record<string, { items: StockAdjustmentRecord[], netChange: number }> = {};
-    filteredAdjustments.forEach(s => {
-      const dayKey = s.timestamp.split('T')[0];
-      if (!groups[dayKey]) groups[dayKey] = { items: [], netChange: 0 };
-      groups[dayKey].items.push(s);
-      groups[dayKey].netChange += s.qtyChange;
+  const groupInventoryByProduct = () => {
+    const groups: Record<string, { 
+      items: any[],
+      totalAdded: number,
+      netAdjusted: number
+    }> = {};
+
+    unifiedActivity.forEach(item => {
+      const prodName = item.productName || "Unknown Product";
+      if (!groups[prodName]) groups[prodName] = { items: [], totalAdded: 0, netAdjusted: 0 };
+      groups[prodName].items.push(item);
+      if (item.type === 'restock') {
+        groups[prodName].totalAdded += item.qtyAdded;
+      } else {
+        groups[prodName].netAdjusted += item.qtyChange;
+      }
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0])); // Changed to descending (newest first)
+
+    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
   const groupedSales = groupSalesByDate();
-  const groupedStock = groupStockByDate();
-  const groupedAdjustments = groupAdjustmentsByDate();
+  const groupedInventoryDay = groupInventoryByDay();
+  const groupedInventoryProduct = groupInventoryByProduct();
 
   // Auto-expand latest date when data changes
   useEffect(() => {
     if (activeTab === "sales" && groupedSales.length > 0) {
       setExpandedDates(prev => ({ ...prev, [groupedSales[0][0]]: true }));
-    } else if (activeTab === "stock" && groupedStock.length > 0) {
-      setExpandedDates(prev => ({ ...prev, [groupedStock[0][0]]: true }));
+    } else if (activeTab === "inventory") {
+      const firstGroup = inventoryGrouping === "day" ? groupedInventoryDay[0] : groupedInventoryProduct[0];
+      if (firstGroup) {
+         setExpandedDates(prev => ({ ...prev, [firstGroup[0]]: true }));
+      }
     }
-  }, [activeTab, filteredSales.length, filteredStock.length]);
+  }, [activeTab, inventoryGrouping, filteredSales.length, unifiedActivity.length]);
 
   const toggleDate = (dateStr: string) => {
     setExpandedDates(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
@@ -277,15 +364,32 @@ export default function ReportsClient({
                 Sales
               </button>
               <button
-                onClick={() => setActiveTab("stock")}
+                onClick={() => setActiveTab("inventory")}
                 className={`px-3 py-1 text-[10px] font-bold rounded-lg flex items-center gap-1.5 transition-all ${
-                  activeTab === "stock" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-200"
+                  activeTab === "inventory" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <PackagePlus className="w-3 h-3" />
-                Inventory
+                <Package className="w-3 h-3" />
+                Stock Log
               </button>
             </div>
+
+            {activeTab === "inventory" && (
+               <div className="flex bg-slate-800/80 p-0.5 rounded-lg border border-slate-700 shrink-0">
+                  <button 
+                    onClick={() => setInventoryGrouping("day")}
+                    className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${inventoryGrouping === 'day' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    BY DAY
+                  </button>
+                  <button 
+                    onClick={() => setInventoryGrouping("product")}
+                    className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${inventoryGrouping === 'product' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    BY PRODUCT
+                  </button>
+               </div>
+            )}
           </div>
 
           {/* Section 2: Consolidated Controls Row */}
@@ -586,183 +690,60 @@ export default function ReportsClient({
               })
             )
           ) : (
-            groupedStock.length === 0 ? (
-              <div className="py-20 text-center text-slate-400 italic">No inventory moves found.</div>
+            (inventoryGrouping === "day" ? groupedInventoryDay : groupedInventoryProduct).length === 0 ? (
+              <div className="py-20 text-center text-slate-400 italic">No inventory activity found for this period.</div>
             ) : (
-              groupedStock.map(([date, data]) => {
-                // Calculate stock added summary per product
-                const stockMap: Record<string, number> = {};
-                data.items.forEach(item => {
-                  stockMap[item.productName] = (stockMap[item.productName] || 0) + item.qtyAdded;
-                });
-
-                const sortedStock = Object.entries(stockMap)
-                  .map(([name, qty]) => ({ name, qty }))
-                  .sort((a, b) => b.qty - a.qty);
-
-                return (
-                  <div key={date} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200">
-                    <button
-                      onClick={() => toggleDate(date)}
-                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-transparent data-[expanded=true]:border-slate-100"
-                      data-expanded={expandedDates[date]}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
-                          <PackagePlus className="w-5 h-5" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="text-sm font-bold text-slate-900">{format(parseISO(date), "EEEE, MMM do yyyy")}</h3>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{data.items.length} moves</p>
-                        </div>
+              (inventoryGrouping === "day" ? groupedInventoryDay : groupedInventoryProduct).map(([key, data]) => (
+                <div key={key} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 mb-4">
+                  <button
+                    onClick={() => toggleDate(key)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-transparent data-[expanded=true]:border-slate-100"
+                    data-expanded={expandedDates[key]}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg ${inventoryGrouping === 'day' ? 'bg-slate-100 text-slate-600' : 'bg-blue-50 text-blue-600'}`}>
+                        {inventoryGrouping === 'day' ? <Calendar className="w-5 h-5" /> : <Package className="w-5 h-5" />}
                       </div>
-                      <div className="flex items-center gap-10">
-                        <div className="hidden md:block text-right">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Net Stock Added</p>
-                          <p className="text-sm font-black text-emerald-600">+{data.totalAdded.toFixed(2)} units</p>
-                        </div>
-                        <div className="text-slate-400">
-                           <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[date] ? "rotate-90" : ""}`} />
-                        </div>
+                      <div className="text-left">
+                        <h3 className="text-sm font-bold text-slate-900">
+                           {inventoryGrouping === 'day' ? format(parseISO(key), "EEEE, MMM do yyyy") : key}
+                        </h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                          {data.items.length} activities recorded
+                        </p>
                       </div>
-                    </button>
-
-                    {expandedDates[date] && (
-                      <div className="p-2 lg:p-4 bg-slate-50/30">
-                        {/* Sub-Tab Switcher for Stock moves */}
-                        <div className="flex bg-slate-200/50 p-1 rounded-xl mb-4 w-fit border border-slate-200">
-                          <button
-                            onClick={() => setStockSubTab("restocks")}
-                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                              stockSubTab === "restocks" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                            }`}
-                          >
-                            Restock Logs
-                          </button>
-                          <button
-                            onClick={() => setStockSubTab("adjustments")}
-                            className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                              stockSubTab === "adjustments" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                            }`}
-                          >
-                            Adjustment Logs
-                          </button>
-                        </div>
-
-                        {stockSubTab === "restocks" ? (
-                          <>
-                            {/* Daily Stock Summary */}
-                            <div className="mb-4 lg:mb-6">
-                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                                <Package className="w-3 h-3 text-emerald-500" />
-                                Daily Replenishment Summary
-                              </h4>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-2">
-                                {sortedStock.map((item) => (
-                                  <div key={item.name} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between hover:border-emerald-300 transition-colors shadow-sm min-w-0 overflow-hidden">
-                                      <span className="text-[11px] font-bold text-slate-900 truncate flex-1" title={item.name}>{item.name}</span>
-                                      <span className="text-[11px] font-black text-emerald-600 ml-2 whitespace-nowrap">+{item.qty.toFixed(2)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Detailed Move Table */}
-                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Restock Activity</span>
-                                  <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
-                              </div>
-                              <div className="overflow-x-auto">
-                                  <table className="min-w-full divide-y divide-slate-100">
-                                    <thead>
-                                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
-                                        <th className="py-2 px-4 text-left w-12">SN</th>
-                                        <th className="py-2 px-4 text-left">Time</th>
-                                        <th className="py-2 px-4 text-left">Product</th>
-                                        <th className="py-2 px-4 text-right">Qty</th>
-                                        <th className="py-2 px-4 text-right">Unit cost</th>
-                                        <th className="py-2 px-4 text-right pr-6">Total Exp.</th>
-                                        <th className="py-2 px-4 text-left pl-6">By</th>
-                                        <th className="py-2 px-4 text-left pr-6">Notes</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50">
-                                      {data.items.map((stock, idx) => (
-                                        <tr key={stock.id} className="hover:bg-emerald-50/50 text-[11px] transition-colors">
-                                          <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
-                                          <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(stock.timestamp), "HH:mm")}</td>
-                                          <td className="py-2 px-4 font-bold text-slate-900">{stock.productName}</td>
-                                          <td className="py-2 px-4 text-slate-900 font-bold text-right">{stock.qtyAdded.toFixed(2)}</td>
-                                          <td className="py-2 px-4 text-slate-500 text-right font-mono">₦{stock.unitCost.toFixed(2)}</td>
-                                          <td className="py-2 px-4 font-black text-blue-600 text-right pr-6">₦{stock.totalCost.toFixed(2)}</td>
-                                          <td className="py-2 px-4 text-slate-600 font-medium pl-6">{stock.addedBy}</td>
-                                          <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{stock.note || "—"}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* Stock Adjustment Table */}
-                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-amber-600">Inventory Adjustments (Spoilage/Corrections)</span>
-                                  <span className="text-[9px] text-slate-300 font-mono">ID: {date}</span>
-                              </div>
-                              <div className="overflow-x-auto">
-                                  <table className="min-w-full divide-y divide-slate-100">
-                                    <thead>
-                                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50">
-                                        <th className="py-2 px-4 text-left w-12">SN</th>
-                                        <th className="py-2 px-4 text-left">Time</th>
-                                        <th className="py-2 px-4 text-left">Product</th>
-                                        <th className="py-2 px-4 text-right">Adjustment</th>
-                                        <th className="py-2 px-4 text-left pl-6">Reason</th>
-                                        <th className="py-2 px-4 text-left pl-6">By</th>
-                                        <th className="py-2 px-4 text-left pr-6">Notes</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50">
-                                      {(groupedAdjustments.find(g => g[0] === date)?.[1]?.items || []).length === 0 ? (
-                                        <tr>
-                                          <td colSpan={7} className="py-8 text-center text-slate-400 italic text-[11px]">No adjustments recorded for this date.</td>
-                                        </tr>
-                                      ) : (
-                                        (groupedAdjustments.find(g => g[0] === date)?.[1]?.items || []).map((adj, idx) => (
-                                          <tr key={adj.id} className="hover:bg-amber-50/50 text-[11px] transition-colors">
-                                            <td className="py-2 px-4 text-slate-400 font-mono italic">{idx + 1}</td>
-                                            <td className="py-2 px-4 text-slate-500 font-medium">{format(parseISO(adj.timestamp), "HH:mm")}</td>
-                                            <td className="py-2 px-4 font-bold text-slate-900">{adj.productName}</td>
-                                            <td className={`py-2 px-4 text-right font-black ${adj.qtyChange < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                              {adj.qtyChange < 0 ? '-' : '+'}{Math.abs(adj.qtyChange).toFixed(2)}
-                                            </td>
-                                            <td className="py-2 px-4 text-slate-600 pl-6"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">{adj.reason}</span></td>
-                                            <td className="py-2 px-4 text-slate-600 font-medium pl-6">{adj.adjustedBy}</td>
-                                            <td className="py-2 px-4 text-slate-400 italic truncate max-w-[200px] pr-6">{adj.note || "—"}</td>
-                                          </tr>
-                                        ))
-                                      )}
-                                    </tbody>
-                                  </table>
-                              </div>
-                            </div>
-                          </>
-                        )}
+                    </div>
+                    <div className="flex items-center gap-10">
+                      <div className="hidden md:flex items-center gap-4 text-right">
+                         <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Added</p>
+                            <span className="text-[10px] font-black text-emerald-600">+{data.totalAdded.toFixed(2)}</span>
+                         </div>
+                         <div className="h-4 border-l border-slate-200 mx-2" />
+                         <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Net Adj.</p>
+                            <span className={`text-[10px] font-black ${data.netAdjusted < 0 ? 'text-rose-600' : 'text-blue-600'}`}>
+                              {data.netAdjusted > 0 ? '+' : ''}{data.netAdjusted.toFixed(2)}
+                            </span>
+                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })
+                      <div className="text-slate-400">
+                         <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${expandedDates[key] ? "rotate-90" : ""}`} />
+                      </div>
+                    </div>
+                  </button>
+
+                  {expandedDates[key] && (
+                    <div className="p-2 lg:p-4 bg-slate-50/30">
+                       {renderActivityTable(data.items)}
+                    </div>
+                  )}
+                </div>
+              ))
             )
           )}
         </div>
-
       </div>
-
     </div>
   );
 }

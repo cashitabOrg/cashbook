@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import SyncEngine from "@/components/SyncEngine";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
-const inter = Inter({ subsets: ["latin"] });
+// Temporary system font stack to bypass Turbopack Windows crash
+const inter = { className: "sans-serif" };
 
 export const metadata: Metadata = {
   title: "Cashitab - Smart POS & Inventory",
@@ -33,4 +33,3 @@ export default function RootLayout({
     </html>
   );
 }
-

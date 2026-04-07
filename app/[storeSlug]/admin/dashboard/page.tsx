@@ -41,12 +41,53 @@ export default async function AdminDashboardPage({
     `)
     .eq("store_id", userRole.storeId);
   if (itemsErr) console.error('[AdminDashboard] sale_items error:', itemsErr.message);
-  
-  // Normalize the data for the client component
-  const normalizedSaleItems = (rawSaleItems || []).map((item: any) => ({
+
+  const normalizedSaleItems = (rawSaleItems || []).map(item => ({
     ...item,
     products: Array.isArray(item.products) ? item.products[0] : item.products
   }));
+  
+  // 4. Fetch Recent Stock Adjustments for Dashboard
+  let { data: recentAdjustments, error: adjErr } = await supabase
+    .from("stock_adjustments")
+    .select(`
+      id,
+      quantity_change,
+      reason,
+      note,
+      created_at,
+      products (name),
+      users!admin_id (full_name)
+    `)
+    .eq("store_id", userRole.storeId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (adjErr) {
+    // Only log to console if it's NOT a relationship error (which we handle below)
+    if (!adjErr.message.includes("relationship")) {
+      console.error('[AdminDashboard] adjustments error:', adjErr.message);
+    }
+    // If it fails with a relationship error, fall back to a simpler fetch without join
+    if (adjErr.message.includes("relationship")) {
+      const { data: fallbackAdj } = await supabase
+        .from("stock_adjustments")
+        .select(`id, quantity_change, reason, note, created_at, product_id`)
+        .eq("store_id", userRole.storeId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      
+      if (fallbackAdj) {
+        // Manually attach product names if the relationship join is failing for some reason
+        const productIds = fallbackAdj.map(a => a.product_id);
+        const { data: prodNames } = await supabase.from('products').select('id, name').in('id', productIds);
+        (recentAdjustments as any) = fallbackAdj.map(a => ({
+          ...a,
+          products: prodNames?.find(p => p.id === a.product_id) || { name: 'Unknown' },
+          users: { full_name: 'Admin' }
+        }));
+      }
+    }
+  }
 
   return (
     <div className="lg:p-8 max-w-full mx-auto pb-24">
@@ -55,6 +96,7 @@ export default async function AdminDashboardPage({
         initialProducts={products || []}
         rawSessions={rawSessions || []}
         rawSaleItems={normalizedSaleItems as any}
+        recentAdjustments={recentAdjustments || []}
         title="Store Performance Hub"
         subtitle="A real-time overview of your lifetime revenue, inventory health, and core business metrics."
       />
