@@ -123,7 +123,8 @@ export default async function ReportsPage({
   });
 
   // 4. Fetch Stock Adjustments
-  let { data: adjRaw, error: adjError } = await supabase
+  // We use manual hydration here to bypass 'relationship not found' schema cache errors in Supabase
+  const { data: adjRaw, error: adjError } = await supabase
     .from("stock_adjustments")
     .select(`
       id,
@@ -131,41 +132,40 @@ export default async function ReportsPage({
       reason,
       note,
       created_at,
-      products (name),
-      users (full_name)
+      admin_id,
+      products (name)
     `)
     .eq("store_id", userRole.storeId)
     .order("created_at", { ascending: true });
 
   if (adjError) {
-    console.error('[Reports] Primary adjustment load failed:', adjError.message);
+    console.error('[Reports] Failed to load adjustment data:', adjError.message);
+  }
+
+  // Manual Hydration: Get the manager names for adjustments
+  let adjustmentsWithNames = (adjRaw || []) as any[];
+  if (adjustmentsWithNames.length > 0) {
+    const adminIds = [...new Set(adjustmentsWithNames.map(a => a.admin_id).filter(Boolean))];
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .in('id', adminIds);
     
-    // Safety Fallback: Load data without the name join to prevent page crash
-    const { data: fallbackAdj, error: fallbackError } = await supabase
-      .from("stock_adjustments")
-      .select(`
-        id,
-        quantity_change,
-        reason,
-        note,
-        created_at,
-        products (name)
-      `)
-      .eq("store_id", userRole.storeId)
-      .order("created_at", { ascending: true });
-    
-    if (fallbackError) {
-      console.error('[Reports] Total adjustment failure:', fallbackError.message);
+    if (users) {
+      adjustmentsWithNames = adjustmentsWithNames.map(adj => ({
+        ...adj,
+        users: users.find(u => u.id === adj.admin_id) || { full_name: 'Admin' }
+      }));
     } else {
-      // Map it manually so the UI still shows the data with an 'Admin' label
-      adjRaw = (fallbackAdj as any[]).map(a => ({
-        ...a,
+      // Fallback if users table fetch fails
+      adjustmentsWithNames = adjustmentsWithNames.map(adj => ({
+        ...adj,
         users: { full_name: 'Admin' }
       }));
     }
   }
 
-  const adjustmentData = (adjRaw || []).map((adj) => {
+  const adjustmentData = adjustmentsWithNames.map((adj) => {
     const timestamp = adj.created_at || new Date().toISOString();
     return {
       id: adj.id,
