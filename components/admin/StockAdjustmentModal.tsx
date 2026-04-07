@@ -32,31 +32,51 @@ export default function StockAdjustmentModal({
   product,
 }: StockAdjustmentModalProps) {
   const [loading, setLoading] = useState(false);
-  const [adjustmentType, setAdjustmentType] = useState<"reduction" | "addition">("reduction");
+  const [adjustmentMode, setAdjustmentMode] = useState<"minus" | "plus" | "set">("minus");
+  const [inputValue, setInputValue] = useState<string>("");
   const [selectedReason, setSelectedReason] = useState(REASONS[0].id);
+
+  const currentQty = Number(product?.quantity || 0);
+  const val = Number(inputValue || 0);
+  
+  // Calculate the actual change that will be sent to the database
+  let calculatedChange = 0;
+  if (adjustmentMode === "set") {
+    calculatedChange = val - currentQty;
+  } else if (adjustmentMode === "minus") {
+    calculatedChange = -Math.abs(val);
+  } else {
+    calculatedChange = Math.abs(val);
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!product) return;
+    if (!product || val === 0 || (adjustmentMode === "set" && val === currentQty)) {
+       if (val === 0) toast.error("Please enter a valid quantity");
+       return;
+    }
     
     setLoading(true);
     const formData = new FormData(e.currentTarget);
-    const qtyInput = Number(formData.get("quantity"));
-    
-    // Ensure negative if reduction
-    const quantityChange = adjustmentType === "reduction" ? -Math.abs(qtyInput) : Math.abs(qtyInput);
     
     const finalFormData = new FormData();
     finalFormData.append("product_id", product.id);
-    finalFormData.append("quantityChange", quantityChange.toString());
+    finalFormData.append("quantityChange", calculatedChange.toString());
     finalFormData.append("reason", selectedReason);
-    finalFormData.append("note", formData.get("note") as string);
+    
+    // Automatically generate an audit note if it's an override
+    let finalNote = (formData.get("note") as string).trim();
+    if (adjustmentMode === "set") {
+      const auditNote = `[Fridge Audit] Override from ${currentQty.toFixed(2)} to ${val.toFixed(2)}`;
+      finalNote = finalNote ? `${finalNote} (${auditNote})` : auditNote;
+    }
+    finalFormData.append("note", finalNote);
     
     const res = await adjustStock(storeSlug, finalFormData);
     if (res?.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Inventory adjusted for ${product.name}`);
+      toast.success(`Inventory synchronized for ${product.name}`);
       onClose();
     }
     setLoading(false);
@@ -108,47 +128,80 @@ export default function StockAdjustmentModal({
                     </div>
                     <div className="text-right">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Stock</p>
-                        <p className="text-sm font-black text-slate-900">{Number(product.quantity).toFixed(2)} <span className="text-[10px] text-slate-500 uppercase">{product.unit}</span></p>
+                        <p className="text-sm font-black text-slate-900">{currentQty.toFixed(2)} <span className="text-[10px] text-slate-500 uppercase">{product.unit}</span></p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Adjustment Direction Toggle */}
+                  {/* Adjustment Mode Toggle - 3 Options */}
                   <div className="flex p-1 bg-slate-100 rounded-xl">
                     <button
                       type="button"
-                      onClick={() => setAdjustmentType("reduction")}
-                      className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${
-                        adjustmentType === "reduction" ? "bg-white text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                      onClick={() => setAdjustmentMode("minus")}
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                        adjustmentMode === "minus" ? "bg-white text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
                       }`}
                     >
-                      Reduction (-)
+                      Subtract (-)
                     </button>
                     <button
                       type="button"
-                      onClick={() => setAdjustmentType("addition")}
-                      className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${
-                        adjustmentType === "addition" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                      onClick={() => setAdjustmentMode("plus")}
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                        adjustmentMode === "plus" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
                       }`}
                     >
-                      Addition (+)
+                      Add (+)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdjustmentMode("set")}
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                        adjustmentMode === "set" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
+                      }`}
+                    >
+                      Set (Fridge)
                     </button>
                   </div>
 
-                  {/* Quantity Input */}
-                  <div>
+                  {/* Dynamic Input */}
+                  <div className="relative">
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
-                      Adjustment Quantity ({product.unit})
+                      {adjustmentMode === "set" ? "Exact Count found in Fridge" : "Adjustment Quantity"} ({product.unit})
                     </label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      required
-                      min="0.01"
-                      step="0.01"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all placeholder:text-slate-300"
-                      placeholder="e.g., 5.00"
-                    />
+                    <div className="relative group">
+                      <input
+                        type="number"
+                        name="quantity"
+                        required
+                        min="0"
+                        step="0.01"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className={`w-full bg-slate-50 border-2 rounded-2xl px-4 py-4 text-bases font-black text-slate-900 outline-none transition-all placeholder:text-slate-300 pr-16 ${
+                          adjustmentMode === "minus" ? "focus:border-red-500 focus:bg-red-50/10 border-slate-100" : 
+                          adjustmentMode === "plus" ? "focus:border-emerald-500 focus:bg-emerald-50/10 border-slate-100" :
+                          "focus:border-indigo-500 focus:bg-indigo-50/10 border-slate-100"
+                        }`}
+                        placeholder={adjustmentMode === "set" ? "0.00" : "5.00"}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">
+                        {product.unit}
+                      </div>
+                    </div>
+
+                    {/* Real-time Math Preview - Very important for confidence */}
+                    {val > 0 && (
+                      <p className={`mt-2 ml-1 text-[10px] font-bold ${
+                        calculatedChange >= 0 ? "text-emerald-600" : "text-red-600"
+                      } animate-in fade-in slide-in-from-left-1 duration-300`}>
+                        {adjustmentMode === "set" ? (
+                          <>Result: Stock will {calculatedChange >= 0 ? "increase" : "decrease"} by {Math.abs(calculatedChange).toFixed(2)} units.</>
+                        ) : (
+                          <>Current {currentQty.toFixed(2)} → New { (currentQty + calculatedChange).toFixed(2) } {product.unit}</>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* Reason Selection */}
@@ -189,15 +242,15 @@ export default function StockAdjustmentModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="flex-1 px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                      className="flex-1 px-4 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      disabled={loading}
-                      className={`flex-1 px-4 py-3 text-[10px] font-black text-white uppercase tracking-widest rounded-xl shadow-lg transition-all disabled:opacity-50 ${
-                        adjustmentType === "reduction" ? "bg-red-600 hover:bg-red-700 shadow-red-200" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
+                      disabled={loading || (adjustmentMode === "set" && Number(inputValue) === currentQty)}
+                      className={`flex-1 px-4 py-4 text-[10px] font-black text-white uppercase tracking-widest rounded-xl shadow-lg transition-all disabled:opacity-50 ${
+                        calculatedChange < 0 ? "bg-red-600 hover:bg-red-700 shadow-red-200" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
                       }`}
                     >
                       {loading ? "Processing..." : "Submit Correction"}

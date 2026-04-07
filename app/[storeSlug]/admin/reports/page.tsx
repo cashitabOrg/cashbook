@@ -123,7 +123,7 @@ export default async function ReportsPage({
   });
 
   // 4. Fetch Stock Adjustments
-  const { data: adjRaw, error: adjError } = await supabase
+  let { data: adjRaw, error: adjError } = await supabase
     .from("stock_adjustments")
     .select(`
       id,
@@ -132,13 +132,37 @@ export default async function ReportsPage({
       note,
       created_at,
       products (name),
-      users:admin_id (full_name)
+      users (full_name)
     `)
     .eq("store_id", userRole.storeId)
     .order("created_at", { ascending: true });
 
   if (adjError) {
-    console.error('[Reports] Failed to load adjustment data:', adjError.message, adjError);
+    console.error('[Reports] Primary adjustment load failed:', adjError.message);
+    
+    // Safety Fallback: Load data without the name join to prevent page crash
+    const { data: fallbackAdj, error: fallbackError } = await supabase
+      .from("stock_adjustments")
+      .select(`
+        id,
+        quantity_change,
+        reason,
+        note,
+        created_at,
+        products (name)
+      `)
+      .eq("store_id", userRole.storeId)
+      .order("created_at", { ascending: true });
+    
+    if (fallbackError) {
+      console.error('[Reports] Total adjustment failure:', fallbackError.message);
+    } else {
+      // Map it manually so the UI still shows the data with an 'Admin' label
+      adjRaw = (fallbackAdj as any[]).map(a => ({
+        ...a,
+        users: { full_name: 'Admin' }
+      }));
+    }
   }
 
   const adjustmentData = (adjRaw || []).map((adj) => {
