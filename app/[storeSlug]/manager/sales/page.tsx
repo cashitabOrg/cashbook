@@ -13,12 +13,16 @@ export default async function SalesPointPage({
   const userRole = await requireRole(["manager", "admin", "super_admin"]);
   const supabase = await createClient();
 
-  // Try to fetch available products, but don't crash if offline
+  // Fetch only products belonging to this store
   const { data: products, error } = await supabase
     .from("products")
-    .select("id, store_id, name, unit, quantity")
+    .select("id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price")
     .eq("store_id", userRole.storeId)
     .order("name");
+
+  if (error) {
+    console.error("[SalesPointPage] Error fetching products:", error);
+  }
 
   return (
     <div className="h-full flex flex-col">

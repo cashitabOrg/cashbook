@@ -22,7 +22,7 @@ export default async function ManagerHistoryPage({
     .eq("store_id", userRole.storeId)
     .eq("manager_id", userRole.id)
     .eq("status", "closed")
-    .order("started_at", { ascending: true });
+    .order("started_at", { ascending: false });
 
   if (sessionsError) {
     return (
@@ -139,7 +139,7 @@ export default async function ManagerHistoryPage({
   });
 
   // Convert map to sorted array (most recent date first)
-  const dailyGroupsArray = Object.values(dailyGroupsMap).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+  const dailyGroupsArray = Object.values(dailyGroupsMap).sort((a, b) => b.dateStr.localeCompare(a.dateStr));
 
   return (
     <div className="max-w-full mx-auto pb-24">

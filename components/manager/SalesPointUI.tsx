@@ -28,21 +28,62 @@ export default function SalesPointUI({
 
   // 2. Hydrate Dexie cache initially if online
   useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) {
-      db.products.bulkPut(
-        initialProducts.map(p => ({
-          id: p.id,
-          store_id: p.store_id || storeId,
-          name: p.name,
-          unit: p.unit,
-          quantity: p.quantity,
-          min_quantity: p.min_quantity || 0,
-          cost_price: Number(p.cost_price || 0),
-          selling_price: Number(p.selling_price || 0),
-          last_synced: Date.now()
-        }))
-      ).catch(err => console.error("Initial product hydration failed:", err));
+    async function syncProductsAndCleanup() {
+      if (!initialProducts || initialProducts.length === 0) return;
+
+      try {
+        // --- One-Time Force Reset Switch ---
+        // Ensuring all clients get a clean slate after the version upgrade
+        const RESET_FLAG = 'frozenpos_cache_reset_v2';
+        if (!localStorage.getItem(RESET_FLAG)) {
+          console.log('[SalesPointUI] Performing one-time cache reset for version upgrade...');
+          await db.products.clear();
+          localStorage.setItem(RESET_FLAG, 'true');
+        }
+
+        // 1. Aggressive Cross-Store Cleanup
+        // Delete ANY product from local Dexie that doesn't match this store's ID 
+        // OR is not in the master list for this store. This prevents leakage 
+        // from other sessions or devices.
+        await db.products
+          .where('store_id')
+          .notEqual(storeId)
+          .delete();
+
+        const currentIds = initialProducts.map(p => p.id);
+        const staleProducts = await db.products
+          .where('store_id')
+          .equals(storeId)
+          .toArray();
+        
+        const idsToDelete = staleProducts
+          .filter(p => !currentIds.includes(p.id))
+          .map(p => p.id);
+
+        if (idsToDelete.length > 0) {
+          await db.products.bulkDelete(idsToDelete);
+        }
+
+        // 2. Update/Add current products
+        await db.products.bulkPut(
+          initialProducts.map(p => ({
+            id: p.id,
+            store_id: p.store_id || storeId,
+            name: p.name,
+            unit: p.unit,
+            quantity: p.quantity,
+            min_quantity: p.min_quantity || 0,
+            cost_price: Number(p.cost_price || 0),
+            selling_price: Number(p.selling_price || 0),
+            last_synced: Date.now()
+          }))
+        );
+      } catch (err) {
+        console.error("Initial product hydration failed:", err);
+      }
     }
+
+    syncProductsAndCleanup();
   }, [initialProducts, storeId]);
 
   // 3. Reactively read products from Dexie and sort A-Z
@@ -52,7 +93,43 @@ export default function SalesPointUI({
   );
 
   const rawProducts = liveProducts || initialProducts || [];
-  const products = [...rawProducts].sort((a, b) => a.name.localeCompare(b.name));
+  
+  // 4. Strict filtering and Deduplication by Name (CASE INSENSITIVE) + Unit
+  // We prioritize products that are in the initialProducts list (server-verified)
+  const products = [...rawProducts].reduce((acc: any[], current) => {
+    // Sanitize name: remove non-printable chars and extra spaces to catch hidden duplicates
+    const sanitize = (s: string) => (s || "").replace(/[^\x20-\x7E]/g, '').trim().toLowerCase();
+    
+    const nameKey = sanitize(current.name);
+    const unitKey = sanitize(current.unit);
+    
+    const existingIdx = acc.findIndex(p => 
+      sanitize(p.name) === nameKey && 
+      sanitize(p.unit) === unitKey
+    );
+
+    if (existingIdx === -1) {
+      acc.push(current);
+    } else {
+      // Overwrite/Merge logic
+      const existing = acc[existingIdx];
+      const isNewVerified = initialProducts.some(p => p.id === current.id);
+      const isOldVerified = initialProducts.some(p => p.id === existing.id);
+      
+      // If one of them is verified by the server initially, always prefer its ID and state
+      if (isNewVerified && !isOldVerified) {
+        acc[existingIdx] = current;
+      } else if (!isNewVerified && isOldVerified) {
+        // Keep existing
+      } else {
+        // Both or neither are verified, prefer most recently synced
+        if ((current.last_synced || 0) > (existing.last_synced || 0)) {
+          acc[existingIdx] = current;
+        }
+      }
+    }
+    return acc;
+  }, []).sort((a, b) => a.name.localeCompare(b.name));
 
   // 4. Listen to offline queue count for sync feedback
   const pendingSyncCount = useLiveQuery(
