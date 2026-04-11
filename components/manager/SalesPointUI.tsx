@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
-import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart, Trash2, RefreshCw } from "lucide-react";
+import { Plus, X, Search, WifiOff, CheckCircle2, ShoppingBag, Pencil, ShoppingCart, Trash2, RefreshCw, AlertCircle, History } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
 import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 import EditSaleModal from "../admin/EditSaleModal";
 import ProductPickerModal from "./ProductPickerModal";
+import { toast } from "sonner";
 
 export default function SalesPointUI({
   storeSlug,
@@ -25,6 +26,7 @@ export default function SalesPointUI({
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
 
   // 2. Hydrate Dexie cache initially if online
   useEffect(() => {
@@ -143,6 +145,8 @@ export default function SalesPointUI({
     isStarting,
     isEnding,
     isStale,
+    orphanedSession,
+    isRecovering,
     rows,
     totalRevenue,
     totalItems,
@@ -153,7 +157,9 @@ export default function SalesPointUI({
     removeRow,
     uncommitRow,
     endSession,
-    refreshSession
+    refreshSession,
+    restoreOrphanedSession,
+    closeOrphanedSession
   } = useSalesSession(storeSlug, storeId, managerId);
 
   const handleOpenPicker = (rowId: string) => {
@@ -170,6 +176,24 @@ export default function SalesPointUI({
     setActiveRowId(null);
   };
 
+  const handleEndSession = () => {
+    const incompleteRows = rows.filter(r => !r.synced);
+    if (incompleteRows.length > 0) {
+      setShowValidationErrors(true);
+      // Find 1-indexed positions for messaging
+      const indices = rows
+        .map((r, i) => (!r.synced ? i + 1 : -1))
+        .filter(i => i !== -1);
+      
+      toast.error("Cannot End Session", {
+        description: `Row(s) #${indices.join(", ")} are not filled correctly. Please complete them or remove them using the red X.`,
+        duration: 5000
+      });
+      return;
+    }
+    endSession();
+  };
+
   // A simple product search capability within the dropdown could be built natively 
   // with a datalist or custom combobox. For simplicity we use a select, but real 
   // world would use headlessui combobox.
@@ -177,25 +201,85 @@ export default function SalesPointUI({
   if (!sessionId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[500px] p-6 text-center">
-        <div className="bg-blue-50 p-6 rounded-full mb-6">
-          <ShoppingBag className="w-16 h-16 text-blue-600" />
-        </div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Ready for Sales</h2>
-        <p className="text-slate-500 max-w-md mb-8">
-          Start a new session to begin recording sales, applying prices, and automatically updating stock in real-time.
-        </p>
-        <button
-          onClick={startSession}
-          disabled={isStarting}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
-        >
-          {isStarting ? "Initializing..." : "Start Sales Session"}
-        </button>
-        
-        {!isOnline && (
-          <div className="mt-8 flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-full text-sm font-medium">
-            <WifiOff className="w-4 h-4" />
-            Offline Mode — Changes will sync on reconnect
+        {orphanedSession ? (
+          <div className="relative group max-w-md w-full animate-in fade-in zoom-in slide-in-from-bottom-8 duration-700 ease-out">
+            {/* Background dynamic glow */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-[4rem] blur-3xl opacity-50 group-hover:opacity-100 transition duration-1000" />
+            
+            <div className="relative bg-white/80 backdrop-blur-2xl p-10 lg:p-12 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white/50 ring-1 ring-slate-950/5 overflow-hidden">
+              {/* Decorative corner accent */}
+              <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl" />
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-blue-600/20 rounded-3xl blur-xl animate-pulse" />
+                  <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/40 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                    <History className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+
+                <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter uppercase">
+                  Unfinished Session <br />
+                  <span className="text-blue-600">Detected</span>
+                </h2>
+                
+                <p className="text-slate-500 mb-10 text-base lg:text-lg leading-relaxed font-medium">
+                  We found an open session from <span className="text-slate-900 font-bold underline decoration-blue-500/30 whitespace-nowrap">{new Date(orphanedSession.started_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>. 
+                  Ready to pick up where you left off?
+                </p>
+
+                <div className="flex flex-col gap-4 w-full">
+                  <button
+                    onClick={restoreOrphanedSession}
+                    disabled={isRecovering}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-blue-500/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 group/btn"
+                  >
+                    {isRecovering ? (
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-5 h-5 group-hover/btn:rotate-180 transition-transform duration-500" />
+                    )}
+                    <span>Continue Session</span>
+                  </button>
+                  
+                  <button
+                    onClick={closeOrphanedSession}
+                    disabled={isRecovering}
+                    className="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 border border-slate-200/50"
+                  >
+                    Start Fresh
+                  </button>
+                </div>
+                
+                <p className="mt-8 text-[10px] uppercase tracking-[0.2em] font-black text-slate-300">
+                  Secure Cloud Sync v2.0
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-blue-50 p-6 rounded-full mb-6">
+              <ShoppingBag className="w-16 h-16 text-blue-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">Ready for Sales</h2>
+            <p className="text-slate-500 max-w-md mb-8">
+              Start a new session to begin recording sales, applying prices, and automatically updating stock in real-time.
+            </p>
+            <button
+              onClick={startSession}
+              disabled={isStarting}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {isStarting ? "Initializing..." : "Start Sales Session"}
+            </button>
+            
+            {!isOnline && (
+              <div className="mt-8 flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-full text-sm font-medium">
+                <WifiOff className="w-4 h-4" />
+                Offline Mode — Changes will sync on reconnect
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -252,12 +336,12 @@ export default function SalesPointUI({
         </div>
         
         <button
-          onClick={endSession}
-          disabled={isEnding || rows.some(r => !r.synced)}
+          onClick={handleEndSession}
+          disabled={isEnding}
           className="relative z-10 inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-black text-white shadow-lg hover:bg-slate-800 transition-all active:scale-95 gap-2 uppercase tracking-widest disabled:opacity-50"
         >
           <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-          End Session
+          {isEnding ? "Ending..." : "End Session"}
         </button>
       </div>
 
@@ -285,7 +369,12 @@ export default function SalesPointUI({
                 return (
                   <tr key={row.localId} className={row.synced ? "bg-slate-50/50" : ""}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-500 sm:pl-6 text-center">
-                      {index + 1}
+                      <div className="flex flex-col items-center gap-1">
+                        <span>{index + 1}</span>
+                        {!row.synced && showValidationErrors && (
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                        )}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900">
                       {row.synced ? (
@@ -315,7 +404,7 @@ export default function SalesPointUI({
                           max={selectedProduct ? selectedProduct.quantity : undefined}
                           step="0.01"
                           value={row.quantitySold}
-                          onChange={(e) => updateRow(row.localId, "quantitySold", parseFloat(e.target.value) || '')}
+                          onChange={(e) => updateRow(row.localId, "quantitySold", e.target.value)}
                           onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
                           className="block w-24 rounded-md border-0 py-1.5 text-right text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:opacity-50 disabled:bg-slate-50"
                           placeholder="Qty"
@@ -334,7 +423,7 @@ export default function SalesPointUI({
                           min="0"
                           step="0.01"
                           value={row.subtotal}
-                          onChange={(e) => updateRow(row.localId, "subtotal", parseFloat(e.target.value) || '')}
+                          onChange={(e) => updateRow(row.localId, "subtotal", e.target.value)}
                           onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
                           className="block w-full rounded-md border-0 py-1.5 pl-7 pr-3 text-right font-semibold text-emerald-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:opacity-50 disabled:bg-slate-50"
                           placeholder="0.00"

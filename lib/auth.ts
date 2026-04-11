@@ -56,7 +56,10 @@ export async function requireRole(allowedRoles: string[]) {
     authError = error;
     const isNetworkError = error?.message?.includes('fetch failed') || 
                            error?.message?.includes('ENOTFOUND') ||
-                           error?.message?.includes('timeout');
+                           error?.message?.includes('timeout') ||
+                           error?.message?.includes('ECONNRESET') ||
+                           error?.message?.includes('ETIMEDOUT') ||
+                           error?.code === 'PGRST301'; // Database connection issue
 
     if (isNetworkError) {
       authAttempts++;
@@ -93,7 +96,10 @@ export async function requireRole(allowedRoles: string[]) {
       pError = error;
       const isNetworkError = error.message?.includes('fetch failed') || 
                              error.message?.includes('ENOTFOUND') ||
-                             error.message?.includes('timeout');
+                             error.message?.includes('timeout') ||
+                             error.message?.includes('ECONNRESET') ||
+                             error.message?.includes('ETIMEDOUT') ||
+                             error.code === 'PGRST301';
 
       if (isNetworkError) {
         attempts++;
@@ -110,8 +116,9 @@ export async function requireRole(allowedRoles: string[]) {
   const { profile, error: pError } = await getProfile(user.id);
 
   if (!profile) {
-    console.warn('requireRole: Profile NOT found for user ID:', user.id);
-    throw new Error('Unauthorized: Profile not found or network error.');
+    const detail = pError ? `${pError.code}: ${pError.message}` : 'User missing from database.';
+    console.error('requireRole: Profile lookup failed for user ID:', user.id, detail);
+    throw new Error(`Unauthorized: Profile access failed. Details: ${detail}`);
   }
 
   if (!allowedRoles.includes(profile.role)) {

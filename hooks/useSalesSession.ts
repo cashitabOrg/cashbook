@@ -8,8 +8,8 @@ export type SaleRow = {
   dbId?: string; // assigned when synced
   productId: string;
   productName: string;
-  quantitySold: number | '';
-  subtotal: number | '';
+  quantitySold: number | string;
+  subtotal: number | string;
   synced: boolean;
 };
 
@@ -20,6 +20,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   const [isEnding, setIsEnding] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [isStale, setIsStale] = useState(false);
+  const [orphanedSession, setOrphanedSession] = useState<any | null>(null);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   // 1. Fetching logic refactored for re-use
   const refreshSession = useCallback(async () => {
@@ -97,6 +99,26 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       }
     } else {
       setIsStale(false);
+      
+      // If no local session found, check Supabase for any 'open' sessions for this manager
+      // This handles cases where localStorage was cleared but the session is still open in DB.
+      if (storeId && managerId && navigator.onLine) {
+        const checkCloudSession = async () => {
+          const supabase = createClient();
+          const { data, error } = await supabase
+            .from('sales_sessions')
+            .select('*')
+            .eq('store_id', storeId)
+            .eq('manager_id', managerId)
+            .eq('status', 'open')
+            .maybeSingle();
+
+          if (data && !error) {
+            setOrphanedSession(data);
+          }
+        };
+        checkCloudSession();
+      }
     }
   }, [managerId, storeId]);
 
@@ -127,8 +149,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     };
   }, []);
 
-  const totalRevenue = rows.reduce((acc, row) => acc + (row.subtotal || 0), 0);
-  const totalItems = rows.reduce((acc, row) => acc + (typeof row.quantitySold === 'number' ? row.quantitySold : 0), 0);
+  const totalRevenue = rows.reduce((acc, row) => acc + (parseFloat(row.subtotal.toString()) || 0), 0);
+  const totalItems = rows.reduce((acc, row) => acc + (parseFloat(row.quantitySold.toString()) || 0), 0);
 
   const startSession = async () => {
     setIsStarting(true);
@@ -175,15 +197,18 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   };
 
   const commitRow = async (row: SaleRow) => {
-    if (!sessionId || !row.productId || typeof row.subtotal !== 'number' || typeof row.quantitySold !== 'number') return;
+    const qty = parseFloat(row.quantitySold.toString());
+    const sub = parseFloat(row.subtotal.toString());
+
+    if (!sessionId || !row.productId || isNaN(qty) || isNaN(sub)) return;
     
     if (row.synced) return; // already committed
 
     // 1. Validation: Check available stock in Dexie Before Committing
     const p = await db.products.get(row.productId);
-    if (!p || p.quantity < row.quantitySold) {
+    if (!p || p.quantity < qty) {
        toast.error(`Insufficient stock for ${row.productName || 'this product'}`, {
-         description: `Available: ${p?.quantity?.toFixed(2) || '0.00'} | Requested: ${row.quantitySold.toFixed(2)}`
+         description: `Available: ${p?.quantity?.toFixed(2) || '0.00'} | Requested: ${qty.toFixed(2)}`
        });
        return;
     }
@@ -192,8 +217,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       store_id: storeId,
       session_id: sessionId,
       product_id: row.productId,
-      quantity: row.quantitySold,
-      subtotal: row.subtotal,
+      quantity: qty,
+      subtotal: sub,
       unit_price: p.selling_price || 0, // Transaction snapshot
       unit_cost: p.cost_price || 0,   // Transaction snapshot
     };
@@ -212,7 +237,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     
     // Locally adjust Dexie cache instantly for realtime UI feedback
     if (p) {
-       await db.products.update(p.id, { quantity: p.quantity - row.quantitySold });
+       await db.products.update(p.id, { quantity: p.quantity - qty });
     }
 
     setRows(prev => prev.map(r => r.localId === row.localId ? { ...r, synced: true } : r));
@@ -222,7 +247,9 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const row = rows.find(r => r.localId === localId);
     if (!row) return;
 
-    if (row.synced && row.productId && typeof row.quantitySold === 'number') {
+    const qty = parseFloat(row.quantitySold.toString());
+
+    if (row.synced && row.productId && !isNaN(qty)) {
       // 2. The stock refund is now handled automatically by the Database Trigger on the server
       // whenever a sale_item is removed/deleted.
       
@@ -238,7 +265,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       // Locally restore Dexie cache instantly
       const p = await db.products.get(row.productId);
       if (p) {
-         await db.products.update(p.id, { quantity: p.quantity + row.quantitySold });
+         await db.products.update(p.id, { quantity: p.quantity + qty });
       }
     }
 
@@ -247,7 +274,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
   const uncommitRow = async (localId: string) => {
     const row = rows.find(r => r.localId === localId);
-    if (!row || !row.synced || !row.productId || typeof row.quantitySold !== 'number') return;
+    const qty = row ? parseFloat(row.quantitySold.toString()) : NaN;
+    if (!row || !row.synced || !row.productId || isNaN(qty)) return;
 
     // Remove the sale item from the queue safely if it matches our localId
     await db.offlineQueue.filter(item => item.payload?.local_row_id === localId).delete();
@@ -255,7 +283,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     // Refund the stock locally
     const p = await db.products.get(row.productId);
     if (p) {
-        await db.products.update(p.id, { quantity: p.quantity + row.quantitySold });
+        await db.products.update(p.id, { quantity: p.quantity + qty });
     }
 
     // Queue a deletion in the cloud (in case it already synced)
@@ -295,12 +323,78 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     setIsEnding(false);
   };
 
+  const restoreOrphanedSession = async () => {
+    if (!orphanedSession) return;
+    setIsRecovering(true);
+    
+    const { id, started_at } = orphanedSession;
+    setSessionId(id);
+    localStorage.setItem(`session_${managerId}_${storeId}`, id);
+    localStorage.setItem(`session_start_${managerId}_${storeId}`, started_at);
+    
+    // Trigger a refresh to get the items
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('sale_items')
+      .select('id, product_id, quantity, subtotal, created_at, products(name)')
+      .order('created_at', { ascending: true })
+      .eq('session_id', id);
+
+    if (data) {
+        const restoredRows = data.map((item: any) => ({
+            localId: crypto.randomUUID(),
+            dbId: item.id,
+            productId: item.product_id,
+            productName: item.products?.name || 'Unknown',
+            quantitySold: Number(item.quantity),
+            subtotal: Number(item.subtotal),
+            synced: true
+        }));
+        setRows(restoredRows);
+        localStorage.setItem(`session_rows_${managerId}_${storeId}`, JSON.stringify(restoredRows));
+    }
+
+    setOrphanedSession(null);
+    setIsRecovering(false);
+    toast.success("Session recovered successfully");
+  };
+
+  const closeOrphanedSession = async () => {
+    if (!orphanedSession) return;
+    setIsRecovering(true);
+    const supabase = createClient();
+    
+    // We queue it for safety but also attempt immediate cloud update
+    const { error } = await supabase
+      .from('sales_sessions')
+      .update({ status: 'closed', ended_at: new Date().toISOString() })
+      .eq('id', orphanedSession.id);
+
+    if (error) {
+       // If cloud update fails, we can't easily queue it without a proper payload in this hook's context
+       // but SyncEngine usually handles 'sale_session' with 'action: close'.
+       await db.offlineQueue.add({
+         store_id: storeId,
+         type: 'sale_session',
+         payload: { id: orphanedSession.id, action: 'close', ended_at: new Date().toISOString(), total_revenue: 0 },
+         created_at: Date.now(),
+         status: 'pending'
+       });
+    }
+
+    setOrphanedSession(null);
+    setIsRecovering(false);
+    toast.info("Previous session closed. You can now start a new one.");
+  };
+
   return {
     isOnline,
     sessionId,
     isStarting,
     isEnding,
     isStale,
+    orphanedSession,
+    isRecovering,
     rows,
     totalRevenue,
     totalItems,
@@ -311,6 +405,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     removeRow,
     uncommitRow,
     endSession,
-    refreshSession
+    refreshSession,
+    restoreOrphanedSession,
+    closeOrphanedSession
   };
 }
