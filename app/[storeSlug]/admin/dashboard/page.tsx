@@ -14,12 +14,23 @@ export default async function AdminDashboardPage({
   // Use supabaseAdmin to bypass RLS — safe in a server component
   const supabase = supabaseAdmin;
 
-  // 1. Fetch products for inventory table
+  // 1. Fetch store plan and usage counts
+  const { data: store } = await supabase
+    .from("stores")
+    .select("plan, is_billing_exempt")
+    .eq("id", userRole.storeId)
+    .single();
+
   const { data: products } = await supabase
     .from("products")
     .select("id, name, quantity, min_quantity, unit, cost_price, selling_price")
     .eq("store_id", userRole.storeId)
     .order("name");
+
+  const { count: staffCount } = await supabase
+    .from("users")
+    .select("*", { count: 'exact', head: true })
+    .eq("store_id", userRole.storeId);
 
   // 2. Fetch Sessions for Revenue Data
   const { data: rawSessions, error: sessionsErr } = await supabase
@@ -99,6 +110,9 @@ export default async function AdminDashboardPage({
         recentAdjustments={recentAdjustments || []}
         title="Store Performance Hub"
         subtitle="A real-time overview of your lifetime revenue, inventory health, and core business metrics."
+        plan={store?.plan || 'free'}
+        isExempt={store?.is_billing_exempt || false}
+        staffCount={staffCount || 0}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { signOut } from "@/app/actions/auth";
-import { LayoutDashboard, Store, Users, CreditCard, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Store, Users, CreditCard, LogOut, ShieldAlert, Megaphone, History } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 
@@ -14,6 +14,8 @@ export default async function SuperAdminLayout({
     { name: "Dashboard", href: `/super-admin/dashboard`, icon: LayoutDashboard },
     { name: "Users", href: `/super-admin/users`, icon: Users },
     { name: "Plans", href: `/super-admin/plans`, icon: CreditCard },
+    { name: "Broadcasts", href: `/super-admin/broadcasts`, icon: Megaphone },
+    { name: "Audit Logs", href: `/super-admin/audit-logs`, icon: History },
   ];
 
   return (

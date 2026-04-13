@@ -4,9 +4,37 @@ import { createClient } from "@/lib/supabase-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getPlanLimits } from "@/lib/plans";
+import { checkActiveSubscription } from "./billing";
 
 export async function createManager(storeSlug: string, formData: FormData) {
   const userRole = await requireRole(["admin", "super_admin"]);
+  const adminClient = supabaseAdmin;
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
+
+  // 1. Get current store plan and user count
+  const { data: storeData } = await adminClient
+    .from("stores")
+    .select("plan, is_billing_exempt")
+    .eq("id", userRole.storeId)
+    .single();
+
+  const { count: userCount } = await adminClient
+    .from("users")
+    .select("*", { count: 'exact', head: true })
+    .eq("store_id", userRole.storeId);
+
+  const limits = getPlanLimits(storeData?.plan);
+
+  // Skip capacity check if exempt from billing
+  if (!storeData?.is_billing_exempt && userCount !== null && userCount >= limits.maxStaff) {
+    return { 
+      error: `Upgrade required: The '${storeData?.plan?.toUpperCase()}' tier only allows up to ${limits.maxStaff} staff members. You currently have ${userCount}.` 
+    };
+  }
 
   const fullName = formData.get("fullName") as string;
   const username = formData.get("username") as string;
@@ -21,7 +49,6 @@ export async function createManager(storeSlug: string, formData: FormData) {
   const email = `${cleanUsername}@${cleanSlug}.frozenpos.local`;
 
   // Use the admin client to create the user account (bypasses RLS & Auth protections)
-  const adminClient = supabaseAdmin;
 
   const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email,
@@ -66,17 +93,26 @@ export async function editManager(storeSlug: string, formData: FormData) {
   const password = formData.get("password") as string;
 
   const adminClient = supabaseAdmin;
-  const supabase = await createClient(); // Use regular client to verify store_id via RLS first!
+  const supabase = userRole.role === "super_admin" ? adminClient : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   // RLS check: Can this admin see this user?
   const { data: targetUser } = await supabase
     .from("users")
-    .select("id")
+    .select("id, store_id")
     .eq("id", id)
     .single();
 
   if (!targetUser) {
     return { error: "Unauthorized or user not found" };
+  }
+
+  // Safety check for super_admin: Ensure they are editing a user in the store they are impersonating
+  if (userRole.role === "super_admin" && targetUser.store_id !== userRole.storeId) {
+    return { error: "Impersonation mismatch: User does not belong to the active store." };
   }
 
   // Update public.users
@@ -105,7 +141,11 @@ export async function editManager(storeSlug: string, formData: FormData) {
 
 export async function toggleManagerStatus(storeSlug: string, id: string, isActive: boolean) {
   const userRole = await requireRole(["admin", "super_admin"]);
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   const { error } = await supabase
     .from("users")
@@ -124,18 +164,27 @@ export async function toggleManagerStatus(storeSlug: string, id: string, isActiv
 export async function deleteManager(storeSlug: string, id: string) {
   const userRole = await requireRole(["admin", "super_admin"]);
   
-  const supabase = await createClient();
   const adminClient = supabaseAdmin;
+  const supabase = userRole.role === "super_admin" ? adminClient : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   // Verify ownership via RLS
   const { data: targetUser } = await supabase
     .from("users")
-    .select("id")
+    .select("id, store_id")
     .eq("id", id)
     .single();
 
   if (!targetUser) {
     return { error: "Unauthorized or user not found" };
+  }
+
+  // Safety check for super_admin
+  if (userRole.role === "super_admin" && targetUser.store_id !== userRole.storeId) {
+    return { error: "Impersonation mismatch: User does not belong to the active store." };
   }
 
   // Delete from public.users (Auth deletion cascade isn't guaranteed depending on setup, do auth first)

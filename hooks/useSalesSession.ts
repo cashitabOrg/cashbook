@@ -16,6 +16,7 @@ export type SaleRow = {
 export function useSalesSession(storeSlug: string, storeId: string, managerId: string) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [rows, setRows] = useState<SaleRow[]>([]);
+  const [committingIds, setCommittingIds] = useState<Set<string>>(new Set());
   const [isStarting, setIsStarting] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -202,7 +203,13 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
     if (!sessionId || !row.productId || isNaN(qty) || isNaN(sub)) return;
     
-    if (row.synced) return; // already committed
+    // PREVENTION: Prevent duplicate commits if row is already synced or already in process
+    if (row.synced || row.dbId || committingIds.has(row.localId)) {
+      console.warn("Prevention: Row already committed or currently in process.");
+      return; 
+    }
+
+    setCommittingIds(prev => new Set(prev).add(row.localId));
 
     // 1. Validation: Check available stock in Dexie Before Committing
     const p = await db.products.get(row.productId);
@@ -241,6 +248,11 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     }
 
     setRows(prev => prev.map(r => r.localId === row.localId ? { ...r, synced: true } : r));
+    setCommittingIds(prev => {
+      const next = new Set(prev);
+      next.delete(row.localId);
+      return next;
+    });
   };
 
   const removeRow = async (localId: string) => {

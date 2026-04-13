@@ -18,7 +18,7 @@ export default async function ReportsPage({
   // 1. Fetch Store details
   const { data: store } = await supabase
     .from("stores")
-    .select("name")
+    .select("name, plan, is_billing_exempt")
     .eq("id", userRole.storeId)
     .single();
 
@@ -85,111 +85,15 @@ export default async function ReportsPage({
     };
   });
 
-  // 3. Fetch Stock-In Data
-  const { data: stockRaw, error: stockError } = await supabase
-    .from("stock_additions")
-    .select(`
-      id,
-      quantity_added,
-      unit_cost,
-      note,
-      created_at,
-      products (name),
-      users (full_name)
-    `)
-    .eq("store_id", userRole.storeId)
-    .order("created_at", { ascending: true });
-
-  if (stockError) {
-    console.error('[Reports] Failed to load stock data:', stockError.message, stockError);
-    return <div className="p-8 text-red-600">Error loading stock data: {stockError.message}</div>;
-  }
-
-  const stockData = (stockRaw || []).map((stock) => {
-    const timestamp = stock.created_at || new Date().toISOString();
-    return {
-      id: stock.id,
-      timestamp,
-      dateStr: format(parseISO(timestamp), "MMM do, yyyy HH:mm"),
-      // @ts-ignore
-      productName: stock.products?.name || "Unknown Product",
-      qtyAdded: Number(stock.quantity_added),
-      unitCost: Number(stock.unit_cost || 0),
-      totalCost: Number(stock.quantity_added) * Number(stock.unit_cost || 0),
-      // @ts-ignore
-      addedBy: stock.users?.full_name || "Unknown Admin",
-      note: stock.note,
-    };
-  });
-
-  // 4. Fetch Stock Adjustments
-  // We use manual hydration here to bypass 'relationship not found' schema cache errors in Supabase
-  const { data: adjRaw, error: adjError } = await supabase
-    .from("stock_adjustments")
-    .select(`
-      id,
-      quantity_change,
-      reason,
-      note,
-      created_at,
-      admin_id,
-      products (name)
-    `)
-    .eq("store_id", userRole.storeId)
-    .order("created_at", { ascending: true });
-
-  if (adjError) {
-    console.error('[Reports] Failed to load adjustment data:', adjError.message);
-  }
-
-  // Manual Hydration: Get the manager names for adjustments
-  let adjustmentsWithNames = (adjRaw || []) as any[];
-  if (adjustmentsWithNames.length > 0) {
-    const adminIds = [...new Set(adjustmentsWithNames.map(a => a.admin_id).filter(Boolean))];
-    const { data: users } = await supabase
-      .from('users')
-      .select('id, full_name')
-      .in('id', adminIds);
-    
-    if (users) {
-      adjustmentsWithNames = adjustmentsWithNames.map(adj => ({
-        ...adj,
-        users: users.find(u => u.id === adj.admin_id) || { full_name: 'Admin' }
-      }));
-    } else {
-      // Fallback if users table fetch fails
-      adjustmentsWithNames = adjustmentsWithNames.map(adj => ({
-        ...adj,
-        users: { full_name: 'Admin' }
-      }));
-    }
-  }
-
-  const adjustmentData = adjustmentsWithNames.map((adj) => {
-    const timestamp = adj.created_at || new Date().toISOString();
-    return {
-      id: adj.id,
-      timestamp,
-      dateStr: format(parseISO(timestamp), "MMM do, yyyy HH:mm"),
-      // @ts-ignore
-      productName: adj.products?.name || "Unknown Product",
-      qtyChange: Number(adj.quantity_change),
-      reason: adj.reason || "Adjustment",
-      // @ts-ignore
-      adjustedBy: adj.users?.full_name || "Admin",
-      note: adj.note,
-    };
-  });
-
   return (
     <div className="lg:p-8 max-w-full mx-auto h-[calc(100vh-3.5rem)] flex flex-col">
       <div className="flex-1 min-h-0">
         <ReportsClient
           storeId={userRole.storeId}
           storeName={store?.name || "Store"}
+          plan={store?.plan || 'free'}
+          isBillingExempt={store?.is_billing_exempt || false}
           salesData={salesData}
-          stockData={stockData}
-          adjustmentData={adjustmentData}
         />
       </div>
     </div>

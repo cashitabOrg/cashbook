@@ -4,7 +4,7 @@ import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { toggleStoreStatus, deleteStoreHard } from "@/app/actions/super-admin";
 import { toast } from "sonner";
-import { Store, Building2, Ban, Trash2, CheckCircle2 } from "lucide-react";
+import { Store, Building2, Ban, Trash2, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 type StoreData = {
@@ -13,6 +13,7 @@ type StoreData = {
   slug: string;
   plan: string;
   is_active: boolean;
+  is_billing_exempt: boolean;
   created_at: string;
   ownerName: string;
   ownerUsername: string;
@@ -91,9 +92,16 @@ export default function SuperAdminStoresClient({
                     </div>
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap text-sm text-slate-600">
-                    <span className="capitalize px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold">
-                      {store.plan}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="capitalize px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold w-fit">
+                        {store.plan}
+                      </span>
+                      {store.is_billing_exempt && (
+                         <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-tighter text-amber-600 italic">
+                            <ShieldCheck className="w-3 h-3" /> Whitelisted
+                         </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap text-center">
                     {store.is_active ? (

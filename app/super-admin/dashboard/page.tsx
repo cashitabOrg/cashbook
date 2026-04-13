@@ -9,8 +9,8 @@ export default async function SuperAdminDashboard() {
   await requireRole(["super_admin"]);
   const adminClient = createAdminClient();
 
-  // 1. Fetch all stores joined with their owner user data
-  const { data: storesData } = await adminClient
+  // 1. Fetch all stores securely
+  const { data: rawStores, error: storesError } = await adminClient
     .from("stores")
     .select(`
       id,
@@ -18,18 +18,42 @@ export default async function SuperAdminDashboard() {
       slug,
       plan,
       is_active,
-      created_at,
-      users:owner_id (full_name, username)
+      is_billing_exempt,
+      created_at
     `)
     .order("created_at", { ascending: false });
 
-  // 2. Fetch all users count
+  if (storesError) {
+    console.error("Dashboard Fetch Error:", storesError);
+    return <div className="p-8 text-red-600 font-bold">Failed to load platform stores: {storesError.message}</div>;
+  }
+
+  // 2. Resolve owners by looking for users with 'admin' role in each store
+  const storeIds = (rawStores || []).map(s => s.id);
+  let ownersMap: Record<string, { full_name: string, username: string }> = {};
+
+  if (storeIds.length > 0) {
+    const { data: storeAdmins } = await adminClient
+      .from("users")
+      .select("store_id, full_name, username")
+      .in("store_id", storeIds)
+      .eq("role", "admin");
+    
+    if (storeAdmins) {
+      storeAdmins.forEach(admin => {
+        if (!ownersMap[admin.store_id]) {
+          ownersMap[admin.store_id] = { full_name: admin.full_name, username: admin.username };
+        }
+      });
+    }
+  }
+
+  // 3. Fetch all users count
   const { count: usersCount } = await adminClient
     .from("users")
     .select("*", { count: "exact", head: true });
 
-  // 3. Fetch global revenue
-  // Since we don't have a direct aggregation in UI for everything, we sum JS-side.
+  // 4. Fetch global revenue
   const { data: globalRevenueData } = await adminClient
     .from("sales_sessions")
     .select("total_revenue")
@@ -40,17 +64,16 @@ export default async function SuperAdminDashboard() {
     0
   );
 
-  const stores = (storesData || []).map(s => ({
+  const stores = (rawStores || []).map(s => ({
     id: s.id,
     name: s.name,
     slug: s.slug,
     plan: s.plan,
     is_active: s.is_active,
+    is_billing_exempt: s.is_billing_exempt,
     created_at: s.created_at,
-    // @ts-ignore
-    ownerName: s.users?.full_name || "Unknown",
-    // @ts-ignore
-    ownerUsername: s.users?.username || "Unknown"
+    ownerName: ownersMap[s.id]?.full_name || "No Admin Assigned",
+    ownerUsername: ownersMap[s.id]?.username || "none"
   }));
 
   const activeStores = stores.filter(s => s.is_active).length;

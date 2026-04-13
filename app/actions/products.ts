@@ -1,8 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getPlanLimits } from "@/lib/plans";
+import { checkActiveSubscription } from "./billing";
 
 export async function addProduct(storeSlug: string, formData: FormData) {
   const userRole = await requireRole(["admin", "super_admin"]);
@@ -13,7 +16,32 @@ export async function addProduct(storeSlug: string, formData: FormData) {
   const costPrice = formData.get("costPrice") as string;
   const sellingPrice = formData.get("sellingPrice") as string;
 
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
+
+  // 1. Get current store plan and product count
+  const { data: storeData } = await supabaseAdmin
+    .from("stores")
+    .select("plan, is_billing_exempt")
+    .eq("id", userRole.storeId)
+    .single();
+
+  const { count: productCount } = await supabaseAdmin
+    .from("products")
+    .select("*", { count: 'exact', head: true })
+    .eq("store_id", userRole.storeId);
+
+  const limits = getPlanLimits(storeData?.plan);
+
+  // Skip capacity check if exempt from billing
+  if (!storeData?.is_billing_exempt && productCount !== null && productCount >= limits.maxProducts) {
+    return { 
+      error: `Upgrade required: The '${storeData?.plan?.toUpperCase()}' tier only allows up to ${limits.maxProducts} products. You currently have ${productCount}.` 
+    };
+  }
 
   const { error } = await supabase.from("products").insert({
     store_id: userRole.storeId,
@@ -30,6 +58,7 @@ export async function addProduct(storeSlug: string, formData: FormData) {
   }
 
   revalidatePath(`/${storeSlug}/admin/products`);
+  revalidatePath(`/${storeSlug}/admin/ledger`);
   return { success: true };
 }
 
@@ -43,7 +72,11 @@ export async function editProduct(storeSlug: string, formData: FormData) {
   const costPrice = Number(formData.get("costPrice") || 0);
   const sellingPrice = Number(formData.get("sellingPrice") || 0);
 
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   // 1. Fetch current product to check for price changes
   const { data: currentProduct } = await supabase
@@ -86,6 +119,7 @@ export async function editProduct(storeSlug: string, formData: FormData) {
   }
 
   revalidatePath(`/${storeSlug}/admin/products`);
+  revalidatePath(`/${storeSlug}/admin/ledger`);
   return { success: true };
 }
 
@@ -94,7 +128,7 @@ export async function deleteProduct(storeSlug: string, formData: FormData) {
 
   const id = formData.get("id") as string;
 
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
 
   const { error } = await supabase
     .from("products")
@@ -107,6 +141,7 @@ export async function deleteProduct(storeSlug: string, formData: FormData) {
   }
 
   revalidatePath(`/${storeSlug}/admin/products`);
+  revalidatePath(`/${storeSlug}/admin/ledger`);
   return { success: true };
 }
 
@@ -124,7 +159,11 @@ export async function addStock(storeSlug: string, formData: FormData) {
     return { error: "Quantity added must be greater than 0" };
   }
 
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   // 1. Insert stock_additions log
   const { error: logError } = await supabase
@@ -186,12 +225,13 @@ export async function addStock(storeSlug: string, formData: FormData) {
   }
 
   revalidatePath(`/${storeSlug}/admin/products`);
+  revalidatePath(`/${storeSlug}/admin/ledger`);
   return { success: true };
 }
 
 export async function getPriceHistory(productId: string) {
   const userRole = await requireRole(["admin", "super_admin"]);
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
 
   // 1. Fetch Price Changes
   const { data: priceLogs } = await supabase
@@ -233,7 +273,11 @@ export async function adjustStock(storeSlug: string, formData: FormData) {
     return { error: "Adjustment quantity must be a non-zero number." };
   }
 
-  const supabase = await createClient();
+  const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
+
+  // 0. Check for expired subscription
+  const subStatus = await checkActiveSubscription(userRole.storeId);
+  if (!subStatus.active) return { error: subStatus.error };
 
   // 1. Get current quantity
   const { data: product, error: findError } = await supabase
@@ -267,5 +311,6 @@ export async function adjustStock(storeSlug: string, formData: FormData) {
   if (updateError) return { error: updateError.message };
 
   revalidatePath(`/${storeSlug}/admin/products`);
+  revalidatePath(`/${storeSlug}/admin/ledger`);
   return { success: true };
 }

@@ -14,9 +14,15 @@ import {
   Search, 
   RotateCcw,
   ChevronDown,
-  Maximize2
+  Maximize2,
+  Users,
+  ShieldCheck,
+  Rocket,
+  Star,
+  Zap
 } from "lucide-react";
 import ExpandTableModal from "@/components/shared/ExpandTableModal";
+import { getPlanLimits } from "@/lib/plans";
 
 type Product = {
   id: string;
@@ -49,6 +55,9 @@ export default function AdminDashboardClient({
   recentAdjustments,
   title,
   subtitle,
+  plan = 'free',
+  isExempt = false,
+  staffCount = 0
 }: {
   storeId: string;
   initialProducts: Product[];
@@ -57,6 +66,9 @@ export default function AdminDashboardClient({
   recentAdjustments?: any[];
   title: string;
   subtitle: string;
+  plan?: string;
+  isExempt?: boolean;
+  staffCount?: number;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [isBestSellersOpen, setIsBestSellersOpen] = useState(false);
@@ -174,6 +186,10 @@ export default function AdminDashboardClient({
   const totalRetailValue = products.reduce((acc, curr) => acc + (curr.quantity * (curr.selling_price || 0)), 0);
   const potentialProfit = totalRetailValue - totalStockCost;
 
+  const limits = getPlanLimits(plan);
+  const productUsagePercent = Math.min(100, (products.length / limits.maxProducts) * 100);
+  const staffUsagePercent = Math.min(100, (staffCount / limits.maxStaff) * 100);
+
   return (
     <div className="space-y-6">
       {/* Ultra-Compact Unified Header */}
@@ -233,62 +249,64 @@ export default function AdminDashboardClient({
       
       <div className="px-2 lg:px-0 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-5">
-          <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm col-span-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden col-span-2">
             <div className="p-3 lg:p-6">
               <div className="flex items-center lg:gap-5">
-                <div className="flex-shrink-0 bg-blue-50 rounded-xl p-2 lg:p-4">
-                  <DollarSign className="h-4 w-4 lg:h-6 lg:w-6 text-blue-600" />
+                <div className="flex-shrink-0 bg-blue-500/20 rounded-xl p-2 lg:p-4">
+                  <DollarSign className="h-4 w-4 lg:h-6 lg:w-6 text-blue-400" />
                 </div>
                 <div className="ml-3 lg:ml-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Revenue ({startDate === endDate ? 'Today' : 'Range'})</p>
-                  <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">₦{metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</div>
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Revenue ({startDate === endDate ? 'Today' : 'Range'})</p>
+                  <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">₦{metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-3 lg:p-6">
               <div className="flex items-center lg:gap-5">
-                <div className="flex-shrink-0 bg-emerald-50 rounded-xl p-2 lg:p-4">
-                  <Package className="h-4 w-4 lg:h-6 lg:w-6 text-emerald-600" />
+                <div className="flex-shrink-0 bg-emerald-500/20 rounded-xl p-2 lg:p-4">
+                  <Package className="h-4 w-4 lg:h-6 lg:w-6 text-emerald-400" />
                 </div>
                 <div className="ml-3 lg:ml-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Products</p>
-                  <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">{products.length}</div>
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Products</p>
+                  <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">{products.length}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-3 lg:p-6">
               <div className="flex items-center lg:gap-5">
-                <div className="flex-shrink-0 bg-red-50 rounded-xl p-2 lg:p-4">
-                  <AlertCircle className="h-4 w-4 lg:h-6 lg:w-6 text-red-600" />
+                <div className="flex-shrink-0 bg-red-500/20 rounded-xl p-2 lg:p-4">
+                  <AlertCircle className="h-4 w-4 lg:h-6 lg:w-6 text-red-400" />
                 </div>
                 <div className="ml-3 lg:ml-0">
-                  <p className="text-[8px] lg:text-sm font-semibold text-slate-500 uppercase tracking-wider">Low Stock</p>
-                  <div className="text-xs lg:text-3xl font-black text-slate-900 leading-none mt-1">{lowStockCount}</div>
+                  <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Low Stock</p>
+                  <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">{lowStockCount}</div>
                 </div>
               </div>
             </div>
           </div>
+
+
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Products by Sales */}
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[450px]">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[450px]">
+            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Performance Index</h3>
-                <p className="text-sm text-slate-500">Sales breakdown for selected range.</p>
+                <h3 className="text-lg font-bold text-white">Performance Index</h3>
+                <p className="text-sm text-white">Sales breakdown for selected range.</p>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-blue-500" />
                 <button
                   onClick={() => setIsBestSellersOpen(true)}
-                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                   title="Expand table"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -296,8 +314,8 @@ export default function AdminDashboardClient({
               </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+              <table className="min-w-full divide-y divide-slate-800">
+                <thead className="bg-slate-950 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-white">
                   <tr>
                     <th className="py-3 px-6 text-left w-12">SN</th>
                     <th className="py-3 px-6 text-left">Product Name</th>
@@ -305,18 +323,18 @@ export default function AdminDashboardClient({
                     <th className="py-3 px-6 text-right">Revenue</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
+                <tbody className="bg-slate-900 divide-y divide-slate-800">
                   {metrics.topProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-sm text-slate-500 font-medium italic">No sales found matching search/dates.</td>
+                      <td colSpan={4} className="py-12 text-center text-sm text-white font-medium italic">No sales found matching search/dates.</td>
                     </tr>
                   ) : (
                     metrics.topProducts.map((p, idx) => (
-                      <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
-                        <td className="py-4 px-6 text-sm font-bold text-slate-900">{p.name}</td>
-                        <td className="py-4 px-6 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                        <td className="py-4 px-6 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                      <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 px-6 text-[10px] text-white font-mono italic">{idx + 1}</td>
+                        <td className="py-4 px-6 text-sm font-bold text-white">{p.name}</td>
+                        <td className="py-4 px-6 text-sm text-white text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
+                        <td className="py-4 px-6 text-sm text-emerald-400 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
                       </tr>
                     ))
                   )}
@@ -326,17 +344,17 @@ export default function AdminDashboardClient({
           </div>
 
           {/* Realtime Stock Status */}
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[450px]">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[450px]">
+            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Inventory Monitor</h3>
-                <span className="text-xs font-bold text-slate-400">Live Status</span>
+                <h3 className="text-lg font-bold text-white">Inventory Monitor</h3>
+                <span className="text-xs font-bold text-white">Live Status</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:block text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-tighter">Live</span>
+                <span className="hidden sm:block text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full uppercase tracking-tighter border border-emerald-500/30">Live</span>
                 <button
                   onClick={() => setIsStockOpen(true)}
-                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
                   title="Expand table"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -344,8 +362,8 @@ export default function AdminDashboardClient({
               </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+              <table className="min-w-full divide-y divide-slate-800">
+                <thead className="bg-slate-950 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-white">
                   <tr>
                     <th className="py-3 px-6 text-left w-12">SN</th>
                     <th className="py-3 px-6 text-left">Product</th>
@@ -353,30 +371,30 @@ export default function AdminDashboardClient({
                     <th className="py-3 px-6 text-center">Health</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
+                <tbody className="bg-slate-900 divide-y divide-slate-800">
                   {filteredInventory.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-sm text-slate-500 font-medium italic">No products found matching search.</td>
+                      <td colSpan={4} className="py-12 text-center text-sm text-white font-medium italic">No products found matching search.</td>
                     </tr>
                   ) : (
                     filteredInventory.map((p, idx) => {
                       const isLow = p.quantity < p.min_quantity;
                       return (
-                        <tr key={p.id} className={`transition-colors hover:bg-slate-50 ${isLow ? 'bg-red-50/30' : ''}`}>
-                          <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
-                          <td className="py-4 px-6 text-sm font-bold text-slate-900">{p.name}</td>
+                        <tr key={p.id} className={`transition-colors hover:bg-slate-800/30 ${isLow ? 'bg-red-500/5' : ''}`}>
+                          <td className="py-4 px-6 text-[10px] text-white font-mono italic">{idx + 1}</td>
+                          <td className="py-4 px-6 text-sm font-bold text-white">{p.name}</td>
                           <td className="py-4 px-6 text-sm text-right">
-                            <span className={`font-mono font-bold ${isLow ? 'text-red-600' : 'text-slate-600'}`}>{p.quantity.toFixed(2)}</span>
-                            <span className="text-slate-400 text-[10px] ml-1 uppercase">{p.unit}</span>
+                            <span className={`font-mono font-bold ${isLow ? 'text-red-400' : 'text-white'}`}>{p.quantity.toFixed(2)}</span>
+                            <span className="text-white text-[10px] ml-1 uppercase">{p.unit}</span>
                           </td>
                           <td className="py-4 px-6 text-center">
                             {isLow ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold text-red-700 uppercase">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-[10px] font-bold text-red-400 uppercase">
                                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
                                   Urgent
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold text-green-700 uppercase">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-bold text-emerald-400 uppercase">
                                   Healthy
                               </span>
                             )}
@@ -392,19 +410,19 @@ export default function AdminDashboardClient({
         </div>
 
         {/* Stock Adjustment Log Section */}
-        <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+          <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Stock Adjustment Log</h3>
-              <p className="text-sm text-slate-500">Most recent inventory corrections and spoilage logs.</p>
+              <h3 className="text-lg font-bold text-white">Stock Adjustment Log</h3>
+              <p className="text-sm text-slate-400">Most recent inventory corrections and spoilage logs.</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-100 italic">Adjustment Archive</span>
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+            <table className="min-w-full divide-y divide-slate-800">
+              <thead className="bg-slate-950 font-bold uppercase tracking-wider text-[10px] text-slate-400">
                 <tr>
                   <th className="py-3 px-6 text-left w-12">SN</th>
                   <th className="py-3 px-6 text-left">Time</th>
@@ -415,24 +433,24 @@ export default function AdminDashboardClient({
                   <th className="py-3 px-6 text-left pr-6">Notes</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-100">
+              <tbody className="bg-slate-900 divide-y divide-slate-800">
                 {!recentAdjustments || recentAdjustments.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-sm text-slate-500 font-medium italic">No recent adjustments found.</td>
                   </tr>
                 ) : (
                   recentAdjustments.map((adj, idx) => (
-                    <tr key={adj.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
-                      <td className="py-4 px-6 text-xs text-slate-500">{format(new Date(adj.created_at), "MMM d, HH:mm")}</td>
-                      <td className="py-4 px-6 text-sm font-bold text-slate-900">{adj.products?.name}</td>
+                    <tr key={adj.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-4 px-6 text-[10px] text-slate-600 font-mono italic">{idx + 1}</td>
+                      <td className="py-4 px-6 text-xs text-slate-400">{format(new Date(adj.created_at), "MMM d, HH:mm")}</td>
+                      <td className="py-4 px-6 text-sm font-bold text-slate-200">{adj.products?.name}</td>
                       <td className={`py-4 px-6 text-sm font-black text-right ${adj.quantity_change < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {adj.quantity_change < 0 ? '-' : '+'}{Math.abs(adj.quantity_change).toFixed(2)}
                       </td>
                       <td className="py-4 px-6 text-xs font-bold pl-6">
-                        <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md uppercase tracking-tighter border border-slate-200 shadow-sm">{adj.reason}</span>
+                        <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md uppercase tracking-tighter border border-slate-700 shadow-sm">{adj.reason}</span>
                       </td>
-                      <td className="py-4 px-6 text-sm text-slate-700 pl-6 font-medium">{adj.users?.full_name || "Admin"}</td>
+                      <td className="py-4 px-6 text-sm text-slate-300 pl-6 font-medium">{adj.users?.full_name || "Admin"}</td>
                       <td className="py-4 px-6 text-[11px] text-slate-400 italic pr-6 truncate max-w-[200px]">{adj.note || "—"}</td>
                     </tr>
                   ))
@@ -444,27 +462,27 @@ export default function AdminDashboardClient({
 
         {/* Valuation Row */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-5">
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3 lg:p-6 flex items-center gap-4">
             <div className="bg-amber-50 p-2 lg:p-3 rounded-xl text-amber-600">
                <TrendingUp className="w-4 h-4 lg:w-6 lg:h-6" />
             </div>
             <div>
               <p className="text-[8px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">Stock Cost</p>
-              <p className="text-xs lg:text-xl font-black text-slate-900">₦{totalStockCost.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+              <p className="text-xs lg:text-xl font-black text-slate-200">₦{totalStockCost.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
             </div>
           </div>
           
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3 lg:p-6 flex items-center gap-4">
             <div className="bg-blue-50 p-2 lg:p-3 rounded-xl text-blue-600">
                <Package className="w-4 h-4 lg:w-6 lg:h-6" />
             </div>
             <div>
               <p className="text-[8px] lg:text-xs font-black text-slate-400 uppercase tracking-widest">Retail Value</p>
-              <p className="text-xs lg:text-xl font-black text-slate-900">₦{totalRetailValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+              <p className="text-xs lg:text-xl font-black text-slate-200">₦{totalRetailValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
             </div>
           </div>
 
-          <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 shadow-sm p-3 lg:p-6 flex items-center gap-4 col-span-2 lg:col-span-1">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3 lg:p-6 flex items-center gap-4 col-span-2 lg:col-span-1">
             <div className="bg-emerald-50 p-2 lg:p-3 rounded-xl text-emerald-600">
                <DollarSign className="w-4 h-4 lg:w-6 lg:h-6" />
             </div>
@@ -484,8 +502,8 @@ export default function AdminDashboardClient({
         subtitle="Full sales breakdown for selected date range"
         icon={<TrendingUp className="w-4 h-4" />}
       >
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+        <table className="min-w-full divide-y divide-slate-800">
+          <thead className="bg-slate-950 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-white">
             <tr>
               <th className="py-4 px-8 text-left w-12">SN</th>
               <th className="py-4 px-8 text-left">Product Name</th>
@@ -493,16 +511,16 @@ export default function AdminDashboardClient({
               <th className="py-4 px-8 text-right">Revenue</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-100">
+          <tbody className="bg-slate-900 divide-y divide-slate-800">
             {metrics.topProducts.length === 0 ? (
-              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No sales data available.</td></tr>
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-white italic">No sales data available.</td></tr>
             ) : (
               metrics.topProducts.map((p, idx) => (
-                <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                  <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
-                  <td className="py-4 px-8 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-8 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="py-4 px-8 text-xs text-white font-mono italic">{idx + 1}</td>
+                  <td className="py-4 px-8 text-sm font-bold text-white">{p.name}</td>
+                  <td className="py-4 px-8 text-sm text-white text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-500 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
                 </tr>
               ))
             )}
@@ -517,8 +535,8 @@ export default function AdminDashboardClient({
         subtitle="Full stock levels for all products"
         icon={<Package className="w-4 h-4" />}
       >
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-slate-500">
+        <table className="min-w-full divide-y divide-slate-800">
+          <thead className="bg-slate-950 sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px] text-white">
             <tr>
               <th className="py-4 px-8 text-left w-12">SN</th>
               <th className="py-4 px-8 text-left">Product</th>
@@ -526,27 +544,27 @@ export default function AdminDashboardClient({
               <th className="py-4 px-8 text-center">Health</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-100">
+          <tbody className="bg-slate-900 divide-y divide-slate-800">
             {filteredInventory.length === 0 ? (
-              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No products found.</td></tr>
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-white italic">No products found.</td></tr>
             ) : (
               filteredInventory.map((p, idx) => {
                 const isLow = p.quantity < p.min_quantity;
                 return (
-                  <tr key={p.id} className={`transition-colors hover:bg-slate-50 ${isLow ? 'bg-red-50/30' : ''}`}>
-                    <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                    <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
+                  <tr key={p.id} className={`transition-colors hover:bg-slate-800/30 ${isLow ? 'bg-red-500/5' : ''}`}>
+                    <td className="py-4 px-8 text-xs text-white font-mono italic">{idx + 1}</td>
+                    <td className="py-4 px-8 text-sm font-bold text-white">{p.name}</td>
                     <td className="py-4 px-8 text-sm text-right">
-                      <span className={`font-mono font-bold ${isLow ? 'text-red-600' : 'text-slate-600'}`}>{p.quantity.toFixed(2)}</span>
-                      <span className="text-slate-400 text-[10px] ml-1 uppercase">{p.unit}</span>
+                      <span className={`font-mono font-bold ${isLow ? 'text-red-400' : 'text-white'}`}>{p.quantity.toFixed(2)}</span>
+                      <span className="text-white text-[10px] ml-1 uppercase">{p.unit}</span>
                     </td>
                     <td className="py-4 px-8 text-center">
                       {isLow ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold text-red-700 uppercase">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-[10px] font-bold text-red-400 uppercase">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>Urgent
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold text-green-700 uppercase">Healthy</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-bold text-emerald-400 uppercase">Healthy</span>
                       )}
                     </td>
                   </tr>

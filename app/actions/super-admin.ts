@@ -28,6 +28,22 @@ export async function toggleStoreStatus(storeId: string, isActive: boolean) {
   return { success: true };
 }
 
+export async function toggleBillingExemption(storeId: string, isExempt: boolean) {
+  await requireRole(["super_admin"]);
+  const adminClient = supabaseAdmin;
+
+  const { error } = await adminClient
+    .from("stores")
+    .update({ is_billing_exempt: isExempt })
+    .eq("id", storeId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/super-admin/dashboard");
+  revalidatePath("/super-admin/stores/[storeSlug]", "page");
+  return { success: true };
+}
+
 export async function deleteStoreHard(storeId: string) {
   await requireRole(["super_admin"]);
   const adminClient = supabaseAdmin;

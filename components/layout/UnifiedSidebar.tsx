@@ -12,7 +12,11 @@ import {
   ShoppingCart,
   History,
   Users,
-  FileText
+  FileText,
+  Zap,
+  ShieldCheck,
+  Rocket,
+  Star
 } from "lucide-react";
 
 const IconMap: Record<string, any> = {
@@ -36,6 +40,8 @@ interface UnifiedSidebarProps {
   navItems: NavItem[];
   signOutAction: any;
   accentColor?: string;
+  plan?: string;
+  isExempt?: boolean;
 }
 
 export default function UnifiedSidebar({
@@ -43,7 +49,9 @@ export default function UnifiedSidebar({
   roleLabel,
   navItems,
   signOutAction,
-  accentColor = "bg-blue-600"
+  accentColor = "bg-blue-600",
+  plan = "free",
+  isExempt = false
 }: UnifiedSidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -85,7 +93,22 @@ export default function UnifiedSidebar({
             <span className="font-black tracking-tighter uppercase leading-none text-base text-white underline decoration-blue-500/30">
               CASHITAB
             </span>
-            <span className="text-[10px] text-slate-500 font-bold truncate mt-1.5 opacity-60 tracking-wider uppercase">{storeName}</span>
+            <div className="flex items-center gap-1.5 mt-1.5">
+               {plan === 'pro' ? (
+                 <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                   <Star className="w-2.5 h-2.5 fill-indigo-400" /> PRO
+                 </span>
+               ) : plan === 'basic' ? (
+                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                   <Rocket className="w-2.5 h-2.5" /> BASIC
+                 </span>
+               ) : (
+                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-500/10 text-slate-400 border border-slate-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                   <ShieldCheck className="w-2.5 h-2.5" /> FREE
+                 </span>
+               )}
+               <span className="text-[10px] text-slate-600 font-bold truncate opacity-40 tracking-wider uppercase">— {storeName}</span>
+            </div>
           </div>
         )}
       </div>
@@ -115,6 +138,24 @@ export default function UnifiedSidebar({
           );
         })}
       </div>
+
+      {/* Upgrade Nudge */}
+      {!isCollapsed && plan === 'free' && !isExempt && (
+        <div className="mx-4 mb-4 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-xl group/upgrade relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full blur-2xl group-hover/upgrade:bg-blue-500/20 transition-all pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Zap className="w-3 h-3 fill-blue-400" /> Growth Ready?
+            </p>
+            <p className="text-[11px] text-slate-400 mt-2 font-medium leading-relaxed">
+              Unlock unlimited products and advanced BI tools.
+            </p>
+            <div className="mt-3 text-[10px] font-black text-white p-1 rounded-md text-center bg-blue-600/20 border border-blue-500/20 group-hover/upgrade:bg-blue-600 transition-all cursor-pointer select-none">
+               VIEW PLATFORM OFFERS
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer / Toggle & SignOut */}
       <div className="p-4 border-t border-slate-800 space-y-2">

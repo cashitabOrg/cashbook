@@ -9,6 +9,7 @@ type UserData = {
   id: string;
   full_name: string;
   username: string;
+  email: string | null;
   role: string;
   is_active: boolean;
   created_at: string;
@@ -83,6 +84,7 @@ export default function SuperAdminUsersClient({
           <thead className="bg-slate-50">
             <tr>
               <th scope="col" className="py-3 px-6 text-left text-xs font-medium text-slate-500 uppercase">User</th>
+              <th scope="col" className="py-3 px-6 text-left text-xs font-medium text-slate-500 uppercase">Email</th>
               <th scope="col" className="py-3 px-6 text-left text-xs font-medium text-slate-500 uppercase">Role</th>
               <th scope="col" className="py-3 px-6 text-left text-xs font-medium text-slate-500 uppercase">Store Node</th>
               <th scope="col" className="py-3 px-6 text-center text-xs font-medium text-slate-500 uppercase">Status</th>
@@ -105,6 +107,9 @@ export default function SuperAdminUsersClient({
                       <span className="font-semibold">{user.full_name}</span>
                       <span className="text-xs text-slate-500 font-mono">@{user.username}</span>
                     </div>
+                  </td>
+                  <td className="py-4 px-6 whitespace-nowrap text-sm text-slate-500">
+                    {user.email || '—'}
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap text-sm text-slate-600">
                     {user.role === 'super_admin' ? (

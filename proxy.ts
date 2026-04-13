@@ -90,6 +90,8 @@ export async function proxy(request: NextRequest) {
     // @ts-ignore
     const userSlug = profile.stores?.slug
 
+    const isImpersonating = request.cookies.has('impersonate_store_id');
+
     // 1. Super Admin checking
     if (pathname.startsWith('/super-admin')) {
       if (profile.role !== 'super_admin') return redirect('/login')
@@ -107,12 +109,15 @@ export async function proxy(request: NextRequest) {
     const matchAdmin = pathname.match(/^\/([^/]+)\/admin\//)
     if (matchAdmin) {
       const urlSlug = matchAdmin[1]
-      if (profile.role !== 'admin' || userSlug !== urlSlug) {
+      const isAllowedAdmin = profile.role === 'admin' && userSlug === urlSlug;
+      const isSuperAdminImpersonating = profile.role === 'super_admin' && isImpersonating;
+
+      if (!isAllowedAdmin && !isSuperAdminImpersonating) {
         // If manager tried to hit admin, send to sales point
         if (profile.role === 'manager' && userSlug) {
           return redirect(`/${userSlug}/manager/sales`)
         }
-        return redirect(userSlug ? `/${userSlug}/admin/dashboard` : '/onboarding')
+        return redirect(userSlug ? `/${userSlug}/admin/dashboard` : profile.role === 'super_admin' ? '/super-admin/dashboard' : '/onboarding')
       }
       return supabaseResponse
     }
@@ -121,9 +126,13 @@ export async function proxy(request: NextRequest) {
     const matchManager = pathname.match(/^\/([^/]+)\/manager\//)
     if (matchManager) {
       const urlSlug = matchManager[1]
-      if (profile.role !== 'manager' || userSlug !== urlSlug) {
-         if (profile.role === 'admin' && userSlug) return redirect(`/${userSlug}/admin/dashboard`)
-         return redirect('/login')
+      const isAllowedManager = profile.role === 'manager' && userSlug === urlSlug;
+      const isAllowedAdmin = profile.role === 'admin' && userSlug === urlSlug;
+      const isSuperAdminImpersonating = profile.role === 'super_admin' && isImpersonating;
+
+      if (!isAllowedManager && !isAllowedAdmin && !isSuperAdminImpersonating) {
+         if ((profile.role === 'admin' || profile.role === 'manager') && userSlug) return redirect(`/${userSlug}/admin/dashboard`)
+         return redirect(profile.role === 'super_admin' ? '/super-admin/dashboard' : '/login')
       }
       return supabaseResponse
     }

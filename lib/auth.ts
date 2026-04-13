@@ -2,6 +2,7 @@ import { createClient } from './supabase-server'
 import { supabaseAdmin } from './supabase-admin'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
+import { cookies } from 'next/headers'
 
 export async function getUserRole() {
   const supabase = await createClient()
@@ -131,8 +132,18 @@ export async function requireRole(allowedRoles: string[]) {
     throw new Error('Account Deactivated: Please contact your administrator.');
   }
 
+  let activeStoreId = profile.store_id;
+
+  if (profile.role === 'super_admin') {
+    const cookieStore = await cookies();
+    const impersonateStoreId = cookieStore.get('impersonate_store_id')?.value;
+    if (impersonateStoreId) {
+      activeStoreId = impersonateStoreId;
+    }
+  }
+
   return {
     ...profile,
-    storeId: profile.store_id
+    storeId: activeStoreId
   }
 }

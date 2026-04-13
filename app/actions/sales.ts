@@ -3,6 +3,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { requireRole } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { toLagosDateString } from '@/lib/date-utils'
 
 interface ActionResponse {
   success?: boolean;
@@ -184,12 +185,7 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
     }
 
     const sessionIdsToApprove = allSessions.filter(s => {
-      const sDateStr = new Intl.DateTimeFormat('en-CA', { 
-        timeZone: 'Africa/Lagos', 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
-      }).format(new Date(s.started_at));
+      const sDateStr = toLagosDateString(s.started_at);
       return sDateStr === dateStr;
     }).map(s => s.id);
 

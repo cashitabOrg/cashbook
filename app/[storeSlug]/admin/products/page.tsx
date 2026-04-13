@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase-server";
 import AdminProductsClient from "@/components/admin/AdminProductsClient";
 import { requireRole } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,14 @@ export default async function AdminProductsPage({
 }) {
   const { storeSlug } = await params;
   const userRole = await requireRole(["admin", "super_admin"]);
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
+
+  // 1. Fetch store plan
+  const { data: store } = await supabase
+    .from("stores")
+    .select("plan, is_billing_exempt")
+    .eq("id", userRole.storeId)
+    .single();
 
   // Fetch products exclusively for this store
   const { data: products, error } = await supabase
@@ -31,6 +38,11 @@ export default async function AdminProductsPage({
   }
 
   return (
-    <AdminProductsClient storeSlug={storeSlug} products={products || []} />
+    <AdminProductsClient 
+      storeSlug={storeSlug} 
+      products={products || []} 
+      plan={store?.plan || 'free'}
+      isExempt={store?.is_billing_exempt || false}
+    />
   );
 }

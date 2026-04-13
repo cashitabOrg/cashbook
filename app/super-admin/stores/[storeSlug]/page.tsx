@@ -2,6 +2,9 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 import { ArrowLeft, Store, Calendar, CreditCard, Activity, Users, Package } from "lucide-react";
+import ImpersonateButtonClient from "@/components/super-admin/ImpersonateButtonClient";
+import DangerZoneClient from "@/components/super-admin/DangerZoneClient";
+import BillingExemptToggle from "@/components/super-admin/BillingExemptToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,7 @@ export default async function SuperAdminStoreInspection({
   await requireRole(["super_admin"]);
   const adminClient = createAdminClient();
 
-  // 1. Resolve store profile securely bypassing RLS
+  // 1. Resolve store profile securely
   const { data: store, error: storeError } = await adminClient
     .from("stores")
     .select(`
@@ -23,8 +26,8 @@ export default async function SuperAdminStoreInspection({
       slug,
       plan,
       is_active,
-      created_at,
-      users:owner_id (full_name, username, email)
+      is_billing_exempt,
+      created_at
     `)
     .eq("slug", storeSlug)
     .single();
@@ -32,6 +35,19 @@ export default async function SuperAdminStoreInspection({
   if (storeError || !store) {
     return <div className="p-8 text-red-600 font-bold">Failed to load payload for: {storeSlug}</div>;
   }
+
+  // 2. Fetch the store owner (User with 'admin' role for this store)
+  const { data: owner } = await adminClient
+    .from("users")
+    .select("full_name, username, email")
+    .eq("store_id", store.id)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  const storeWithOwner = {
+    ...store,
+    users: owner || null
+  };
 
   // 2. Fetch specific store metrics
   const { count: userCount } = await adminClient
@@ -68,7 +84,8 @@ export default async function SuperAdminStoreInspection({
                <span className="capitalize">{store.name}</span>
              </h1>
           </div>
-          <div>
+          <div className="flex items-center gap-3">
+            <ImpersonateButtonClient storeId={store.id} storeSlug={store.slug} />
             {!store.is_active && (
                <span className="inline-flex items-center gap-1.5 rounded-md bg-red-100 px-3 py-1 text-sm font-bold text-red-800 border border-red-200 uppercase tracking-widest">
                  Suspended
@@ -88,12 +105,9 @@ export default async function SuperAdminStoreInspection({
            <div className="space-y-4">
               <div>
                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Owner Contact</p>
-                 {/* @ts-ignore */}
-                 <p className="text-lg font-medium text-slate-900">{store.users?.full_name}</p>
-                 {/* @ts-ignore */}
-                 <p className="text-sm text-slate-500 font-mono">@{store.users?.username}</p>
-                 {/* @ts-ignore */}
-                 {store.users?.email && <p className="text-sm text-blue-600">{store.users.email}</p>}
+                 <p className="text-lg font-medium text-slate-900">{storeWithOwner.users?.full_name || "N/A"}</p>
+                 <p className="text-sm text-slate-500 font-mono">@{storeWithOwner.users?.username || "none"}</p>
+                 {storeWithOwner.users?.email && <p className="text-sm text-blue-600">{storeWithOwner.users.email}</p>}
               </div>
               <div>
                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Provision Date</p>
@@ -117,6 +131,10 @@ export default async function SuperAdminStoreInspection({
                     <CreditCard className="w-4 h-4 text-slate-400" />
                     {store.plan} Tier
                  </p>
+              </div>
+              
+              <div className="pt-2 border-t border-slate-100">
+                <BillingExemptToggle storeId={store.id} initialValue={store.is_billing_exempt || false} />
               </div>
            </div>
         </div>
@@ -156,6 +174,8 @@ export default async function SuperAdminStoreInspection({
 
         </div>
       </div>
+
+      <DangerZoneClient storeId={store.id} />
     </div>
   );
 }

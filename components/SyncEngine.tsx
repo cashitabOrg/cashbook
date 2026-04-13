@@ -180,11 +180,10 @@ export default function SyncEngine() {
                 continue;
               }
               
-              if (error.message.includes('permission denied') || error.message.includes('trigger')) {
-                toast.error("Database Permission Error: Contact your store administrator.", {
-                  description: "Your sales are waiting in a queue until the database permission is fixed.",
-                  duration: 10000
-                });
+              if (error.message.includes('permission denied') || error.message.includes('trigger') || error.message.includes('APPROVED session')) {
+                console.warn("SyncEngine: Item is LOCKED by database. Cancelling sync.");
+                if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
+                continue;
               }
             }
           } 

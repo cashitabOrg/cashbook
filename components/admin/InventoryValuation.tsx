@@ -28,18 +28,18 @@ export default function InventoryValuation({
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="bg-amber-50 p-3 rounded-xl text-amber-600">
+        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl flex items-center gap-4">
+          <div className="bg-slate-800 p-3 rounded-xl text-amber-500">
             <Calculator className="w-6 h-6" />
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Stock Cost</p>
-            <p className="text-xl font-black text-slate-900">₦{totalCostValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-xl font-black text-slate-200">₦{totalCostValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="bg-blue-50 p-3 rounded-xl text-blue-600">
+        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl flex items-center gap-4">
+          <div className="bg-slate-800 p-3 rounded-xl text-blue-500">
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
@@ -48,7 +48,7 @@ export default function InventoryValuation({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl flex items-center gap-4">
           <div className="bg-emerald-50 p-3 rounded-xl text-emerald-600">
             <DollarSign className="w-6 h-6" />
           </div>
@@ -60,11 +60,11 @@ export default function InventoryValuation({
       </div>
 
       {/* Main Valuation Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-bold text-slate-700">Detailed Stock Valuation (Store Book)</h3>
+                <h3 className="text-sm font-bold text-slate-300">Detailed Stock Valuation (Store Book)</h3>
             </div>
             <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline flex items-center gap-1">
                 <Download className="w-3 h-3" />
@@ -72,8 +72,8 @@ export default function InventoryValuation({
             </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-slate-800">
+            <thead className="bg-slate-950">
               <tr>
                 <th className="py-3 px-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-12">S/N</th>
                 <th className="py-3 px-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Product</th>
@@ -85,27 +85,27 @@ export default function InventoryValuation({
                 <th className="py-3 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-20">History</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-slate-800 bg-slate-900">
               {products.map((product, idx) => {
                 const costVal = product.quantity * (product.cost_price || 0);
                 const sellVal = product.quantity * (product.selling_price || 0);
                 
                 return (
-                  <tr key={product.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="py-3 px-4 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
+                  <tr key={product.id} className="hover:bg-slate-800/30 transition-colors group">
+                    <td className="py-3 px-4 text-xs text-slate-600 font-mono italic">{idx + 1}</td>
                     <td className="py-3 px-4">
-                      <p className="text-xs font-bold text-slate-900">{product.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">Per {product.unit}</p>
+                      <p className="text-xs font-bold text-slate-200">{product.name}</p>
+                      <p className="text-[10px] text-slate-500 font-medium">Per {product.unit}</p>
                     </td>
-                    <td className="py-3 px-4 text-right text-xs font-mono text-slate-600">{Number(product.quantity || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs text-slate-600">₦{(product.cost_price || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs font-black text-amber-700 bg-amber-50/20">₦{costVal.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs text-slate-600">₦{(product.selling_price || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs font-black text-blue-700 bg-blue-50/20">₦{sellVal.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs font-mono text-slate-400">{Number(product.quantity || 0).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs text-slate-400">₦{(product.cost_price || 0).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs font-black text-amber-400 bg-amber-500/10">₦{costVal.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs text-slate-400">₦{(product.selling_price || 0).toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs font-black text-blue-400 bg-blue-500/10">₦{sellVal.toFixed(2)}</td>
                     <td className="py-3 px-4 text-center">
                       <button 
                         onClick={() => setSelectedProductId(product.id)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
                         title="View Pricing History"
                       >
                         <History className="w-4 h-4" />

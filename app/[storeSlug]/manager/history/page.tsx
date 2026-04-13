@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 import ManagerHistoryClient from "@/components/manager/ManagerHistoryClient";
 import { History } from "lucide-react";
+import { toLagosDateString } from "@/lib/date-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -72,12 +73,7 @@ export default async function ManagerHistoryPage({
   sessions.forEach(session => {
     // Use Nigeria/WAT timezone for grouping so that late-night/early-morning 
     // sessions fall into the correct "Local" calendar day (UTC+1).
-    const dateStr = new Intl.DateTimeFormat('en-CA', { 
-      timeZone: 'Africa/Lagos', 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit' 
-    }).format(new Date(session.ended_at || session.started_at));
+    const dateStr = toLagosDateString(session.ended_at || session.started_at);
     
     if (!dailyGroupsMap[dateStr]) {
       dailyGroupsMap[dateStr] = {
