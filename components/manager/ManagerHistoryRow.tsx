@@ -13,6 +13,7 @@ interface ItemDetail {
   qtySold: number;
   revenue: number;
   createdAt?: string;
+  isDeleted?: boolean;
 }
 
 interface SessionSummary {
@@ -69,7 +70,8 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
         productName: item.productName,
         qty: item.qtySold,
         revenue: item.revenue,
-        isApproved: session.approvalStatus === 'approved'
+        isApproved: session.approvalStatus === 'approved',
+        isDeleted: item.isDeleted || false
       }))
     ).sort((a, b) => a.timestamp - b.timestamp);
 
@@ -140,6 +142,7 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
                     <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5 truncate">
                       {idx === 0 && <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
                       {item.productName}
+                      {item.isDeleted && <span className="text-[8px] bg-rose-500/10 text-rose-500 px-1 rounded border border-rose-500/20 font-black uppercase tracking-tighter shrink-0">Deleted</span>}
                     </p>
                     <div className="flex justify-between items-center gap-4 mt-2">
                       <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.qtySold.toFixed(2)} qty</span>
@@ -176,11 +179,18 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
                       <tr key={idx} className="hover:bg-blue-100/30 transition-colors group">
                         <td className="py-3 px-4 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
                         <td className="py-3 px-4 text-xs text-slate-500 font-medium">{entry.time}</td>
-                        <td className="py-3 px-4 text-xs font-bold text-slate-900 text-left">{entry.productName}</td>
+                        <td className="py-3 px-4 text-xs font-bold text-slate-900 text-left">
+                          <div className="flex items-center gap-2">
+                             {entry.productName}
+                             {entry.isDeleted && (
+                               <span className="text-[8px] bg-rose-600/20 text-rose-500 border border-rose-500/30 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Deleted</span>
+                             )}
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-xs text-slate-600 text-right font-mono">{entry.qty.toFixed(2)}</td>
                         <td className="py-3 px-4 text-xs font-black text-emerald-600 text-right">₦{entry.revenue.toFixed(2)}</td>
                         <td className="py-3 px-4 text-right">
-                           {!entry.isApproved && (
+                           {!entry.isApproved && !entry.isDeleted && (
                              <EditSaleModal
                                itemId={entry.id}
                                productId={entry.productId}

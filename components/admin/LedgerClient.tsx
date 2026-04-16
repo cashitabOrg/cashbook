@@ -26,7 +26,7 @@ export default function LedgerClient({ transactions, products }: { transactions:
       // Smart Search String parsing
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const pName = tx.products?.name?.toLowerCase() || "";
+        const pName = (tx.products?.name || tx.product_name || "").toLowerCase();
         const uName = tx.users?.full_name?.toLowerCase() || "";
         const note = tx.note?.toLowerCase() || "";
         if (!pName.includes(query) && !uName.includes(query) && !note.includes(query)) return false;
@@ -188,16 +188,27 @@ export default function LedgerClient({ transactions, products }: { transactions:
                       
                       {/* Product & Note Context */}
                       <div className="col-span-3 flex flex-col justify-center">
-                        <span className="font-semibold text-slate-200">{tx.products?.name}</span>
+                        <span className="font-semibold text-slate-200">
+                          {tx.products?.name || tx.product_name || "Unknown Product"}
+                          {!tx.products?.name && tx.product_name && (
+                            <span className="ml-2 text-[9px] bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded border border-slate-700 font-bold uppercase">
+                              Deleted 
+                            </span>
+                          )}
+                        </span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider
                              ${tx.transaction_type === 'SALE' 
                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                               : tx.transaction_type === 'SALE_EDIT'
+                               ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                               : tx.transaction_type === 'SALE_VOID'
+                               ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                                : tx.transaction_type === 'RESTOCK'
                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}
                           `}>
-                            {tx.transaction_type}
+                            {tx.transaction_type.replace('_', ' ')}
                           </span>
                           <span className="text-xs text-slate-500 truncate" title={tx.note}>{tx.note || "System Log"}</span>
                         </div>

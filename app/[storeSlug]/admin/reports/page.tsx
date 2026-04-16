@@ -16,38 +16,75 @@ export default async function ReportsPage({
   const supabase = supabaseAdmin;
 
   // 1. Fetch Store details
-  const { data: store } = await supabase
-    .from("stores")
-    .select("name, plan, is_billing_exempt")
-    .eq("id", userRole.storeId)
-    .single();
+  // 1. Fetch Store details with Retry
+  let store: any = null;
+  let storeAttempts = 0;
+  while (storeAttempts < 2) {
+    const { data, error } = await supabase
+      .from("stores")
+      .select("name, plan, is_billing_exempt")
+      .eq("id", userRole.storeId)
+      .single();
+    if (!error) {
+      store = data;
+      break;
+    }
+    if (error.message?.includes('fetch failed')) {
+      storeAttempts++;
+      await new Promise(r => setTimeout(r, 200 * storeAttempts));
+    } else break;
+  }
 
-  // 2. Fetch Sales Data
-  // We need item details joined with product names and session details (manager, date)
-  // sale_items -> sales_sessions (manager_id -> users.full_name, started_at)
-  // sale_items -> products (name)
-  
-  const { data: salesRaw, error: salesError } = await supabase
-    .from("sale_items")
-    .select(`
-      id,
-      quantity,
-      subtotal,
-      unit_price,
-      unit_cost,
-      created_at,
-      products (name),
-      sales_sessions!inner (
+  // 2. Fetch Sales Data with Retry Logic for network stutters
+  let salesRaw: any[] | null = null;
+  let salesError: any = null;
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    const response = await supabase
+      .from("sale_items")
+      .select(`
         id,
-        started_at,
-        status,
-        approval_status,
-        users!manager_id (full_name)
-      )
-    `)
-    .eq("store_id", userRole.storeId)
-    .eq("sales_sessions.status", "closed")
-    .order("created_at", { ascending: true });
+        quantity,
+        subtotal,
+        unit_price,
+        unit_cost,
+        created_at,
+        is_deleted,
+        products (name),
+        sales_sessions!inner (
+          id,
+          started_at,
+          status,
+          approval_status,
+          users!manager_id (full_name)
+        )
+      `)
+      .eq("store_id", userRole.storeId)
+      .eq("sales_sessions.status", "closed")
+      .order("created_at", { ascending: true });
+
+    if (!response.error) {
+      salesRaw = response.data;
+      salesError = null;
+      break;
+    }
+
+    salesError = response.error;
+    const isNetworkError = salesError.message?.includes('fetch failed') || 
+                           salesError.message?.includes('ENOTFOUND') ||
+                           salesError.code === 'PGRST301';
+
+    if (isNetworkError) {
+      attempts++;
+      const delay = 300 * attempts;
+      console.warn(`[Reports] Network glitch (Attempt ${attempts}/${maxAttempts}). Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    } else {
+      break;
+    }
+  }
 
   if (salesError) {
     console.error('[Reports] Failed to load sales data:', salesError.message, salesError);
@@ -82,6 +119,7 @@ export default async function ReportsPage({
       profit: Number(sale.subtotal) - (Number(sale.quantity) * Number(sale.unit_cost || 0)),
       sessionId: session?.id,
       approvalStatus: session?.approval_status || 'pending',
+      isDeleted: sale.is_deleted || false,
     };
   });
 

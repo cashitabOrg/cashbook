@@ -367,7 +367,7 @@ export default function SalesPointUI({
                 const selectedProduct = products.find(p => p.id === row.productId);
                 
                 return (
-                  <tr key={row.localId} className={row.synced ? "bg-slate-50/50" : ""}>
+                  <tr key={row.localId} className={`transition-all duration-200 ${row.synced ? "bg-slate-50/50 opacity-80" : "hover:bg-slate-50 focus-within:bg-blue-50/60 focus-within:ring-inset focus-within:ring-1 focus-within:ring-blue-100"}`}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-500 sm:pl-6 text-center">
                       <div className="flex flex-col items-center gap-1">
                         <span>{index + 1}</span>
@@ -396,7 +396,7 @@ export default function SalesPointUI({
                       )}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-2 group/qty">
                         <input
                           type="number"
                           disabled={row.synced || !row.productId}
@@ -406,16 +406,16 @@ export default function SalesPointUI({
                           value={row.quantitySold}
                           onChange={(e) => updateRow(row.localId, "quantitySold", e.target.value)}
                           onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
-                          className="block w-24 rounded-md border-0 py-1.5 text-right text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:opacity-50 disabled:bg-slate-50"
-                          placeholder="Qty"
+                          className="block w-28 rounded-xl border-2 border-slate-200 py-3 pr-4 text-right text-slate-900 shadow-sm focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 sm:text-sm font-mono font-bold transition-all disabled:opacity-50 disabled:bg-slate-100 no-spinner"
+                          placeholder="0.00"
                         />
-                        <span className="text-slate-400 text-xs w-6 text-left">{selectedProduct?.unit || ''}</span>
+                        <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest w-8 text-left group-focus-within/qty:text-blue-600 transition-colors">{selectedProduct?.unit || ''}</span>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 text-right w-32">
-                      <div className="relative rounded-md shadow-sm flex items-center justify-end">
+                      <div className="relative rounded-xl shadow-sm flex items-center justify-end group/price">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                          <span className="text-slate-500 sm:text-sm">₦</span>
+                          <span className="text-slate-400 text-xs font-black group-focus-within/price:text-emerald-600 transition-colors">₦</span>
                         </div>
                         <input
                           type="number"
@@ -425,7 +425,7 @@ export default function SalesPointUI({
                           value={row.subtotal}
                           onChange={(e) => updateRow(row.localId, "subtotal", e.target.value)}
                           onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
-                          className="block w-full rounded-md border-0 py-1.5 pl-7 pr-3 text-right font-semibold text-emerald-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:opacity-50 disabled:bg-slate-50"
+                          className="block w-full rounded-xl border-2 border-slate-200 py-3 pl-8 pr-4 text-right font-mono font-bold text-emerald-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 sm:text-sm transition-all disabled:opacity-50 disabled:bg-slate-100 no-spinner"
                           placeholder="0.00"
                         />
                       </div>

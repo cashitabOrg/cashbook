@@ -1,0 +1,1194 @@
+[
+  {
+    "sn": 1,
+    "time": "14:54",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 2,
+    "time": "14:55",
+    "product": "Sausage",
+    "qty": 1,
+    "revenue": 3000,
+    "unit_price": 3000
+  },
+  {
+    "sn": 3,
+    "time": "14:58",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 4,
+    "time": "14:59",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 5,
+    "time": "15:01",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.4,
+    "revenue": 3100,
+    "unit_price": 7750
+  },
+  {
+    "sn": 6,
+    "time": "15:01",
+    "product": "Turkey Shoulder",
+    "qty": 1,
+    "revenue": 9500,
+    "unit_price": 9500
+  },
+  {
+    "sn": 7,
+    "time": "15:03",
+    "product": "Express",
+    "qty": 0.5,
+    "revenue": 2100,
+    "unit_price": 4200
+  },
+  {
+    "sn": 8,
+    "time": "15:04",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.15,
+    "revenue": 9000,
+    "unit_price": 7826.086956521739
+  },
+  {
+    "sn": 9,
+    "time": "15:06",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 10,
+    "time": "15:08",
+    "product": "Alaska",
+    "qty": 1.15,
+    "revenue": 4100,
+    "unit_price": 3565.217391304348
+  },
+  {
+    "sn": 11,
+    "time": "15:09",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 900,
+    "unit_price": 3600
+  },
+  {
+    "sn": 12,
+    "time": "15:10",
+    "product": "Shawa Fish",
+    "qty": 0.55,
+    "revenue": 2000,
+    "unit_price": 3636.3636363636365
+  },
+  {
+    "sn": 13,
+    "time": "15:14",
+    "product": "Farm chicken",
+    "qty": 0.75,
+    "revenue": 4000,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 14,
+    "time": "15:15",
+    "product": "Farm chicken",
+    "qty": 1.2,
+    "revenue": 6400,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 15,
+    "time": "15:16",
+    "product": "Shawa Fish",
+    "qty": 0.55,
+    "revenue": 2000,
+    "unit_price": 3636.3636363636365
+  },
+  {
+    "sn": 16,
+    "time": "15:16",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 17,
+    "time": "15:17",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 18,
+    "time": "15:17",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.35,
+    "revenue": 2700,
+    "unit_price": 7714.285714285715
+  },
+  {
+    "sn": 19,
+    "time": "15:17",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 20,
+    "time": "15:18",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 21,
+    "time": "15:21",
+    "product": "Hake fish",
+    "qty": 1.25,
+    "revenue": 6250,
+    "unit_price": 5000
+  },
+  {
+    "sn": 22,
+    "time": "15:21",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 23,
+    "time": "15:21",
+    "product": "Egg",
+    "qty": 30,
+    "revenue": 5700,
+    "unit_price": 190
+  },
+  {
+    "sn": 24,
+    "time": "15:22",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.45,
+    "revenue": 3500,
+    "unit_price": 7777.777777777777
+  },
+  {
+    "sn": 25,
+    "time": "15:22",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 900,
+    "unit_price": 3600
+  },
+  {
+    "sn": 26,
+    "time": "15:25",
+    "product": "Egg",
+    "qty": 2,
+    "revenue": 400,
+    "unit_price": 200
+  },
+  {
+    "sn": 27,
+    "time": "15:43",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.5,
+    "revenue": 3900,
+    "unit_price": 7800
+  },
+  {
+    "sn": 28,
+    "time": "15:44",
+    "product": "Shawa Fish",
+    "qty": 1.15,
+    "revenue": 4250,
+    "unit_price": 3695.6521739130435
+  },
+  {
+    "sn": 29,
+    "time": "15:44",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 30,
+    "time": "15:44",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 31,
+    "time": "15:46",
+    "product": "Alaska",
+    "qty": 0.85,
+    "revenue": 3100,
+    "unit_price": 3647.0588235294117
+  },
+  {
+    "sn": 32,
+    "time": "15:46",
+    "product": "Egg",
+    "qty": 15,
+    "revenue": 2850,
+    "unit_price": 190
+  },
+  {
+    "sn": 33,
+    "time": "15:48",
+    "product": "Mullet Fish",
+    "qty": 1.1,
+    "revenue": 4300,
+    "unit_price": 3909.090909090909
+  },
+  {
+    "sn": 34,
+    "time": "15:48",
+    "product": "Kote Fish",
+    "qty": 0.55,
+    "revenue": 2900,
+    "unit_price": 5272.727272727273
+  },
+  {
+    "sn": 35,
+    "time": "15:49",
+    "product": "Kote Fish",
+    "qty": 0.45,
+    "revenue": 2400,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 36,
+    "time": "15:49",
+    "product": "Kote Fish",
+    "qty": 0.45,
+    "revenue": 2400,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 37,
+    "time": "15:50",
+    "product": "Panla Wewe",
+    "qty": 0.35,
+    "revenue": 1000,
+    "unit_price": 2857.1428571428573
+  },
+  {
+    "sn": 38,
+    "time": "15:51",
+    "product": "Ponmo",
+    "qty": 2,
+    "revenue": 600,
+    "unit_price": 300
+  },
+  {
+    "sn": 39,
+    "time": "15:51",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 40,
+    "time": "15:51",
+    "product": "Egg",
+    "qty": 30,
+    "revenue": 5700,
+    "unit_price": 190
+  },
+  {
+    "sn": 41,
+    "time": "15:52",
+    "product": "Shawa Fish",
+    "qty": 1.1,
+    "revenue": 4100,
+    "unit_price": 3727.2727272727275
+  },
+  {
+    "sn": 42,
+    "time": "15:52",
+    "product": "Mullet Fish",
+    "qty": 1.25,
+    "revenue": 4900,
+    "unit_price": 3920
+  },
+  {
+    "sn": 43,
+    "time": "15:54",
+    "product": "Mullet Fish",
+    "qty": 1.15,
+    "revenue": 4500,
+    "unit_price": 3913.0434782608695
+  },
+  {
+    "sn": 44,
+    "time": "15:55",
+    "product": "Egg",
+    "qty": 15,
+    "revenue": 2900,
+    "unit_price": 193.33333333333334
+  },
+  {
+    "sn": 45,
+    "time": "15:57",
+    "product": "Panla Wewe",
+    "qty": 0.35,
+    "revenue": 1000,
+    "unit_price": 2857.1428571428573
+  },
+  {
+    "sn": 46,
+    "time": "15:57",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1,
+    "revenue": 7800,
+    "unit_price": 7800
+  },
+  {
+    "sn": 47,
+    "time": "15:57",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 48,
+    "time": "15:58",
+    "product": "Shawa Fish",
+    "qty": 0.55,
+    "revenue": 2000,
+    "unit_price": 3636.3636363636365
+  },
+  {
+    "sn": 49,
+    "time": "15:58",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.8,
+    "revenue": 6200,
+    "unit_price": 7750
+  },
+  {
+    "sn": 50,
+    "time": "15:59",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 51,
+    "time": "15:59",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.45,
+    "revenue": 3500,
+    "unit_price": 7777.777777777777
+  },
+  {
+    "sn": 52,
+    "time": "15:59",
+    "product": "Gizzard",
+    "qty": 1,
+    "revenue": 6500,
+    "unit_price": 6500
+  },
+  {
+    "sn": 53,
+    "time": "16:00",
+    "product": "Egg",
+    "qty": 30,
+    "revenue": 5700,
+    "unit_price": 190
+  },
+  {
+    "sn": 54,
+    "time": "16:01",
+    "product": "Turkey wings",
+    "qty": 0.5,
+    "revenue": 4250,
+    "unit_price": 8500
+  },
+  {
+    "sn": 55,
+    "time": "16:01",
+    "product": "Chicken Head/Leg",
+    "qty": 1,
+    "revenue": 2200,
+    "unit_price": 2200
+  },
+  {
+    "sn": 56,
+    "time": "16:02",
+    "product": "Farm chicken",
+    "qty": 0.6,
+    "revenue": 3200,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 57,
+    "time": "16:02",
+    "product": "Chicken Head/Leg",
+    "qty": 1,
+    "revenue": 2200,
+    "unit_price": 2200
+  },
+  {
+    "sn": 58,
+    "time": "16:15",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.3,
+    "revenue": 2300,
+    "unit_price": 7666.666666666667
+  },
+  {
+    "sn": 59,
+    "time": "16:19",
+    "product": "Shawa Fish",
+    "qty": 1.05,
+    "revenue": 3900,
+    "unit_price": 3714.285714285714
+  },
+  {
+    "sn": 60,
+    "time": "16:24",
+    "product": "Turkey wings",
+    "qty": 1,
+    "revenue": 11500,
+    "unit_price": 11500
+  },
+  {
+    "sn": 61,
+    "time": "16:24",
+    "product": "Shawa Fish",
+    "qty": 0.55,
+    "revenue": 2000,
+    "unit_price": 3636.3636363636365
+  },
+  {
+    "sn": 62,
+    "time": "16:27",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 63,
+    "time": "16:29",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 64,
+    "time": "17:29",
+    "product": "Turkey wings",
+    "qty": 1,
+    "revenue": 11500,
+    "unit_price": 11500
+  },
+  {
+    "sn": 65,
+    "time": "17:31",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 66,
+    "time": "17:33",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 67,
+    "time": "17:33",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 68,
+    "time": "17:35",
+    "product": "Shawa Fish",
+    "qty": 1,
+    "revenue": 3700,
+    "unit_price": 3700
+  },
+  {
+    "sn": 69,
+    "time": "17:35",
+    "product": "Panla Wewe",
+    "qty": 0.35,
+    "revenue": 1000,
+    "unit_price": 2857.1428571428573
+  },
+  {
+    "sn": 70,
+    "time": "17:36",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 71,
+    "time": "17:37",
+    "product": "Orobo Chicken",
+    "qty": 0.55,
+    "revenue": 3600,
+    "unit_price": 6545.454545454545
+  },
+  {
+    "sn": 72,
+    "time": "17:38",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 73,
+    "time": "17:38",
+    "product": "Shawa Fish",
+    "qty": 0.6,
+    "revenue": 2200,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 74,
+    "time": "17:39",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.6,
+    "revenue": 4700,
+    "unit_price": 7833.333333333333
+  },
+  {
+    "sn": 75,
+    "time": "17:39",
+    "product": "Hake fish",
+    "qty": 0.8,
+    "revenue": 4000,
+    "unit_price": 5000
+  },
+  {
+    "sn": 76,
+    "time": "17:40",
+    "product": "Panla Wewe",
+    "qty": 0.2,
+    "revenue": 700,
+    "unit_price": 3500
+  },
+  {
+    "sn": 77,
+    "time": "17:40",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 78,
+    "time": "17:41",
+    "product": "Hake fish",
+    "qty": 0.5,
+    "revenue": 2500,
+    "unit_price": 5000
+  },
+  {
+    "sn": 79,
+    "time": "17:41",
+    "product": "Chicken Head/Leg",
+    "qty": 1,
+    "revenue": 2200,
+    "unit_price": 2200
+  },
+  {
+    "sn": 80,
+    "time": "17:41",
+    "product": "Kote Fish",
+    "qty": 0.6,
+    "revenue": 3200,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 81,
+    "time": "17:42",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 82,
+    "time": "17:43",
+    "product": "Hake fish",
+    "qty": 1.15,
+    "revenue": 5800,
+    "unit_price": 5043.478260869565
+  },
+  {
+    "sn": 83,
+    "time": "17:43",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 84,
+    "time": "17:43",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1,
+    "revenue": 7800,
+    "unit_price": 7800
+  },
+  {
+    "sn": 85,
+    "time": "17:47",
+    "product": "Panla Wewe",
+    "qty": 0.75,
+    "revenue": 2100,
+    "unit_price": 2800
+  },
+  {
+    "sn": 86,
+    "time": "17:54",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.75,
+    "revenue": 6200,
+    "unit_price": 8266.666666666666
+  },
+  {
+    "sn": 87,
+    "time": "17:55",
+    "product": "Hake fish",
+    "qty": 1.2,
+    "revenue": 6000,
+    "unit_price": 5000
+  },
+  {
+    "sn": 88,
+    "time": "17:59",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 900,
+    "unit_price": 3600
+  },
+  {
+    "sn": 89,
+    "time": "18:00",
+    "product": "Turkey Shoulder",
+    "qty": 2,
+    "revenue": 19000,
+    "unit_price": 9500
+  },
+  {
+    "sn": 90,
+    "time": "18:01",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 91,
+    "time": "18:02",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 92,
+    "time": "18:02",
+    "product": "Hake fish",
+    "qty": 2.05,
+    "revenue": 10300,
+    "unit_price": 5024.390243902439
+  },
+  {
+    "sn": 93,
+    "time": "18:07",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 94,
+    "time": "19:18",
+    "product": "Panla Wewe",
+    "qty": 0.35,
+    "revenue": 1000,
+    "unit_price": 2857.1428571428573
+  },
+  {
+    "sn": 95,
+    "time": "19:19",
+    "product": "Egg",
+    "qty": 15,
+    "revenue": 2900,
+    "unit_price": 193.33333333333334
+  },
+  {
+    "sn": 96,
+    "time": "19:21",
+    "product": "Egg",
+    "qty": 5,
+    "revenue": 1000,
+    "unit_price": 200
+  },
+  {
+    "sn": 97,
+    "time": "19:21",
+    "product": "Farm chicken",
+    "qty": 3,
+    "revenue": 15900,
+    "unit_price": 5300
+  },
+  {
+    "sn": 98,
+    "time": "19:22",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 99,
+    "time": "19:23",
+    "product": "Shawa Fish",
+    "qty": 0.8,
+    "revenue": 3000,
+    "unit_price": 3750
+  },
+  {
+    "sn": 100,
+    "time": "19:23",
+    "product": "Express",
+    "qty": 1,
+    "revenue": 4200,
+    "unit_price": 4200
+  },
+  {
+    "sn": 101,
+    "time": "19:23",
+    "product": "Egg",
+    "qty": 1,
+    "revenue": 200,
+    "unit_price": 200
+  },
+  {
+    "sn": 102,
+    "time": "19:24",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 103,
+    "time": "19:26",
+    "product": "Hake fish",
+    "qty": 1.25,
+    "revenue": 6800,
+    "unit_price": 5440
+  },
+  {
+    "sn": 104,
+    "time": "22:21",
+    "product": "Farm chicken",
+    "qty": 1.1,
+    "revenue": 5800,
+    "unit_price": 5272.727272727273
+  },
+  {
+    "sn": 105,
+    "time": "22:21",
+    "product": "Shawa Fish",
+    "qty": 0.35,
+    "revenue": 1300,
+    "unit_price": 3714.285714285714
+  },
+  {
+    "sn": 106,
+    "time": "22:22",
+    "product": "Egg",
+    "qty": 10,
+    "revenue": 2000,
+    "unit_price": 200
+  },
+  {
+    "sn": 107,
+    "time": "22:22",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.9,
+    "revenue": 7000,
+    "unit_price": 7777.777777777777
+  },
+  {
+    "sn": 108,
+    "time": "22:22",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.5,
+    "revenue": 3900,
+    "unit_price": 7800
+  },
+  {
+    "sn": 109,
+    "time": "22:23",
+    "product": "Turkey wings",
+    "qty": 1.05,
+    "revenue": 12100,
+    "unit_price": 11523.809523809523
+  },
+  {
+    "sn": 110,
+    "time": "22:23",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 111,
+    "time": "22:24",
+    "product": "Turkey Shoulder",
+    "qty": 0.55,
+    "revenue": 6300,
+    "unit_price": 11454.545454545454
+  },
+  {
+    "sn": 112,
+    "time": "22:24",
+    "product": "Farm chicken",
+    "qty": 1.5,
+    "revenue": 8000,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 113,
+    "time": "22:24",
+    "product": "Croaker",
+    "qty": 0.55,
+    "revenue": 3300,
+    "unit_price": 6000
+  },
+  {
+    "sn": 114,
+    "time": "22:25",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 1000,
+    "unit_price": 4000
+  },
+  {
+    "sn": 115,
+    "time": "22:25",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.2,
+    "revenue": 9400,
+    "unit_price": 7833.333333333333
+  },
+  {
+    "sn": 116,
+    "time": "22:25",
+    "product": "Turkey Shoulder",
+    "qty": 0.5,
+    "revenue": 4800,
+    "unit_price": 9600
+  },
+  {
+    "sn": 117,
+    "time": "22:26",
+    "product": "Farm chicken",
+    "qty": 0.55,
+    "revenue": 2900,
+    "unit_price": 5272.727272727273
+  },
+  {
+    "sn": 118,
+    "time": "22:26",
+    "product": "Orobo Chicken",
+    "qty": 1,
+    "revenue": 6600,
+    "unit_price": 6600
+  },
+  {
+    "sn": 119,
+    "time": "22:26",
+    "product": "Farm chicken",
+    "qty": 1.1,
+    "revenue": 5800,
+    "unit_price": 5272.727272727273
+  },
+  {
+    "sn": 120,
+    "time": "22:26",
+    "product": "Panla Wewe",
+    "qty": 0.35,
+    "revenue": 1000,
+    "unit_price": 2857.1428571428573
+  },
+  {
+    "sn": 121,
+    "time": "22:27",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 1000,
+    "unit_price": 4000
+  },
+  {
+    "sn": 122,
+    "time": "22:27",
+    "product": "Egg",
+    "qty": 30,
+    "revenue": 57,
+    "unit_price": 1.9
+  },
+  {
+    "sn": 123,
+    "time": "22:28",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.1,
+    "revenue": 8600,
+    "unit_price": 7818.181818181818
+  },
+  {
+    "sn": 124,
+    "time": "22:30",
+    "product": "Shawa Fish",
+    "qty": 0.5,
+    "revenue": 1900,
+    "unit_price": 3800
+  },
+  {
+    "sn": 125,
+    "time": "22:31",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.7,
+    "revenue": 5500,
+    "unit_price": 7857.142857142857
+  },
+  {
+    "sn": 126,
+    "time": "22:32",
+    "product": "Hake fish",
+    "qty": 0.65,
+    "revenue": 3300,
+    "unit_price": 5076.923076923077
+  },
+  {
+    "sn": 127,
+    "time": "22:33",
+    "product": "Farm chicken",
+    "qty": 1,
+    "revenue": 5300,
+    "unit_price": 5300
+  },
+  {
+    "sn": 128,
+    "time": "22:33",
+    "product": "Shawa Fish",
+    "qty": 0.25,
+    "revenue": 900,
+    "unit_price": 3600
+  },
+  {
+    "sn": 129,
+    "time": "22:34",
+    "product": "Chicken Head/Leg",
+    "qty": 6.9,
+    "revenue": 15200,
+    "unit_price": 2202.8985507246375
+  },
+  {
+    "sn": 130,
+    "time": "22:34",
+    "product": "Express",
+    "qty": 1.1,
+    "revenue": 4600,
+    "unit_price": 4181.818181818182
+  },
+  {
+    "sn": 131,
+    "time": "22:35",
+    "product": "Turkey wings",
+    "qty": 0.5,
+    "revenue": 4800,
+    "unit_price": 9600
+  },
+  {
+    "sn": 132,
+    "time": "22:35",
+    "product": "Farm chicken",
+    "qty": 2.55,
+    "revenue": 13500,
+    "unit_price": 5294.117647058823
+  },
+  {
+    "sn": 133,
+    "time": "22:35",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.65,
+    "revenue": 5100,
+    "unit_price": 7846.153846153846
+  },
+  {
+    "sn": 134,
+    "time": "22:35",
+    "product": "Hake fish",
+    "qty": 1.35,
+    "revenue": 6800,
+    "unit_price": 5037.037037037037
+  },
+  {
+    "sn": 135,
+    "time": "22:36",
+    "product": "Kote Fish",
+    "qty": 0.65,
+    "revenue": 3400,
+    "unit_price": 5230.7692307692305
+  },
+  {
+    "sn": 136,
+    "time": "22:37",
+    "product": "Shawa Fish",
+    "qty": 0.85,
+    "revenue": 3100,
+    "unit_price": 3647.0588235294117
+  },
+  {
+    "sn": 137,
+    "time": "22:37",
+    "product": "Kote Fish",
+    "qty": 0.6,
+    "revenue": 3200,
+    "unit_price": 5333.333333333333
+  },
+  {
+    "sn": 138,
+    "time": "22:37",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.6,
+    "revenue": 4500,
+    "unit_price": 2812.5
+  },
+  {
+    "sn": 139,
+    "time": "22:38",
+    "product": "Panla Wewe",
+    "qty": 0.5,
+    "revenue": 1400,
+    "unit_price": 2800
+  },
+  {
+    "sn": 140,
+    "time": "22:38",
+    "product": "Kote Fish",
+    "qty": 0.55,
+    "revenue": 2900,
+    "unit_price": 5272.727272727273
+  },
+  {
+    "sn": 141,
+    "time": "22:38",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.95,
+    "revenue": 15200,
+    "unit_price": 7794.871794871795
+  },
+  {
+    "sn": 142,
+    "time": "22:39",
+    "product": "Shawa Fish",
+    "qty": 0.35,
+    "revenue": 1300,
+    "unit_price": 3714.285714285714
+  },
+  {
+    "sn": 143,
+    "time": "22:39",
+    "product": "Croaker",
+    "qty": 1.75,
+    "revenue": 9600,
+    "unit_price": 5485.714285714285
+  },
+  {
+    "sn": 144,
+    "time": "22:39",
+    "product": "Farm chicken",
+    "qty": 0.5,
+    "revenue": 2700,
+    "unit_price": 5400
+  },
+  {
+    "sn": 145,
+    "time": "22:39",
+    "product": "Farm chicken",
+    "qty": 1.55,
+    "revenue": 8200,
+    "unit_price": 5290.322580645161
+  },
+  {
+    "sn": 146,
+    "time": "22:40",
+    "product": "Alaran (Titus Fish)",
+    "qty": 1.95,
+    "revenue": 15200,
+    "unit_price": 7794.871794871795
+  },
+  {
+    "sn": 147,
+    "time": "22:40",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 148,
+    "time": "22:52",
+    "product": "Shawa Fish",
+    "qty": 0.3,
+    "revenue": 1100,
+    "unit_price": 3666.6666666666665
+  },
+  {
+    "sn": 149,
+    "time": "22:55",
+    "product": "Alaran (Titus Fish)",
+    "qty": 0.7,
+    "revenue": 2500,
+    "unit_price": 3571.4285714285716
+  }
+]

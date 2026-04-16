@@ -16,20 +16,49 @@ export default async function ManagerHistoryPage({
   // Use supabaseAdmin to bypass RLS — safe in a server component
   const supabase = supabaseAdmin;
 
+  // Resilient Fetch Helper — handles transient "TypeError: fetch failed" network glitches
+  async function fetchWithRetry<T>(queryFn: () => PromiseLike<{ data: T | null; error: any }> | any, label: string) {
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
+      const { data, error } = await queryFn();
+      if (!error) return { data, error: null };
+      const isNetworkError =
+        error.message?.includes('fetch failed') ||
+        error.message?.includes('ENOTFOUND') ||
+        error.code === 'PGRST301';
+      if (isNetworkError) {
+        attempts++;
+        const delay = 300 * attempts;
+        console.warn(`[ManagerHistory] ${label} glitch (${attempts}/${maxAttempts}). Retrying in ${delay}ms...`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        return { data: null, error };
+      }
+    }
+    return { data: null, error: { message: `Failed after ${maxAttempts} retries.` } };
+  }
+
   // 1. Fetch closed sessions for this specific manager
-  const { data: sessions, error: sessionsError } = await supabase
-    .from("sales_sessions")
-    .select("id, started_at, ended_at, total_revenue, status, approval_status")
-    .eq("store_id", userRole.storeId)
-    .eq("manager_id", userRole.id)
-    .eq("status", "closed")
-    .order("started_at", { ascending: false });
+  const { data: sessions, error: sessionsError } = await fetchWithRetry(
+    () =>
+      supabase
+        .from("sales_sessions")
+        .select("id, started_at, ended_at, total_revenue, status, approval_status")
+        .eq("store_id", userRole.storeId)
+        .eq("manager_id", userRole.id)
+        .eq("status", "closed")
+        .order("started_at", { ascending: false }),
+    "fetchSessions"
+  );
 
   if (sessionsError) {
     return (
-      <div className="p-8">
-        <div className="bg-red-50 text-red-700 p-4 rounded-md">
-          Failed to load history: {sessionsError.message}
+      <div className="flex items-center justify-center p-12">
+        <div className="bg-rose-50 border border-rose-100 text-rose-700 p-6 rounded-2xl shadow-sm text-center">
+          <p className="font-bold text-sm mb-1">Could not load history</p>
+          <p className="text-xs opacity-60">{sessionsError.message}</p>
+          <p className="text-xs mt-3 text-slate-500">Try refreshing the page.</p>
         </div>
       </div>
     );
@@ -49,20 +78,28 @@ export default async function ManagerHistoryPage({
     );
   }
 
-  const sessionIds = sessions.map(s => s.id);
+  const sessionIds = sessions.map((s: any) => s.id);
 
   // 2. Fetch sale_items for those sessions
-  const { data: saleItems, error: itemsError } = await supabase
-    .from("sale_items")
-    .select("id, session_id, product_id, quantity, subtotal, created_at, products(name)")
-    .in("session_id", sessionIds);
+  const { data: saleItems } = await fetchWithRetry(
+    () =>
+      supabase
+        .from("sale_items")
+        .select("id, session_id, product_id, quantity, subtotal, created_at, is_deleted, products(name)")
+        .in("session_id", sessionIds),
+    "fetchSaleItems"
+  );
 
   // 2.5 Fetch products for swapping in Edit Modal
-  const { data: storeProducts } = await supabase
-    .from("products")
-    .select("id, name")
-    .eq("store_id", userRole.storeId)
-    .order("name", { ascending: true });
+  const { data: storeProducts } = await fetchWithRetry(
+    () =>
+      supabase
+        .from("products")
+        .select("id, name")
+        .eq("store_id", userRole.storeId)
+        .order("name", { ascending: true }),
+    "fetchProducts"
+  );
   
   const availableProducts = storeProducts || [];
 
@@ -70,9 +107,7 @@ export default async function ManagerHistoryPage({
   // Group by date string YYYY-MM-DD
   const dailyGroupsMap: Record<string, any> = {};
 
-  sessions.forEach(session => {
-    // Use Nigeria/WAT timezone for grouping so that late-night/early-morning 
-    // sessions fall into the correct "Local" calendar day (UTC+1).
+  sessions.forEach((session: any) => {
     const dateStr = toLagosDateString(session.ended_at || session.started_at);
     
     if (!dailyGroupsMap[dateStr]) {
@@ -91,35 +126,38 @@ export default async function ManagerHistoryPage({
     }
     
     // Find items for this session
-    const sessionItemsData = (saleItems || []).filter(item => item.session_id === session.id);
-    const sessionItems = sessionItemsData.map(item => ({
+    const sessionItemsData = (saleItems || []).filter((item: any) => item.session_id === session.id);
+    const sessionItems = sessionItemsData.map((item: any) => ({
       id: item.id,
       productId: item.product_id,
       // @ts-ignore
       productName: item.products?.name || "Unknown",
       qtySold: Number(item.quantity),
       revenue: Number(item.subtotal),
-      createdAt: item.created_at
+      createdAt: item.created_at,
+      isDeleted: item.is_deleted || false
     }));
     
-    const itemsCount = sessionItems.reduce((acc, curr) => acc + curr.qtySold, 0);
+    // Only count non-deleted items for totals
+    const activeItemsCount = sessionItems.reduce((acc: number, curr: any) => acc + (curr.isDeleted ? 0 : curr.qtySold), 0);
+    const activeSessionRevenue = sessionItems.reduce((acc: number, curr: any) => acc + (curr.isDeleted ? 0 : curr.revenue), 0);
     
     dailyGroupsMap[dateStr].sessions.push({
       id: session.id,
       startedAt: session.started_at,
       endedAt: session.ended_at,
-      totalRevenue: Number(session.total_revenue),
-      itemsCount,
+      totalRevenue: activeSessionRevenue,
+      itemsCount: activeItemsCount,
       approvalStatus: session.approval_status || 'pending',
       items: sessionItems
     });
     
     // Update daily totals
-    dailyGroupsMap[dateStr].dailyTotalRevenue += Number(session.total_revenue);
-    dailyGroupsMap[dateStr].dailyTotalItems += itemsCount;
+    dailyGroupsMap[dateStr].dailyTotalRevenue += activeSessionRevenue;
+    dailyGroupsMap[dateStr].dailyTotalItems += activeItemsCount;
     
-    // Update daily product breakdown
-    sessionItems.forEach(item => {
+    // Update daily product breakdown (excluding deleted)
+    sessionItems.filter((i: any) => !i.isDeleted).forEach((item: any) => {
       const pid = item.productId;
       if (!dailyGroupsMap[dateStr].productBreakdown[pid]) {
         dailyGroupsMap[dateStr].productBreakdown[pid] = {

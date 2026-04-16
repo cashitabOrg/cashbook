@@ -35,4 +35,14 @@ body {
     animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
     animation-iteration-count: 2;
   }
+  
+  /* Remove number input spinners */
+  .no-spinner::-webkit-inner-spin-button,
+  .no-spinner::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
 }

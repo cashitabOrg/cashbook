@@ -140,7 +140,7 @@ export default function AddStockModal({
                         step="0.01"
                         value={qty || ""}
                         onChange={(e) => setQty(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold"
+                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>
@@ -153,12 +153,11 @@ export default function AddStockModal({
                         type="number"
                         name="unitCost"
                         id="unitCost"
-                        required
                         min="0"
                         step="0.01"
                         value={cost || ""}
                         onChange={(e) => setCost(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold"
+                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>
@@ -171,12 +170,11 @@ export default function AddStockModal({
                         type="number"
                         name="unitSelling"
                         id="unitSelling"
-                        required
                         min="0"
                         step="0.01"
                         value={selling || ""}
                         onChange={(e) => setSelling(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold"
+                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>

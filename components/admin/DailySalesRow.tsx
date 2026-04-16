@@ -16,6 +16,7 @@ interface SaleRecord {
   cost: number;
   profit: number;
   approvalStatus?: string;
+  isDeleted?: boolean;
 }
 
 interface DailySalesRowProps {
@@ -62,9 +63,11 @@ const DailySalesRow = memo(function DailySalesRow({
           unitCost: item.cost
         };
       }
-      productSummary[item.productName].qty += item.qty;
-      productSummary[item.productName].recordedRevenue += item.revenue;
-      productSummary[item.productName].expectedRevenue += item.qty * item.price;
+      if (!item.isDeleted) {
+        productSummary[item.productName].qty += item.qty;
+        productSummary[item.productName].recordedRevenue += item.revenue;
+        productSummary[item.productName].expectedRevenue += item.qty * item.price;
+      }
     });
 
     const sortedIntel = Object.entries(productSummary)
@@ -229,11 +232,18 @@ const DailySalesRow = memo(function DailySalesRow({
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {data.items.map((sale, idx) => (
-                          <tr key={sale.id} className="hover:bg-slate-700/50 text-[11px] transition-colors">
+                          <tr key={sale.id} className={`hover:bg-slate-700/50 text-[11px] transition-colors ${sale.isDeleted ? 'opacity-50 grayscale' : ''}`}>
                             <td className="py-2 px-4 text-slate-500 font-mono italic">{idx + 1}</td>
                             <td className="py-2 px-4 text-slate-400 font-medium">{format(parseISO(sale.timestamp), "HH:mm")}</td>
                             <td className="py-2 px-4 font-bold text-slate-300">{sale.managerName}</td>
-                            <td className="py-2 px-4 font-medium text-slate-200">{sale.productName}</td>
+                            <td className="py-2 px-4 font-medium text-slate-200">
+                              <div className="flex items-center gap-2">
+                                {sale.productName}
+                                {sale.isDeleted && (
+                                  <span className="text-[8px] bg-rose-600/20 text-rose-500 border border-rose-500/30 px-1 rounded font-black uppercase tracking-tighter">Deleted</span>
+                                )}
+                              </div>
+                            </td>
                             <td className="py-2 px-4 text-slate-400 text-right font-mono">{sale.qty.toFixed(2)}</td>
                             <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">₦{sale.revenue.toFixed(2)}</td>
                           </tr>

@@ -24,6 +24,7 @@ type SaleRecord = {
   profit: number;
   sessionId?: string;
   approvalStatus?: string;
+  isDeleted?: boolean;
 };
 
 type StockInRecord = {
@@ -151,10 +152,15 @@ export default function ReportsClient({
       const dayKey = toLagosDateString(s.timestamp);
       if (!groups[dayKey]) groups[dayKey] = { items: [], revenue: 0, expectedRevenue: 0, qty: 0, isFullyApproved: true };
       groups[dayKey].items.push(s);
-      groups[dayKey].revenue += s.revenue;
-      groups[dayKey].expectedRevenue += s.qty * s.price;
-      groups[dayKey].qty += s.qty;
-      if (s.approvalStatus !== 'approved') {
+      
+      // Only contribute to totals if NOT deleted
+      if (!s.isDeleted) {
+        groups[dayKey].revenue += s.revenue;
+        groups[dayKey].expectedRevenue += s.qty * s.price;
+        groups[dayKey].qty += s.qty;
+      }
+
+      if (s.approvalStatus !== 'approved' && !s.isDeleted) {
         groups[dayKey].isFullyApproved = false;
       }
     });

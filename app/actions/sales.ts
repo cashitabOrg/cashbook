@@ -18,12 +18,16 @@ export async function deleteSaleItem(itemId: string) {
     // Also fetch the session's approval status
     const { data: item, error: fetchError } = await supabaseAdmin
       .from('sale_items')
-      .select('id, store_id, product_id, quantity, subtotal, session_id')
+      .select('id, store_id, product_id, quantity, subtotal, session_id, is_deleted')
       .eq('id', itemId)
       .single();
 
     if (fetchError || !item) {
       return { error: 'Sale record not found.' };
+    }
+
+    if (item.is_deleted) {
+      return { error: 'This sale item has already been deleted.' };
     }
 
     // Fetch the session separately since the schema is not strongly relationship typed in the query
@@ -42,8 +46,33 @@ export async function deleteSaleItem(itemId: string) {
       return { error: 'Unauthorized permission to delete this record.' };
     }
 
-    // 2. The stock refund is now handled automatically by the Database Trigger 'trg_sync_stock_on_sale_change' 
-    // whenever a sale_item is deleted.
+    // 2. Stock refund is handled atomically by the DB trigger 'trg_master_sale_sync'.
+    // APPLICATION-LEVEL SAFETY NET: Also refund stock directly in case trigger is not active.
+    const { data: prodForDelete } = await supabaseAdmin
+      .from('products')
+      .select('quantity')
+      .eq('id', item.product_id)
+      .single();
+
+    if (prodForDelete) {
+      await supabaseAdmin
+        .from('products')
+        .update({ quantity: Number(prodForDelete.quantity) + Number(item.quantity) })
+        .eq('id', item.product_id);
+
+      // Also log the void movement manually as a fallback
+      await supabaseAdmin.from('inventory_movements').insert({
+        store_id: item.store_id,
+        product_id: item.product_id,
+        transaction_type: 'SALE_VOID',
+        quantity_before: Number(prodForDelete.quantity),
+        quantity_change: Number(item.quantity),
+        quantity_after: Number(prodForDelete.quantity) + Number(item.quantity),
+        reference_id: item.id,
+        note: `[APP] DELETED - Restored ${item.quantity} back to stock`,
+        actor_id: userRole.id
+      });
+    }
 
     // 3. Fetch the session to deduct its revenue
     if (item.session_id) {
@@ -61,14 +90,14 @@ export async function deleteSaleItem(itemId: string) {
        }
     }
 
-    // 4. Delete the item itself
+    // 4. Soft-delete the item itself
     const { error: deleteError } = await supabaseAdmin
       .from('sale_items')
-      .delete()
+      .update({ is_deleted: true })
       .eq('id', itemId);
 
     if (deleteError) {
-      return { error: 'Failed to delete sale item from database.' };
+      return { error: 'Failed to mark sale item as deleted in database.' };
     }
 
     // 5. Invalidate the entire routing cache so all dashboards reflect the stock return and revenue drop
@@ -95,12 +124,16 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     // 1. Fetch original
     const { data: item, error: fetchError } = await supabaseAdmin
       .from('sale_items')
-      .select('id, store_id, product_id, quantity, subtotal, session_id')
+      .select('id, store_id, product_id, quantity, subtotal, session_id, is_deleted')
       .eq('id', itemId)
       .single();
 
     if (fetchError || !item) {
       return { error: 'Sale record not found.' };
+    }
+
+    if (item.is_deleted) {
+      return { error: 'Cannot edit a deleted sale item.' };
     }
 
     // Fetch the session properties directly to check approval
@@ -122,8 +155,42 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     const qtyDiff = newQty - Number(item.quantity);
     const revDiff = newSubtotal - Number(item.subtotal);
 
-    // 2. The stock adjustment is now handled automatically by the Database Trigger 'trg_sync_stock_on_sale_change'
-    // whenever a sale_item is updated.
+    // 2. Resolve new product ID (needed before stock sync)
+    const effectiveProductId = (newProductId && newProductId !== item.product_id) ? newProductId : item.product_id;
+
+    // qtyDiff for stock: if new qty INCREASED, we sold more → stock goes DOWN (negative)
+    // if new qty DECREASED, we sold less → stock goes UP (positive)
+    const stockDiff = Number(item.quantity) - newQty; // inverse of qtyDiff: positive = refund, negative = more consumed
+
+    // APPLICATION-LEVEL SAFETY NET: Sync stock directly (reliable regardless of DB trigger state)
+    if (stockDiff !== 0) {
+      const { data: prodForEdit } = await supabaseAdmin
+        .from('products')
+        .select('quantity')
+        .eq('id', effectiveProductId)
+        .single();
+
+      if (prodForEdit) {
+        const qtyBefore = Number(prodForEdit.quantity);
+        await supabaseAdmin
+          .from('products')
+          .update({ quantity: qtyBefore + stockDiff })
+          .eq('id', effectiveProductId);
+
+        // Log the edit movement
+        await supabaseAdmin.from('inventory_movements').insert({
+          store_id: item.store_id,
+          product_id: effectiveProductId,
+          transaction_type: 'SALE_EDIT',
+          quantity_before: qtyBefore,
+          quantity_change: stockDiff,
+          quantity_after: qtyBefore + stockDiff,
+          reference_id: item.id,
+          note: `[APP] EDITED - Qty changed from ${item.quantity} to ${newQty}`,
+          actor_id: userRole.id
+        });
+      }
+    }
 
     // 3. Compute session revenue adjustment
     if (revDiff !== 0 && item.session_id) {
@@ -145,6 +212,16 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     // 4. Update the actual item
     const updatePayload: any = { quantity: newQty, subtotal: newSubtotal };
     if (newProductId && newProductId !== item.product_id) {
+       // CRITICAL: Ensure the new product belongs to the SAME store to prevent cross-store leakage
+       const { data: newProd, error: prodErr } = await supabaseAdmin
+         .from('products')
+         .select('store_id')
+         .eq('id', newProductId)
+         .single();
+       
+       if (prodErr || !newProd || newProd.store_id !== userRole.storeId) {
+         return { error: 'Invalid product selection: Product does not belong to your store.' };
+       }
        updatePayload.product_id = newProductId;
     }
     

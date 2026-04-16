@@ -165,6 +165,17 @@ export async function addStock(storeSlug: string, formData: FormData) {
   const subStatus = await checkActiveSubscription(userRole.storeId);
   if (!subStatus.active) return { error: subStatus.error };
 
+  // 1. CRITICAL: Verify the product belongs to the user's store
+  const { data: productCheck } = await supabaseAdmin
+    .from("products")
+    .select("store_id")
+    .eq("id", id)
+    .single();
+    
+  if (!productCheck || productCheck.store_id !== userRole.storeId) {
+    return { error: "Unauthorized: Product does not belong to your store." };
+  }
+
   // 1. Insert stock_additions log
   const { error: logError } = await supabase
     .from('stock_additions')
@@ -279,15 +290,19 @@ export async function adjustStock(storeSlug: string, formData: FormData) {
   const subStatus = await checkActiveSubscription(userRole.storeId);
   if (!subStatus.active) return { error: subStatus.error };
 
-  // 1. Get current quantity
-  const { data: product, error: findError } = await supabase
+  // 1. Get current quantity and Verify Ownership
+  const { data: product, error: findError } = await supabaseAdmin
     .from("products")
-    .select("quantity")
+    .select("quantity, store_id")
     .eq("id", productId)
     .single();
 
   if (findError || !product) {
     return { error: "Product not found." };
+  }
+
+  if (product.store_id !== userRole.storeId) {
+    return { error: "Unauthorized: Product does not belong to your store." };
   }
 
   // 2. Record Adjustment

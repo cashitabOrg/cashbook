@@ -18,13 +18,16 @@ interface EditSaleModalProps {
 export default function EditSaleModal({ itemId, productId, initialQty, initialRevenue, productName, availableProducts = [], onSuccess }: EditSaleModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [qty, setQty] = useState(initialQty);
-  const [revenue, setRevenue] = useState(initialRevenue);
+  const sanQty = isNaN(Number(initialQty)) ? 0 : Number(initialQty);
+  const sanRev = isNaN(Number(initialRevenue)) ? 0 : Number(initialRevenue);
+
+  const [qty, setQty] = useState(sanQty);
+  const [revenue, setRevenue] = useState(sanRev);
   const [selectedProductId, setSelectedProductId] = useState(productId || '');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Derive unit price from original sale for auto-recalculation
-  const unitPrice = initialQty > 0 ? initialRevenue / initialQty : 0;
+  // Derive unit price from sanitized values for auto-recalculation
+  const unitPrice = sanQty > 0 ? sanRev / sanQty : 0;
 
   const handleQtyChange = (newQty: number) => {
     setQty(newQty);
@@ -121,9 +124,9 @@ export default function EditSaleModal({ itemId, productId, initialQty, initialRe
                       type="number"
                       step="0.01"
                       min="0"
-                      value={qty}
-                      onChange={(e) => handleQtyChange(parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium text-slate-900"
+                      value={isNaN(qty) ? "" : qty}
+                      onChange={(e) => setQty(parseFloat(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-mono font-bold text-slate-900 no-spinner"
                       required
                     />
                     {unitPrice > 0 && (
@@ -136,9 +139,9 @@ export default function EditSaleModal({ itemId, productId, initialQty, initialRe
                       type="number"
                       step="0.01"
                       min="0"
-                      value={revenue}
-                      onChange={(e) => setRevenue(parseFloat(e.target.value))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium text-slate-900"
+                      value={isNaN(revenue) ? "" : revenue}
+                      onChange={(e) => setRevenue(parseFloat(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-mono font-bold text-emerald-700 no-spinner"
                       required
                     />
                   </div>
