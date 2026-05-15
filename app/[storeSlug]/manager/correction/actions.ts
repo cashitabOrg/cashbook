@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireRole } from "@/lib/auth";
 
 export async function wipeAndOverwriteDay(
@@ -10,12 +10,14 @@ export async function wipeAndOverwriteDay(
   totalRevenue: number,
   targetDateStr: string
 ) {
-  // Ensure only authenticated staff can do this
-  await requireRole(["manager", "admin", "super_admin"]);
+  // 1. Ensure only authenticated staff can do this
+  const user = await requireRole(["manager", "admin", "super_admin"]);
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+  // 2. SECURITY: Verify the user belongs to the store they are trying to modify
+  if (user.role !== 'super_admin' && user.storeId !== storeId) {
+    console.error(`[SECURITY] Unauthorized cross-store write attempt by ${user.id} on store ${storeId}`);
+    return { error: "Unauthorized: You do not have permission to modify this store's data." };
+  }
 
   console.log('--- EXECUTING ATOMIC SUNDAY RECOVERY ---');
 

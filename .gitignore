@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# maintenance & temporary scripts
+/tmp/
+/audit_*.js
+/check_*.js
+/fix_*.js
+/ledger_*.js
+/product_history.js
+/enforce_honest_ledger.js
+/scratch/
