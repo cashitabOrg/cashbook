@@ -7,7 +7,7 @@ type SalesEntryTableProps = {
   products: any[];
   showValidationErrors: boolean;
   handleOpenPicker: (rowId: string) => void;
-  updateRow: (id: string, field: string, value: any) => void;
+  updateRow: (id: string, field: keyof SaleRow, value: any) => Promise<void>;
   commitRow: (row: SaleRow) => void;
   uncommitRow: (id: string) => void;
   removeRow: (id: string) => void;
