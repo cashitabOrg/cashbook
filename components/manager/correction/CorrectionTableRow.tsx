@@ -1,11 +1,12 @@
 import { Search, X } from "lucide-react";
+import { SaleRow } from "@/hooks/useCorrectionSession";
 
 type CorrectionTableRowProps = {
-  row: any;
+  row: SaleRow;
   index: number;
   products: any[];
   handleOpenPicker: (id: string) => void;
-  updateRow: (id: string, field: string, val: any) => void;
+  updateRow: (id: string, field: keyof SaleRow, val: any) => void;
   removeRow: (id: string) => void;
 };
 
