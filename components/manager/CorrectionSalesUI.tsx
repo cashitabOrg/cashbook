@@ -156,6 +156,4 @@ export default function CorrectionSalesUI({
       </div>
     </div>
   );
-    </div>
-  );
 }

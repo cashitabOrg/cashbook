@@ -114,7 +114,7 @@ export default function StaffTable({
           handleEdit={handleEdit}
           handleDelete={handleDelete}
         />
-      </div>v>
+      </div>
 
       <StaffModal
         isOpen={modalOpen}

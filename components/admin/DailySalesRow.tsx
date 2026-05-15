@@ -145,10 +145,6 @@ const DailySalesRow = memo(function DailySalesRow({
       )}
     </div>
   );
-        </div>
-      )}
-    </div>
-  );
 });
 
 export default DailySalesRow;
