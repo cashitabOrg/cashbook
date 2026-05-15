@@ -8,6 +8,7 @@ import { getPlanLimits } from "@/lib/plans";
 import StaffHeader from "./staff/StaffHeader";
 import StaffMobileList from "./staff/StaffMobileList";
 import StaffDesktopTable from "./staff/StaffDesktopTable";
+import StaffModal from "./StaffModal";
 
 type Staff = {
   id: string;
