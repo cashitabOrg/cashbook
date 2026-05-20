@@ -190,12 +190,12 @@ export default function SyncEngine() {
           
           else if (item.type === "sale_item_delete") {
             const { local_row_id } = item.payload;
-            // Delete from cloud using the POS-generated UUID (which is the DB PK)
+            // Soft-delete from cloud by setting is_deleted: true
             const { error } = await supabase
               .from("sale_items")
-              .delete()
+              .update({ is_deleted: true })
               .eq("id", local_row_id);
-            // Treat 404 (already deleted) or success as success
+            // Treat success as success
             success = !error;
           } 
           

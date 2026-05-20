@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InstallAppButton from "./InstallAppButton";
 
 export default function HeroSection() {
   return (
@@ -17,12 +18,15 @@ export default function HeroSection() {
           that meets all your needs.
         </p>
 
-        <Link
-          href="/register"
-          className="inline-block bg-[#0052FF] text-white px-8 py-4 rounded-xl text-base font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
-        >
-          Start Now
-        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            href="/register"
+            className="inline-block bg-[#0052FF] text-white px-8 py-4 rounded-xl text-base font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 text-center shrink-0"
+          >
+            Start Now
+          </Link>
+          <InstallAppButton />
+        </div>
       </div>
 
       <div className="md:w-[55%] relative mt-20 md:mt-0 flex justify-center lg:justify-end z-10 w-full">

@@ -262,17 +262,24 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const qty = parseFloat(row.quantitySold.toString());
 
     if (row.synced && row.productId && !isNaN(qty)) {
-      // 2. The stock refund is now handled automatically by the Database Trigger on the server
-      // whenever a sale_item is removed/deleted.
-      
-      // Queue a deletion in the cloud
-      await db.offlineQueue.add({
-        store_id: storeId,
-        type: 'sale_item_delete',
-        payload: { local_row_id: localId },
-        created_at: Date.now(),
-        status: 'pending'
-      });
+      // Check if the insertion is still pending in the offline queue (not yet synced to cloud)
+      const pendingInsert = await db.offlineQueue
+        .filter(item => item.type === 'sale_item' && item.payload?.local_row_id === localId)
+        .first();
+
+      if (pendingInsert && pendingInsert.id) {
+        // Safe-delete the pending insert task from the queue altogether
+        await db.offlineQueue.delete(pendingInsert.id);
+      } else {
+        // Already synced or in flight. Queue a soft-deletion in the cloud
+        await db.offlineQueue.add({
+          store_id: storeId,
+          type: 'sale_item_delete',
+          payload: { local_row_id: localId },
+          created_at: Date.now(),
+          status: 'pending'
+        });
+      }
 
       // Locally restore Dexie cache instantly
       const p = await db.products.get(row.productId);

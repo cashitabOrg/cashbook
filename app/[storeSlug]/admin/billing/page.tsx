@@ -1,9 +1,8 @@
 import { requireRole } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabase-admin";
 import { redirect } from "next/navigation";
-import { getSubscriptionData } from "@/app/actions/billing";
 import BillingDashboard from "@/components/admin/BillingDashboard";
 import { PlanType } from "@/lib/plans";
+import { getBillingPageData } from "@/lib/queries/store";
 
 export const dynamic = "force-dynamic";
 
@@ -13,33 +12,14 @@ export default async function BillingPage({
   params: Promise<{ storeSlug: string }>;
 }) {
   const { storeSlug } = await params;
-  const userRole = await requireRole(["admin", "super_admin"]);
-  const supabase = supabaseAdmin;
+  await requireRole(["admin", "super_admin"]);
 
-  // 1. Fetch Store Data
-  const { data: store, error: storeError } = await supabase
-    .from("stores")
-    .select("id, name, plan")
-    .eq("slug", storeSlug)
-    .single();
+  // Fetch all billing and subscription data via the centralized query layer
+  const { store, subscription, usage, error } = await getBillingPageData(storeSlug);
 
-  if (storeError || !store) {
+  if (error || !store) {
     redirect("/login");
   }
-
-  // 2. Fetch Subscription Data
-  const subscription = await getSubscriptionData(store.id);
-
-  // 3. Fetch Usage Stats
-  const { count: productCount } = await supabase
-    .from("products")
-    .select("*", { count: 'exact', head: true })
-    .eq("store_id", store.id);
-
-  const { count: staffCount } = await supabase
-    .from("users")
-    .select("*", { count: 'exact', head: true })
-    .eq("store_id", store.id);
 
   return (
     <div className="lg:p-8 max-w-full mx-auto">
@@ -47,10 +27,7 @@ export default async function BillingPage({
         storeSlug={storeSlug}
         currentPlan={store.plan as PlanType}
         subscription={subscription}
-        usage={{
-          products: productCount || 0,
-          staff: staffCount || 0
-        }}
+        usage={usage}
       />
     </div>
   );

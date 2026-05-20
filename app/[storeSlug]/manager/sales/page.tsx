@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase-server";
 import { requireRole } from "@/lib/auth";
 import SalesPointUI from "@/components/manager/SalesPointUI";
+import { getProductsForSalesPoint } from "@/lib/queries/products";
 
 export const dynamic = "force-dynamic";
 
@@ -11,24 +11,9 @@ export default async function SalesPointPage({
 }) {
   const { storeSlug } = await params;
   const userRole = await requireRole(["manager", "admin", "super_admin"]);
-  const supabase = await createClient();
 
-  // Fetch only products belonging to this store
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price")
-    .eq("store_id", userRole.storeId)
-    .order("name");
-
-  if (error) {
-    console.error("[SalesPointPage] Error fetching products:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-      storeId: userRole.storeId
-    });
-  }
+  // Fetch only products belonging to this store using the centralized backend query layer
+  const products = await getProductsForSalesPoint(userRole.storeId);
 
   return (
     <div className="h-full flex flex-col">
@@ -41,4 +26,3 @@ export default async function SalesPointPage({
     </div>
   );
 }
-

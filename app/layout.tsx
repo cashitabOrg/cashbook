@@ -13,6 +13,7 @@ const inter = { className: "sans-serif" };
 export const metadata: Metadata = {
   title: "Cashitab - Smart POS & Inventory",
   description: "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
+  manifest: "/manifest.json",
   icons: {
     icon: '/logo-icon.png',
     shortcut: '/logo-icon.png',
