@@ -213,7 +213,7 @@ export default function ReportsClient({
   }, [filteredSales]);
 
   return (
-    <div className="bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200 overflow-hidden flex flex-col h-[calc(100dvh-56px)] md:h-full min-h-[500px]">
+    <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-gray-200 dark:border-[#2C2C2E] overflow-hidden flex flex-col h-[calc(100dvh-56px)] md:h-full min-h-[500px]">
       <ReportsHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -238,7 +238,7 @@ export default function ReportsClient({
 
       <div className="flex-1 overflow-auto">
         {groupedSales.length === 0 ? (
-          <div className="py-20 text-center text-slate-400 italic font-medium">No sales found for this period.</div>
+          <div className="py-20 text-center text-gray-500 dark:text-gray-400 italic font-medium">No sales found for this period.</div>
         ) : (
           groupedSales.map(([date, data]) => (
             <DailySalesRow 

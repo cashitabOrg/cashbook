@@ -49,119 +49,133 @@ async function withRetry<T>(
 
 // ─── QUERIES ─────────────────────────────────────────────────
 
+import { unstable_cache } from 'next/cache';
+
 /**
  * Fetches closed sessions for revenue analytics.
  * Used by both admin and manager dashboards.
  */
-export async function getClosedSessions(storeId: string): Promise<RawSession[]> {
-  const { data, error } = await withRetry<RawSession[]>(
-    async () =>
-      await supabaseAdmin
-        .from('sales_sessions')
-        .select('total_revenue, started_at')
-        .eq('store_id', storeId)
-        .eq('status', 'closed'),
-    'getClosedSessions'
-  );
-  if (error) console.error('[queries/sales] getClosedSessions error:', error.message);
-  return data || [];
-}
+export const getClosedSessions = unstable_cache(
+  async (storeId: string): Promise<RawSession[]> => {
+    const { data, error } = await withRetry<RawSession[]>(
+      async () =>
+        await supabaseAdmin
+          .from('sales_sessions')
+          .select('total_revenue, started_at')
+          .eq('store_id', storeId)
+          .eq('status', 'closed'),
+      'getClosedSessions'
+    );
+    if (error) console.error('[queries/sales] getClosedSessions error:', error.message);
+    return data || [];
+  },
+  ['closed-sessions'],
+  { revalidate: 60, tags: ['sales'] }
+);
 
 /**
  * Fetches sale items with product names for analytics.
  * Filters out soft-deleted items.
  * Used by admin and manager dashboards for performance charts.
  */
-export async function getSaleItemsForAnalytics(storeId: string): Promise<RawSaleItem[]> {
-  const { data, error } = await withRetry<any[]>(
-    async () =>
-      await supabaseAdmin
-        .from('sale_items')
-        .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
-        .eq('store_id', storeId),
-    'getSaleItemsForAnalytics'
-  );
-  if (error) console.error('[queries/sales] getSaleItemsForAnalytics error:', error.message);
+export const getSaleItemsForAnalytics = unstable_cache(
+  async (storeId: string): Promise<RawSaleItem[]> => {
+    const { data, error } = await withRetry<any[]>(
+      async () =>
+        await supabaseAdmin
+          .from('sale_items')
+          .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
+          .eq('store_id', storeId),
+      'getSaleItemsForAnalytics'
+    );
+    if (error) console.error('[queries/sales] getSaleItemsForAnalytics error:', error.message);
 
-  // Normalize relational join result and filter deleted items
-  return (data || [])
-    .filter((item: any) => !item.is_deleted)
-    .map((item: any) => ({
-      ...item,
-      products: Array.isArray(item.products) ? item.products[0] : item.products,
-    }));
-}
+    // Normalize relational join result and filter deleted items
+    return (data || [])
+      .filter((item: any) => !item.is_deleted)
+      .map((item: any) => ({
+        ...item,
+        products: Array.isArray(item.products) ? item.products[0] : item.products,
+      }));
+  },
+  ['sale-items-analytics'],
+  { revalidate: 60, tags: ['sales'] }
+);
 
 /**
  * Fetches fully-joined sales data for the reports page.
  * Returns normalized, de-duplicated ReportSaleRow[].
  */
-export async function getReportSalesData(storeId: string): Promise<{
-  data: ReportSaleRow[];
-  error: string | null;
-}> {
-  const { data: salesRaw, error } = await withRetry<any[]>(
-    async () =>
-      await supabaseAdmin
-        .from('sale_items')
-        .select(`
-          id,
-          quantity,
-          subtotal,
-          unit_price,
-          unit_cost,
-          created_at,
-          is_deleted,
-          products (name),
-          sales_sessions!inner (
+export const getReportSalesData = unstable_cache(
+  async (storeId: string): Promise<{
+    data: ReportSaleRow[];
+    error: string | null;
+  }> => {
+    const { data: salesRaw, error } = await withRetry<any[]>(
+      async () =>
+        await supabaseAdmin
+          .from('sale_items')
+          .select(`
             id,
-            started_at,
-            status,
-            approval_status,
-            users!manager_id (full_name)
-          )
-        `)
-        .eq('store_id', storeId)
-        .eq('sales_sessions.status', 'closed')
-        .order('created_at', { ascending: true }),
-    'getReportSalesData'
-  );
+            quantity,
+            subtotal,
+            unit_price,
+            unit_cost,
+            created_at,
+            is_deleted,
+            products (name),
+            sales_sessions!inner (
+              id,
+              started_at,
+              status,
+              approval_status,
+              users!manager_id (full_name)
+            )
+          `)
+          .eq('store_id', storeId)
+          .eq('sales_sessions.status', 'closed')
+          .order('created_at', { ascending: true }),
+      'getReportSalesData'
+    );
 
-  if (error) {
-    return { data: [], error: error.message };
-  }
-
-  // De-duplicate join results
-  const uniqueSalesMap = new Map<string, any>();
-  (salesRaw || []).forEach((item: any) => {
-    if (!uniqueSalesMap.has(item.id)) {
-      uniqueSalesMap.set(item.id, item);
+    if (error) {
+      return { data: [], error: error.message };
     }
-  });
 
-  const salesData: ReportSaleRow[] = Array.from(uniqueSalesMap.values()).map((sale: any) => {
-    const sessionRaw = sale.sales_sessions;
-    const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
-    const timestamp = sale.created_at || session?.started_at || new Date().toISOString();
-    return {
-      id: sale.id,
-      timestamp,
-      dateStr: format(parseISO(timestamp), 'MMM do, yyyy HH:mm'),
-      managerName: session?.users?.full_name || 'Unknown Manager',
-      productName: sale.products?.name || 'Unknown Product',
-      qty: Number(sale.quantity),
-      price: Number(sale.unit_price || Number(sale.subtotal) / Number(sale.quantity)),
-      revenue: Number(sale.subtotal),
-      cost: Number(sale.unit_cost || 0),
-      profit: Number(sale.subtotal) - Number(sale.quantity) * Number(sale.unit_cost || 0),
-      sessionId: session?.id,
-      approvalStatus: session?.approval_status || 'pending',
-      isDeleted: sale.is_deleted || false,
-    };
-  });
+    // De-duplicate join results
+    const uniqueSalesMap = new Map<string, any>();
+    (salesRaw || []).forEach((item: any) => {
+      if (!uniqueSalesMap.has(item.id)) {
+        uniqueSalesMap.set(item.id, item);
+      }
+    });
 
-  return { data: salesData, error: null };
-}
+    const salesData: ReportSaleRow[] = Array.from(uniqueSalesMap.values()).map((sale: any) => {
+      const sessionRaw = sale.sales_sessions;
+      const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
+      const timestamp = sale.created_at || session?.started_at || new Date().toISOString();
+      return {
+        id: sale.id,
+        timestamp,
+        dateStr: format(parseISO(timestamp), 'MMM do, yyyy HH:mm'),
+        managerName: session?.users?.full_name || 'Unknown Manager',
+        productName: sale.products?.name || 'Unknown Product',
+        qty: Number(sale.quantity),
+        price: Number(sale.unit_price || Number(sale.subtotal) / Number(sale.quantity)),
+        revenue: Number(sale.subtotal),
+        cost: Number(sale.unit_cost || 0),
+        profit: Number(sale.subtotal) - Number(sale.quantity) * Number(sale.unit_cost || 0),
+        sessionId: session?.id,
+        approvalStatus: session?.approval_status || 'pending',
+        isDeleted: sale.is_deleted || false,
+      };
+    });
+
+    return { data: salesData, error: null };
+  },
+  ['report-sales-data'],
+  { revalidate: 60, tags: ['sales'] }
+);
 
 /**
  * Fetches a manager's closed sessions grouped by day.

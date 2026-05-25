@@ -91,7 +91,7 @@ export default function AddStockModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -105,30 +105,30 @@ export default function AddStockModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#1C1C1E] p-6 text-left align-middle shadow-xl transition-all border border-gray-100 dark:border-[#2C2C2E]">
                 <div className="flex justify-between items-center mb-5">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-semibold leading-6 text-slate-900 flex items-center gap-2"
+                    className="text-lg font-semibold leading-6 text-gray-900 dark:text-white flex items-center gap-2"
                   >
                     <PlusCircle className="w-5 h-5 text-emerald-600" />
                     Add Stock to Inventory
                   </Dialog.Title>
-                  <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1" disabled={loading}>
+                  <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1" disabled={loading}>
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-lg">
-                  <p className="text-sm text-slate-500">Product</p>
-                  <p className="font-medium text-slate-900">{product.name}</p>
-                  <p className="text-xs text-slate-500 mt-1">Current Quantity: {Number(product.quantity || 0).toFixed(2)} {product.unit}</p>
+                <div className="mb-4 p-3 bg-gray-50 dark:bg-[#252528] border border-gray-100 dark:border-[#3A3A3C] rounded-lg">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Product</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Current Quantity: {Number(product.quantity || 0).toFixed(2)} {product.unit}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label htmlFor="quantityAdded" className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      <label htmlFor="quantityAdded" className="block text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 ml-1">
                         Qty ({product.unit})
                       </label>
                       <input
@@ -140,13 +140,13 @@ export default function AddStockModal({
                         step="0.01"
                         value={qty || ""}
                         onChange={(e) => setQty(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
+                        className="block w-full rounded-xl bg-white dark:bg-[#252528] border-gray-200 dark:border-[#3A3A3C] shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-gray-900 dark:text-white font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="unitCost" className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      <label htmlFor="unitCost" className="block text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 ml-1">
                         Cost (₦)
                       </label>
                       <input
@@ -157,13 +157,13 @@ export default function AddStockModal({
                         step="0.01"
                         value={cost || ""}
                         onChange={(e) => setCost(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
+                        className="block w-full rounded-xl bg-white dark:bg-[#252528] border-gray-200 dark:border-[#3A3A3C] shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-gray-900 dark:text-white font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="unitSelling" className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      <label htmlFor="unitSelling" className="block text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1 ml-1">
                         Selling (₦)
                       </label>
                       <input
@@ -174,7 +174,7 @@ export default function AddStockModal({
                         step="0.01"
                         value={selling || ""}
                         onChange={(e) => setSelling(Number(e.target.value))}
-                        className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-slate-900 font-bold no-spinner"
+                        className="block w-full rounded-xl bg-white dark:bg-[#252528] border-gray-200 dark:border-[#3A3A3C] shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs px-2.5 py-2.5 border text-gray-900 dark:text-white font-bold no-spinner"
                         placeholder="0.00"
                       />
                     </div>
@@ -198,17 +198,17 @@ export default function AddStockModal({
 
                   {/* Compact Financial Summary - 3 Column Grid matches inputs style */}
                   {qty > 0 && (
-                    <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 dark:bg-[#252528] border border-gray-100 dark:border-[#3A3A3C] rounded-xl animate-in fade-in slide-in-from-top-1 duration-200">
                       <div>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 ml-1">Investment</p>
-                        <p className="text-xs font-bold text-slate-900 ml-1">₦{totalInvestment.toLocaleString()}</p>
+                        <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Investment</p>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">₦{totalInvestment.toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 ml-1">Exp. Revenue</p>
-                        <p className="text-xs font-bold text-slate-900 ml-1">₦{expectedRevenue.toLocaleString()}</p>
+                        <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Exp. Revenue</p>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">₦{expectedRevenue.toLocaleString()}</p>
                       </div>
                       <div className="text-right pr-1">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Exp. Profit</p>
+                        <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Exp. Profit</p>
                         <p className={`text-xs font-black ${projectedProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                           ₦{projectedProfit.toLocaleString()}
                         </p>
@@ -217,22 +217,22 @@ export default function AddStockModal({
                   )}
                   
                   <div>
-                    <label htmlFor="note" className="block text-sm font-medium text-slate-700">
+                    <label htmlFor="note" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Note (Optional)
                     </label>
                     <textarea
                       name="note"
                       id="note"
                       rows={2}
-                      className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm px-3 py-2 border resize-none text-slate-900"
+                      className="mt-1 block w-full rounded-md bg-white dark:bg-[#252528] border-gray-300 dark:border-[#3A3A3C] shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm px-3 py-2 border resize-none text-gray-900 dark:text-white"
                       placeholder="e.g., Restock from Supplier A"
                     />
                   </div>
                   
-                  <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-[#2C2C2E]">
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 dark:bg-[#2C2C2E] px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#3A3A3C] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 transition-colors disabled:opacity-50"
                       onClick={onClose}
                       disabled={loading}
                     >

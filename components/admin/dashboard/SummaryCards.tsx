@@ -1,4 +1,5 @@
-import { DollarSign, Package, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { AlertCircle } from "lucide-react";
 
 type SummaryCardsProps = {
   totalRevenue: number;
@@ -13,51 +14,57 @@ export default function SummaryCards({
   startDate,
   endDate,
   productsCount,
-  lowStockCount
+  lowStockCount,
 }: SummaryCardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-5">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden col-span-2">
-        <div className="p-3 lg:p-6">
-          <div className="flex items-center lg:gap-5">
-            <div className="flex-shrink-0 bg-blue-500/20 rounded-xl p-2 lg:p-4">
-              <DollarSign className="h-4 w-4 lg:h-6 lg:w-6 text-blue-400" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Revenue Card */}
+      <Card className="flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="text-4xl md:text-5xl font-semibold mb-2">
+              ₦
+              {totalRevenue.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+              })}
             </div>
-            <div className="ml-3 lg:ml-0">
-              <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Revenue ({startDate === endDate ? 'Today' : 'Range'})</p>
-              <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">₦{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</div>
-            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Revenue ({startDate === endDate ? "Today" : "Range"})
+            </p>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-3 lg:p-6">
-          <div className="flex items-center lg:gap-5">
-            <div className="flex-shrink-0 bg-emerald-500/20 rounded-xl p-2 lg:p-4">
-              <Package className="h-4 w-4 lg:h-6 lg:w-6 text-emerald-400" />
+      {/* Products Card */}
+      <Card className="flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="text-4xl md:text-5xl font-semibold mb-2">
+              {productsCount}
             </div>
-            <div className="ml-3 lg:ml-0">
-              <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Products</p>
-              <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">{productsCount}</div>
-            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Total Products in Catalog
+            </p>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-3 lg:p-6">
-          <div className="flex items-center lg:gap-5">
-            <div className="flex-shrink-0 bg-red-500/20 rounded-xl p-2 lg:p-4">
-              <AlertCircle className="h-4 w-4 lg:h-6 lg:w-6 text-red-400" />
+      {/* Low Stock Card */}
+      <Card className="flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="text-4xl md:text-5xl font-semibold mb-2 flex items-center gap-3">
+              {lowStockCount}
+              {lowStockCount > 0 && (
+                <AlertCircle className="h-8 w-8 text-red-500 fill-red-500/20" />
+              )}
             </div>
-            <div className="ml-3 lg:ml-0">
-              <p className="text-[8px] lg:text-sm font-semibold text-slate-400 uppercase tracking-wider">Low Stock</p>
-              <div className="text-xs lg:text-3xl font-black text-white leading-none mt-1">{lowStockCount}</div>
-            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Products requiring attention
+            </p>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

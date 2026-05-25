@@ -69,8 +69,8 @@ export default function OnboardingPage() {
 
         <div className="text-center mb-8">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-4 group transition-transform hover:scale-105 active:scale-95 border-4 border-white/20 relative overflow-hidden">
-              <img src="/logo-icon.png" alt="CASHITAB Logo" className="w-full h-full object-contain" />
+            <div className="w-16 h-16 flex items-center justify-center mb-4 group transition-transform hover:scale-105 active:scale-95 relative overflow-hidden">
+              <img src="/Logo_cashitab.png" alt="CASHITAB Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-3xl font-black tracking-tighter uppercase select-none text-white leading-none">
               CASHITAB

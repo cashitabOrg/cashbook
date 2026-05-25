@@ -26,14 +26,14 @@ export default function AdminProductsClient({
   return (
     <div className="lg:p-8 max-w-full mx-auto space-y-6">
       {/* Tab Switcher Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 p-2 rounded-2xl border border-slate-800 shadow-2xl">
-        <div className="flex p-1 bg-slate-800 rounded-xl gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#1C1C1E] p-2 rounded-2xl border border-gray-200 dark:border-[#2C2C2E] shadow-sm dark:shadow-2xl transition-colors">
+        <div className="flex p-1 bg-gray-50 dark:bg-[#252528] rounded-xl gap-1">
           <button
             onClick={() => setActiveTab("manage")}
             className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
               activeTab === "manage"
-                ? "bg-slate-700 text-blue-400 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3A3A3C]/50"
             }`}
           >
             <Settings2 className="w-3.5 h-3.5" />
@@ -43,8 +43,8 @@ export default function AdminProductsClient({
             onClick={() => setActiveTab("valuation")}
             className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
               activeTab === "valuation"
-                ? "bg-slate-700 text-blue-400 shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3A3A3C]/50"
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -52,13 +52,13 @@ export default function AdminProductsClient({
           </button>
         </div>
         
-        <div className="flex items-center gap-4 px-4 bg-slate-800/50 py-1.5 rounded-xl border border-slate-700">
+        <div className="flex items-center gap-4 px-4 bg-gray-50 dark:bg-[#252528]/50 py-1.5 rounded-xl border border-gray-200 dark:border-[#3A3A3C]/50 transition-colors">
            <div className="flex flex-col gap-1 w-24 sm:w-32">
-              <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-slate-400">
+              <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-gray-500 dark:text-gray-400">
                 <span>Usage</span>
                 <span>{products.length} / {limits.maxProducts === 1000000 ? '∞' : limits.maxProducts}</span>
               </div>
-              <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-1000 ${isNearLimit ? 'bg-red-500' : 'bg-blue-600'}`} 
                   style={{ width: `${usagePercentage}%` }} 
@@ -66,7 +66,7 @@ export default function AdminProductsClient({
               </div>
            </div>
            
-           <div className="hidden sm:flex items-center gap-2 text-slate-400">
+           <div className="hidden sm:flex items-center gap-2 text-gray-500 dark:text-gray-400">
               <Archive className="w-4 h-4" />
               <span className="text-[10px] font-black uppercase tracking-widest">{products.length} Tracked</span>
            </div>

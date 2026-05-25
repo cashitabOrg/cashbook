@@ -6,6 +6,8 @@ import { PackageSearch, Users, LayoutDashboard, FileText, LogOut, CreditCard, Ac
 import UnifiedSidebar from "@/components/layout/UnifiedSidebar";
 import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import BillingBanner from "@/components/layout/BillingBanner";
+import Header from "@/components/layout/Header";
+import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
 import { getSubscriptionData } from "@/app/actions/billing";
 
 export default async function AdminLayout({
@@ -52,30 +54,38 @@ export default async function AdminLayout({
   ];
 
   return (
-    <div className="flex h-[100dvh] bg-gray-50 overflow-hidden">
+    <div className="flex h-[100dvh] bg-white dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
       <UnifiedSidebar 
         storeName={store.name}
         roleLabel="Admin"
         navItems={navItems}
         signOutAction={signOut}
-        accentColor="bg-blue-600"
+        accentColor="bg-[#00A9B0]"
         plan={store.plan}
         isExempt={store.is_billing_exempt}
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 flex flex-col">
         {/* Mobile Header (minimal for now) */}
-        <div className="md:hidden h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 text-white justify-between shrink-0">
+        <div className="md:hidden h-14 bg-gray-50 dark:bg-[#111111] border-b border-gray-200 dark:border-[#2C2C2E] flex items-center px-4 justify-between shrink-0">
            <span className="font-semibold truncate">{store.name} - Admin</span>
-           <form action={signOut}>
-            <button type="submit" className="text-slate-400 p-2">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </form>
+           <div className="flex items-center gap-1">
+             <MobileThemeToggle />
+             <form action={signOut}>
+              <button type="submit" className="text-gray-500 hover:text-red-500 p-2">
+                <LogOut className="w-5 h-5" />
+              </button>
+             </form>
+           </div>
         </div>
         
-        <div className="lg:p-0">
+        {/* Desktop Header */}
+        <div className="hidden md:block">
+          <Header />
+        </div>
+        
+        <div className="flex-1 lg:p-0">
           <BillingBanner 
             storeSlug={storeSlug}
             plan={store.plan}
@@ -86,7 +96,7 @@ export default async function AdminLayout({
         </div>
       </main>
 
-      <MobileFooterNav navItems={navItems} accentColor="text-blue-500" />
+      <MobileFooterNav navItems={navItems} accentColor="text-[#00A9B0]" />
     </div>
   );
 }

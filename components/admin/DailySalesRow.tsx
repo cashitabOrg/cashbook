@@ -88,7 +88,7 @@ const DailySalesRow = memo(function DailySalesRow({
   const variance = data.revenue - data.expectedRevenue;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 lg:rounded-xl shadow-2xl overflow-hidden mb-3">
+    <div className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] lg:rounded-xl shadow-sm dark:shadow-2xl overflow-hidden mb-3 transition-colors">
       <DailySalesSummary 
         dateStr={dateStr}
         data={data}
@@ -98,7 +98,7 @@ const DailySalesRow = memo(function DailySalesRow({
       />
 
       {isExpanded && (
-        <div className="p-2 lg:p-4 bg-slate-950/30 animate-in slide-in-from-top-2 duration-300">
+        <div className="p-2 lg:p-4 bg-gray-50/50 dark:bg-[#252528]/30 animate-in slide-in-from-top-2 duration-300 border-t border-gray-200 dark:border-[#2C2C2E]">
           {!data.isFullyApproved && (
             <DailySalesApproval 
               dateStr={dateStr}
@@ -110,11 +110,11 @@ const DailySalesRow = memo(function DailySalesRow({
           <DailySalesPerformance sortedPerf={intelligence.sortedPerf} />
 
           {/* Tab Switcher */}
-          <div className="flex bg-slate-800 p-1 rounded-xl mb-4 w-fit border border-slate-700">
+          <div className="flex bg-gray-100 dark:bg-[#2C2C2E] p-1 rounded-xl mb-4 w-fit border border-gray-200 dark:border-[#3A3A3C]">
             <button
               onClick={() => setActiveSubTab("logs")}
               className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                activeSubTab === "logs" ? "bg-slate-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                activeSubTab === "logs" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
               Sales Logs
@@ -128,7 +128,7 @@ const DailySalesRow = memo(function DailySalesRow({
                 setActiveSubTab("intel");
               }}
               className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all relative ${
-                activeSubTab === "intel" ? "bg-slate-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                activeSubTab === "intel" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
               Sales Intelligence

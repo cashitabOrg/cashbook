@@ -6,6 +6,7 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { cookies } from "next/headers";
 import ImpersonationBanner from "@/components/super-admin/ImpersonationBanner";
 import GlobalBroadcastBanner from "@/components/GlobalBroadcastBanner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Temporary system font stack to bypass Turbopack Windows crash
 const inter = { className: "sans-serif" };
@@ -15,9 +16,9 @@ export const metadata: Metadata = {
   description: "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
   manifest: "/manifest.json",
   icons: {
-    icon: '/logo-icon.png',
-    shortcut: '/logo-icon.png',
-    apple: '/logo-icon.png',
+    icon: '/Logo_cashitab.png',
+    shortcut: '/Logo_cashitab.png',
+    apple: '/Logo_cashitab.png',
   }
 };
 
@@ -30,14 +31,16 @@ export default async function RootLayout({
   const isImpersonating = cookieStore.has("impersonate_store_id");
 
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
-        <GlobalBroadcastBanner />
-        {isImpersonating && <ImpersonationBanner />}
-        {children}
-        <Toaster position="top-right" richColors />
-        <SyncEngine />
-        <ServiceWorkerRegister />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <GlobalBroadcastBanner />
+          {isImpersonating && <ImpersonationBanner />}
+          {children}
+          <Toaster position="top-right" richColors />
+          <SyncEngine />
+          <ServiceWorkerRegister />
+        </ThemeProvider>
       </body>
     </html>
   );

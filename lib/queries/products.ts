@@ -41,23 +41,29 @@ async function withRetry<T>(
 
 // ─── QUERIES ─────────────────────────────────────────────────
 
+import { unstable_cache } from 'next/cache';
+
 /**
  * Fetches all products for a given store, ordered by name.
  * Returns full product data including prices for admin screens.
  */
-export async function getProducts(storeId: string): Promise<Product[]> {
-  const { data, error } = await withRetry<Product[]>(
-    async () =>
-      await supabaseAdmin
-        .from('products')
-        .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, created_at')
-        .eq('store_id', storeId)
-        .order('name'),
-    'getProducts'
-  );
-  if (error) console.error('[queries/products] getProducts error:', error.message);
-  return data || [];
-}
+export const getProducts = unstable_cache(
+  async (storeId: string): Promise<Product[]> => {
+    const { data, error } = await withRetry<Product[]>(
+      async () =>
+        await supabaseAdmin
+          .from('products')
+          .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, created_at')
+          .eq('store_id', storeId)
+          .order('name'),
+      'getProducts'
+    );
+    if (error) console.error('[queries/products] getProducts error:', error.message);
+    return data || [];
+  },
+  ['products'],
+  { revalidate: 60, tags: ['products'] }
+);
 
 /**
  * Fetches lightweight product data for the manager sales point.

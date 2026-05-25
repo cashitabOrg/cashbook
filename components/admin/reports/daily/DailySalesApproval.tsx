@@ -10,10 +10,10 @@ export default function DailySalesApproval({
   onApprove
 }: DailySalesApprovalProps) {
   return (
-    <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-slate-800 border border-amber-500/30 p-4 rounded-xl shadow-sm">
+    <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-[#1C1C1E] border border-amber-500/30 p-4 rounded-xl shadow-sm transition-colors">
       <div>
-         <h4 className="text-xs font-bold text-white">Approve Sales for {dateStr}</h4>
-         <p className="text-[11px] text-slate-400">Approving these records will permanently lock them.</p>
+         <h4 className="text-xs font-bold text-gray-900 dark:text-white">Approve Sales for {dateStr}</h4>
+         <p className="text-[11px] text-gray-500 dark:text-gray-400">Approving these records will permanently lock them.</p>
       </div>
       <button 
          onClick={() => onApprove(dateStr)}

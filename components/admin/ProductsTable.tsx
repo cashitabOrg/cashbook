@@ -75,14 +75,14 @@ export default function ProductsTable({
 
   return (
     <>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 lg:px-6 py-4 flex items-center justify-between mb-4 shadow-2xl">
+      <div className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-xl px-4 lg:px-6 py-4 flex items-center justify-between mb-4 shadow-sm dark:shadow-2xl transition-colors">
         <div className="flex items-center gap-4">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
             <Archive className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-white tracking-tight leading-none">Products</h1>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Inventory Management</p>
+            <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Products</h1>
+            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Inventory Management</p>
           </div>
         </div>
         
@@ -90,10 +90,10 @@ export default function ProductsTable({
           type="button"
           onClick={handleAddNew}
           disabled={isLimitReached}
-          className={`relative z-10 inline-flex items-center rounded-xl px-4 py-2 text-[10px] font-black text-white shadow-lg transition-all active:scale-95 gap-2 uppercase tracking-widest ${
+          className={`relative z-10 inline-flex items-center rounded-xl px-4 py-2 text-[10px] font-black shadow-sm transition-all active:scale-95 gap-2 uppercase tracking-widest ${
             isLimitReached 
-              ? "bg-slate-400 cursor-not-allowed grayscale" 
-              : "bg-slate-900 hover:bg-slate-800"
+              ? "bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed grayscale" 
+              : "bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
           }`}
         >
           {isLimitReached ? <AlertTriangle className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -105,34 +105,34 @@ export default function ProductsTable({
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow-2xl ring-1 ring-slate-800 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-slate-800">
-                  <thead className="bg-slate-950">
+              <div className="overflow-hidden shadow-sm dark:shadow-2xl ring-1 ring-gray-200 dark:ring-[#2C2C2E] sm:rounded-lg transition-colors">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-[#2C2C2E]">
+                  <thead className="bg-gray-50 dark:bg-[#252528]">
                     <tr>
-                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider sm:pl-6">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider sm:pl-6">
                         Name
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Stock Level
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Unit
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Status
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 bg-slate-900">
+                  <tbody className="divide-y divide-gray-200 dark:divide-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
                     {products.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-12 text-center">
-                        <Archive className="mx-auto h-12 w-12 text-slate-700 mb-3" />
-                        <h3 className="text-sm font-medium text-slate-300">No products</h3>
-                        <p className="mt-1 text-sm text-slate-500">Get started by adding your first product.</p>
+                        <Archive className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">No products</h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding your first product.</p>
                       </td>
                     </tr>
                   ) : (
@@ -140,17 +140,17 @@ export default function ProductsTable({
                       const isLowStock = product.quantity < product.min_quantity;
                       
                       return (
-                        <tr key={product.id} className="hover:bg-slate-800/40 transition-colors">
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-200 sm:pl-6">
+                        <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-[#2C2C2E]/50 transition-colors">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 dark:text-gray-200 sm:pl-6">
                             {product.name}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-slate-400">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
                             {Number(product.quantity || 0).toFixed(2)}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {product.unit}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
                             {isLowStock ? (
                               <span className="inline-flex items-center rounded-md bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/30">
                                 <AlertTriangle className="w-3 h-3 mr-1" />
@@ -172,11 +172,11 @@ export default function ProductsTable({
                                 Restock
                               </button>
                               
-                              <div className="h-4 w-px bg-slate-700 mx-1" />
+                                <div className="h-4 w-px bg-gray-200 dark:bg-[#3A3A3C] mx-1" />
 
                               <button
                                 onClick={() => handleEdit(product)}
-                                className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
+                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-all"
                                 title="Edit Identity"
                               >
                                 <Edit className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function ProductsTable({
 
                               <button
                                 onClick={() => handleAdjustStock(product)}
-                                className="p-2 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-all"
+                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-all"
                                 title="Correction / Spoilage"
                               >
                                 <Scale className="w-4 h-4" />
@@ -193,7 +193,7 @@ export default function ProductsTable({
                               <button
                                 onClick={() => handleDelete(product.id, product.name)}
                                 disabled={isDeleting === product.id}
-                                className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50"
+                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />

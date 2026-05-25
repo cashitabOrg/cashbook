@@ -1,11 +1,10 @@
-const CACHE_NAME = 'cashbook-cache-v2';
+const CACHE_NAME = 'cashbook-cache-v3';
 
 // Basic static shell pages cached initially
 const PRECACHE_ASSETS = [
   '/',
   '/favicon.ico',
-  '/logo-icon.png',
-  '/logo-wide.png',
+  '/Logo_cashitab.png',
 ];
 
 self.addEventListener('install', (event) => {

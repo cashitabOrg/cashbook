@@ -1,22 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { 
   LogOut, 
-  ChevronLeft, 
-  ChevronRight, 
   LayoutDashboard,
   PackageSearch,
   ShoppingCart,
   History,
   Users,
   FileText,
-  Zap,
-  ShieldCheck,
-  Rocket,
-  Star
+  Activity,
+  CreditCard
 } from "lucide-react";
 
 const IconMap: Record<string, any> = {
@@ -25,7 +20,9 @@ const IconMap: Record<string, any> = {
   ShoppingCart,
   History,
   Users,
-  FileText
+  FileText,
+  Activity,
+  CreditCard
 };
 
 type NavItem = {
@@ -45,76 +42,23 @@ interface UnifiedSidebarProps {
 }
 
 export default function UnifiedSidebar({
-  storeName,
-  roleLabel,
   navItems,
   signOutAction,
-  accentColor = "bg-blue-600",
-  plan = "free",
-  isExempt = false
 }: UnifiedSidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Sync state with localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar-collapsed");
-    setIsCollapsed(saved === "true");
-    setIsMounted(true);
-  }, []);
-
-  const toggleCollapse = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem("sidebar-collapsed", String(newState));
-  };
-
-  // Prevent hydration mismatch
-  if (!isMounted) {
-    return (
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col shrink-0"></aside>
-    );
-  }
 
   return (
-    <aside 
-      className={`bg-slate-900 border-r border-slate-800 hidden md:flex flex-col shrink-0 transition-all duration-300 relative group overflow-hidden ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
-    >
-      {/* Header */}
-      <div className={`h-22 border-b border-slate-800 flex items-center transition-all ${isCollapsed ? "px-4 justify-center" : "px-5 py-6 gap-3 relative"}`}>
-        <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0 select-none border border-white/10 relative overflow-hidden">
-          <img src="/logo-icon.png" alt="Logo" className="w-full h-full object-contain p-1" />
+    <aside className="w-24 shrink-0 hidden md:block relative z-50">
+      <div className="absolute top-0 left-0 h-full w-24 hover:w-44 transition-all duration-300 bg-gray-50 dark:bg-[#111111] border-r border-gray-200 dark:border-[#2C2C2E] flex flex-col overflow-x-hidden overflow-y-auto shadow-none hover:shadow-2xl group">
+      {/* Logo */}
+      <div className="h-20 flex items-center justify-center border-b border-transparent shrink-0 mt-4">
+        <div className="flex flex-col items-center">
+          <img src="/Logo_cashitab.png" alt="Logo" className="w-12 h-12 object-contain" />
         </div>
-        {!isCollapsed && (
-          <div className="flex flex-col min-w-0">
-            <span className="font-black tracking-tighter uppercase leading-none text-base text-white underline decoration-blue-500/30">
-              CASHITAB
-            </span>
-            <div className="flex items-center gap-1.5 mt-1.5">
-               {plan === 'pro' ? (
-                 <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
-                   <Star className="w-2.5 h-2.5 fill-indigo-400" /> PRO
-                 </span>
-               ) : plan === 'basic' ? (
-                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
-                   <Rocket className="w-2.5 h-2.5" /> BASIC
-                 </span>
-               ) : (
-                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-500/10 text-slate-400 border border-slate-500/20 rounded-md text-[8px] font-black uppercase tracking-tighter shadow-sm">
-                   <ShieldCheck className="w-2.5 h-2.5" /> FREE
-                 </span>
-               )}
-               <span className="text-[10px] text-slate-600 font-bold truncate opacity-40 tracking-wider uppercase">— {storeName}</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Nav Items */}
-      <div className="flex-1 py-4 flex flex-col gap-1 px-3">
+      <div className="flex-1 py-6 flex flex-col gap-4 px-2 items-center">
         {navItems.map((item) => {
           const Icon = IconMap[item.icon] || FileText;
           const isActive = pathname === item.href;
@@ -123,70 +67,37 @@ export default function UnifiedSidebar({
             <Link
               key={item.name}
               href={item.href}
-              title={isCollapsed ? item.name : ""}
-              className={`flex items-center gap-4 px-3 py-2.5 rounded-xl transition-all group/item whitespace-nowrap ${
+              className={`flex flex-col items-center justify-center w-full py-3 rounded-2xl transition-all group ${
                 isActive 
-                  ? "bg-slate-800 text-white shadow-lg" 
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  ? "text-gray-900 dark:text-white" 
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? "scale-110" : "group-hover/item:scale-110"}`} />
-              {!isCollapsed && (
-                <span className="text-sm font-bold tracking-tight">{item.name}</span>
-              )}
+              <div className={`p-2.5 rounded-xl mb-1.5 transition-all ${
+                isActive ? "bg-[#0052FF] text-white shadow-lg shadow-[#0052FF]/20" : "group-hover:bg-gray-200 dark:group-hover:bg-[#2C2C2E]"
+              }`}>
+                <Icon className="w-5 h-5 shrink-0" />
+              </div>
+              <span className="text-[10px] font-semibold tracking-wider text-center px-1 truncate w-full">
+                {item.name}
+              </span>
             </Link>
           );
         })}
       </div>
 
-      {/* Upgrade Nudge */}
-      {!isCollapsed && plan === 'free' && !isExempt && (
-        <div className="mx-4 mb-4 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-xl group/upgrade relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full blur-2xl group-hover/upgrade:bg-blue-500/20 transition-all pointer-events-none" />
-          <div className="relative z-10">
-            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Zap className="w-3 h-3 fill-blue-400" /> Growth Ready?
-            </p>
-            <p className="text-[11px] text-slate-400 mt-2 font-medium leading-relaxed">
-              Unlock unlimited products and advanced BI tools.
-            </p>
-            <div className="mt-3 text-[10px] font-black text-white p-1 rounded-md text-center bg-blue-600/20 border border-blue-500/20 group-hover/upgrade:bg-blue-600 transition-all cursor-pointer select-none">
-               VIEW PLATFORM OFFERS
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Footer / Toggle & SignOut */}
-      <div className="p-4 border-t border-slate-800 space-y-2">
-        {/* Toggle Button */}
-        <button
-          onClick={toggleCollapse}
-          className="flex items-center gap-4 w-full px-3 py-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all group/toggle"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 mx-auto group-hover/toggle:scale-110" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5 group-hover/toggle:scale-110" />
-              <span className="text-xs font-black uppercase tracking-widest">Collapse Menu</span>
-            </>
-          )}
-        </button>
-
+      {/* Footer / SignOut */}
+      <div className="p-4 mt-auto">
         <form action={signOutAction}>
           <button
             type="submit"
-            className={`flex items-center gap-4 px-3 py-2.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all w-full overflow-hidden ${
-              isCollapsed ? "justify-center" : ""
-            }`}
+            className="flex flex-col items-center justify-center w-full py-3 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/10"
           >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!isCollapsed && (
-              <span className="text-sm font-bold tracking-tight">Sign out</span>
-            )}
+            <LogOut className="w-5 h-5 mb-1.5 shrink-0" />
+            <span className="text-[10px] font-semibold tracking-wider">Logout</span>
           </button>
         </form>
+      </div>
       </div>
     </aside>
   );

@@ -96,7 +96,7 @@ export default function StockAdjustmentModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -110,36 +110,36 @@ export default function StockAdjustmentModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-3xl bg-white p-6 shadow-2xl transition-all border border-slate-100">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-3xl bg-white dark:bg-[#1C1C1E] p-6 shadow-2xl transition-all border border-gray-100 dark:border-[#2C2C2E]">
                 <div className="flex justify-between items-center mb-6">
-                  <Dialog.Title as="h3" className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <Dialog.Title as="h3" className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
                     <Scale className="w-5 h-5 text-indigo-600" />
                     Correct Stock Level
                   </Dialog.Title>
-                  <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl transition-colors">
+                  <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="mb-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center">
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-[#252528] border border-gray-100 dark:border-[#3A3A3C] rounded-2xl flex justify-between items-center">
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Product</p>
-                        <p className="text-sm font-bold text-slate-900">{product.name}</p>
+                        <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Product</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Stock</p>
-                        <p className="text-sm font-black text-slate-900">{currentQty.toFixed(2)} <span className="text-[10px] text-slate-500 uppercase">{product.unit}</span></p>
+                        <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Current Stock</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white">{currentQty.toFixed(2)} <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">{product.unit}</span></p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Adjustment Mode Toggle - 3 Options */}
-                  <div className="flex p-1 bg-slate-100 rounded-xl">
+                  <div className="flex p-1 bg-gray-100 dark:bg-[#252528] rounded-xl">
                     <button
                       type="button"
                       onClick={() => setAdjustmentMode("minus")}
                       className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                        adjustmentMode === "minus" ? "bg-white text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
+                        adjustmentMode === "minus" ? "bg-white dark:bg-[#3A3A3C] text-red-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-bold"
                       }`}
                     >
                       Subtract (-)
@@ -148,7 +148,7 @@ export default function StockAdjustmentModal({
                       type="button"
                       onClick={() => setAdjustmentMode("plus")}
                       className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                        adjustmentMode === "plus" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
+                        adjustmentMode === "plus" ? "bg-white dark:bg-[#3A3A3C] text-emerald-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-bold"
                       }`}
                     >
                       Add (+)
@@ -157,7 +157,7 @@ export default function StockAdjustmentModal({
                       type="button"
                       onClick={() => setAdjustmentMode("set")}
                       className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                        adjustmentMode === "set" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
+                        adjustmentMode === "set" ? "bg-white dark:bg-[#3A3A3C] text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-bold"
                       }`}
                     >
                       Set (Fridge)
@@ -166,7 +166,7 @@ export default function StockAdjustmentModal({
 
                   {/* Dynamic Input */}
                   <div className="relative">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+                    <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
                       {adjustmentMode === "set" ? "Exact Count found in Fridge" : "Adjustment Quantity"} ({product.unit})
                     </label>
                     <div className="relative group">
@@ -178,14 +178,14 @@ export default function StockAdjustmentModal({
                         step="0.01"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        className={`w-full bg-slate-50 border-2 rounded-2xl px-4 py-4 text-bases font-black text-slate-900 outline-none transition-all placeholder:text-slate-300 pr-16 ${
-                          adjustmentMode === "minus" ? "focus:border-red-500 focus:bg-red-50/10 border-slate-100" : 
-                          adjustmentMode === "plus" ? "focus:border-emerald-500 focus:bg-emerald-50/10 border-slate-100" :
-                          "focus:border-indigo-500 focus:bg-indigo-50/10 border-slate-100"
+                        className={`w-full bg-gray-50 dark:bg-[#252528] border-2 rounded-2xl px-4 py-4 text-bases font-black text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-16 ${
+                          adjustmentMode === "minus" ? "focus:border-red-500 focus:bg-red-50/10 border-gray-100 dark:border-[#3A3A3C]" : 
+                          adjustmentMode === "plus" ? "focus:border-emerald-500 focus:bg-emerald-50/10 border-gray-100 dark:border-[#3A3A3C]" :
+                          "focus:border-indigo-500 focus:bg-indigo-50/10 border-gray-100 dark:border-[#3A3A3C]"
                         }`}
                         placeholder={adjustmentMode === "set" ? "0.00" : "5.00"}
                       />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase">
                         {product.unit}
                       </div>
                     </div>
@@ -206,7 +206,7 @@ export default function StockAdjustmentModal({
 
                   {/* Reason Selection */}
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+                    <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
                       Reason for Correction
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -217,12 +217,12 @@ export default function StockAdjustmentModal({
                              onClick={() => setSelectedReason(reason.id)}
                              className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left ${
                                 selectedReason === reason.id 
-                                ? "border-indigo-600 bg-indigo-50/50" 
-                                : "border-slate-100 bg-slate-50 hover:border-slate-200"
+                                ? "border-indigo-600 bg-indigo-50/50 dark:bg-indigo-500/10" 
+                                : "border-gray-100 dark:border-[#3A3A3C] bg-gray-50 dark:bg-[#252528] hover:border-gray-200 dark:hover:border-[#4A4A4C]"
                              }`}
                            >
-                             <div className={`${reason.color} p-1.5 bg-white rounded-lg shadow-sm`}>{reason.icon}</div>
-                             <span className="text-[10px] font-bold text-slate-700">{reason.label}</span>
+                             <div className={`${reason.color} p-1.5 bg-white dark:bg-[#1C1C1E] rounded-lg shadow-sm`}>{reason.icon}</div>
+                             <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300">{reason.label}</span>
                            </button>
                        ))}
                     </div>
@@ -233,7 +233,7 @@ export default function StockAdjustmentModal({
                     <textarea
                       name="note"
                       rows={2}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-[11px] font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-300"
+                      className="w-full bg-gray-50 dark:bg-[#252528] border border-gray-200 dark:border-[#3A3A3C] rounded-2xl px-4 py-3 text-[11px] font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-[#1C1C1E] outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       placeholder="Add an optional audit note explaining this adjustment..."
                     />
                   </div>
@@ -242,7 +242,7 @@ export default function StockAdjustmentModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="flex-1 px-4 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                      className="flex-1 px-4 py-4 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest bg-gray-100 dark:bg-[#2C2C2E] hover:bg-gray-200 dark:hover:bg-[#3A3A3C] rounded-xl transition-all"
                     >
                       Cancel
                     </button>

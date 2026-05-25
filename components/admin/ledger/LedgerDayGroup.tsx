@@ -13,16 +13,16 @@ export default function LedgerDayGroup({ group, isOpen, onToggle }: LedgerDayGro
       {/* 📅 COLLAPSIBLE SEPARATOR */}
       <button 
         onClick={() => onToggle(group.dateLabel)}
-        className="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800/80 px-4 py-3 flex items-center justify-between transition-colors outline-none cursor-pointer rounded-lg shadow-sm"
+        className="w-full bg-gray-50 dark:bg-[#252528] hover:bg-gray-100 dark:hover:bg-[#3A3A3C] border border-gray-200 dark:border-[#3A3A3C] px-4 py-3 flex items-center justify-between transition-colors outline-none cursor-pointer rounded-lg shadow-sm"
       >
         <div className="flex items-center gap-3">
-          {isOpen ? <ChevronDown className="w-5 h-5 text-blue-500" /> : <ChevronRight className="w-5 h-5 text-slate-500" />}
-          <CalendarDays className={`w-5 h-5 ${isOpen ? 'text-blue-500' : 'text-slate-500'}`} />
-          <span className={`text-sm tracking-wide ${isOpen ? 'font-bold text-blue-100' : 'font-semibold text-slate-400'}`}>
+          {isOpen ? <ChevronDown className="w-5 h-5 text-blue-600 dark:text-blue-500" /> : <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />}
+          <CalendarDays className={`w-5 h-5 ${isOpen ? 'text-blue-600 dark:text-blue-500' : 'text-gray-500 dark:text-gray-400'}`} />
+          <span className={`text-sm tracking-wide ${isOpen ? 'font-bold text-blue-900 dark:text-blue-100' : 'font-semibold text-gray-600 dark:text-gray-400'}`}>
             {group.dateLabel}
           </span>
         </div>
-        <span className="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded-md border border-slate-800/50 flex items-center justify-center">
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-white dark:bg-[#1C1C1E] px-2 py-1 rounded-md border border-gray-200 dark:border-[#3A3A3C] flex items-center justify-center">
           {group.items.length} Entries
         </span>
       </button>
