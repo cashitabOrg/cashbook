@@ -8,7 +8,8 @@ import {
   ShoppingCart,
   History,
   Users,
-  FileText
+  FileText,
+  Settings
 } from "lucide-react";
 
 const IconMap: Record<string, any> = {
@@ -17,7 +18,8 @@ const IconMap: Record<string, any> = {
   ShoppingCart,
   History,
   Users,
-  FileText
+  FileText,
+  Settings
 };
 
 type NavItem = {
@@ -32,7 +34,7 @@ interface MobileFooterNavProps {
 }
 
 export default function MobileFooterNav({
-  navItems,
+  navItems = [],
   accentColor = "text-blue-500"
 }: MobileFooterNavProps) {
   const pathname = usePathname();

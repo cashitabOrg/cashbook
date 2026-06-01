@@ -49,6 +49,7 @@ export default function ManagerDashboardClient({
   subtitle: string;
 }) {
   const [products, setProducts] = useState(initialProducts);
+  const [sessions, setSessions] = useState(rawSessions);
   const [isBestSellersOpen, setIsBestSellersOpen] = useState(false);
   const [isStockOpen, setIsStockOpen] = useState(false);
 
@@ -99,9 +100,37 @@ export default function ManagerDashboardClient({
     return () => { supabase.removeChannel(channel); };
   }, [storeId]);
 
+  // Real-time subscription to sales_sessions for instant revenue updates
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("manager-dashboard-sessions")
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "sales_sessions",
+        filter: `store_id=eq.${storeId}`,
+      }, (payload) => {
+        if (payload.eventType === "INSERT" && payload.new.status === "closed") {
+          setSessions(prev => [...prev, {
+            total_revenue: Number(payload.new.total_revenue || 0),
+            started_at: payload.new.started_at,
+          }]);
+        } else if (payload.eventType === "UPDATE") {
+          setSessions(prev => prev.map(s =>
+            s.started_at === payload.new.started_at
+              ? { ...s, total_revenue: Number(payload.new.total_revenue || 0) }
+              : s
+          ));
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [storeId]);
+
   // Dynamic Metrics Calculation
   const metrics = useMemo(() => {
-    let filteredSessions = rawSessions;
+    let filteredSessions = sessions;
     let filteredItems = rawSaleItems;
 
     // 1. Date Range Filtering

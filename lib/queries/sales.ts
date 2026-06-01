@@ -70,7 +70,7 @@ export const getClosedSessions = unstable_cache(
     return data || [];
   },
   ['closed-sessions'],
-  { revalidate: 60, tags: ['sales'] }
+  { revalidate: 30, tags: ['sales'] }
 );
 
 /**
@@ -99,7 +99,7 @@ export const getSaleItemsForAnalytics = unstable_cache(
       }));
   },
   ['sale-items-analytics'],
-  { revalidate: 60, tags: ['sales'] }
+  { revalidate: 30, tags: ['sales'] }
 );
 
 /**

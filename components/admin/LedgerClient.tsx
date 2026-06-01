@@ -1,15 +1,41 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, Activity, ShieldAlert } from "lucide-react";
+import { createClient } from "@/lib/supabase";
 import LedgerToolbar from "./ledger/LedgerToolbar";
 import LedgerDayGroup from "./ledger/LedgerDayGroup";
 
-export default function LedgerClient({ transactions, products }: { transactions: any[], products: any[] }) {
+export default function LedgerClient({ transactions: initialTransactions, products, storeId }: { transactions: any[], products: any[], storeId?: string }) {
+  const [transactions, setTransactions] = useState(initialTransactions);
   const [activeTab, setActiveTab] = useState<"ALL" | "SALES" | "STOCK">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("ALL");
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
+
+  // Sync prop changes after router.refresh()
+  useEffect(() => {
+    setTransactions(initialTransactions);
+  }, [initialTransactions]);
+
+  // Real-time subscription: instantly show new inventory movements
+  useEffect(() => {
+    if (!storeId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`ledger-movements-${storeId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'inventory_movements',
+        filter: `store_id=eq.${storeId}`,
+      }, (payload) => {
+        // Prepend new movement to the top (newest first)
+        setTransactions(prev => [payload.new as any, ...prev]);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [storeId]);
 
   const toggleDay = (dateLabel: string) => {
     setOpenDays(prev => ({ ...prev, [dateLabel]: !prev[dateLabel] }));

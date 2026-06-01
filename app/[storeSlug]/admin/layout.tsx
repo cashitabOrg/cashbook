@@ -47,10 +47,7 @@ export default async function AdminLayout({
   const navItems = [
     { name: "Dashboard", href: `/${storeSlug}/admin/dashboard`, icon: "LayoutDashboard" },
     { name: "Products & Stock", href: `/${storeSlug}/admin/products`, icon: "PackageSearch" },
-    { name: "Reports", href: `/${storeSlug}/admin/reports`, icon: "FileText" },
-    { name: "Stock Movement", href: `/${storeSlug}/admin/ledger`, icon: "Activity" },
-    { name: "Staff", href: `/${storeSlug}/admin/staff`, icon: "Users" },
-    { name: "Billing", href: `/${storeSlug}/admin/billing`, icon: "CreditCard" },
+    { name: "Settings", href: `/${storeSlug}/admin/settings`, icon: "Settings" },
   ];
 
   return (
@@ -63,6 +60,7 @@ export default async function AdminLayout({
         accentColor="bg-[#00A9B0]"
         plan={store.plan}
         isExempt={store.is_billing_exempt}
+        userName={userRole.full_name || "Admin"}
       />
 
       {/* Main Content */}
@@ -78,11 +76,6 @@ export default async function AdminLayout({
               </button>
              </form>
            </div>
-        </div>
-        
-        {/* Desktop Header */}
-        <div className="hidden md:block">
-          <Header />
         </div>
         
         <div className="flex-1 lg:p-0">

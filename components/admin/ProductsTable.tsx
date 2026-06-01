@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import ProductModal from "./ProductModal";
-import AddStockModal from "./AddStockModal";
-import StockAdjustmentModal from "./StockAdjustmentModal";
+import ProductDetailsDrawer from "./ProductDetailsDrawer";
 import { deleteProduct } from "@/app/actions/products";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, AlertTriangle, Archive, Scale } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Archive } from "lucide-react";
 
 type Product = {
   id: string;
@@ -14,8 +13,8 @@ type Product = {
   unit: string;
   quantity: number;
   min_quantity: number;
-  cost_price?: number;
-  selling_price?: number;
+  cost_price: number;
+  selling_price: number;
   created_at: string;
 };
 
@@ -29,30 +28,19 @@ export default function ProductsTable({
   isLimitReached?: boolean;
 }) {
   const [productModalOpen, setProductModalOpen] = useState(false);
-  const [stockModalOpen, setStockModalOpen] = useState(false);
-  const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const handleEdit = (product: Product) => {
+  const handleManageProduct = (product: Product) => {
     setActiveProduct(product);
-    setProductModalOpen(true);
-  };
-
-  const handleAddStock = (product: Product) => {
-    setActiveProduct(product);
-    setStockModalOpen(true);
+    setDrawerOpen(true);
   };
 
   const handleAddNew = () => {
     setActiveProduct(null);
     setProductModalOpen(true);
-  };
-
-  const handleAdjustStock = (product: Product) => {
-    setActiveProduct(product);
-    setAdjustmentModalOpen(true);
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -163,33 +151,14 @@ export default function ProductsTable({
                             )}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <div className="flex justify-end items-center gap-1">
+                            <div className="flex justify-end items-center gap-2">
                               <button
-                                onClick={() => handleAddStock(product)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-lg transition-all active:scale-95 border border-emerald-500/30"
+                                onClick={() => handleManageProduct(product)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 dark:text-blue-400 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 rounded-lg transition-all active:scale-95 border border-blue-500/20"
                               >
-                                <Plus className="w-3.5 h-3.5" />
-                                Restock
+                                Manage Stock
                               </button>
                               
-                                <div className="h-4 w-px bg-gray-200 dark:bg-[#3A3A3C] mx-1" />
-
-                              <button
-                                onClick={() => handleEdit(product)}
-                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-all"
-                                title="Edit Identity"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-
-                              <button
-                                onClick={() => handleAdjustStock(product)}
-                                className="p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-all"
-                                title="Correction / Spoilage"
-                              >
-                                <Scale className="w-4 h-4" />
-                              </button>
-
                               <button
                                 onClick={() => handleDelete(product.id, product.name)}
                                 disabled={isDeleting === product.id}
@@ -222,20 +191,10 @@ export default function ProductsTable({
         product={activeProduct}
       />
 
-      <AddStockModal
-        isOpen={stockModalOpen}
+      <ProductDetailsDrawer
+        isOpen={drawerOpen}
         onClose={() => {
-          setStockModalOpen(false);
-          setActiveProduct(null);
-        }}
-        storeSlug={storeSlug}
-        product={activeProduct}
-      />
-
-      <StockAdjustmentModal
-        isOpen={adjustmentModalOpen}
-        onClose={() => {
-          setAdjustmentModalOpen(false);
+          setDrawerOpen(false);
           setActiveProduct(null);
         }}
         storeSlug={storeSlug}

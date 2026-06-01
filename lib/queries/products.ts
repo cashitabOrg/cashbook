@@ -119,11 +119,15 @@ export async function getProductById(productId: string, storeId: string): Promis
  * Returns the total product count for a store.
  * Used by billing/plan limit checks.
  */
-export async function getProductCount(storeId: string): Promise<number> {
-  const { count, error } = await supabaseAdmin
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('store_id', storeId);
-  if (error) console.error('[queries/products] getProductCount error:', error.message);
-  return count || 0;
-}
+export const getProductCount = unstable_cache(
+  async (storeId: string): Promise<number> => {
+    const { count, error } = await supabaseAdmin
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', storeId);
+    if (error) console.error('[queries/products] getProductCount error:', error.message);
+    return count || 0;
+  },
+  ['products-count'],
+  { revalidate: 60, tags: ['products'] }
+);

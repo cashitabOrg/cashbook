@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import AdminDashboardClient from "@/components/admin/AdminDashboardClient";
 import { getAdminDashboardData } from "@/lib/queries/dashboard";
+import { getLedgerData } from "@/lib/queries/store";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,12 @@ export default async function AdminDashboardPage({
   const { storeSlug } = await params;
   const userRole = await requireRole(["admin", "super_admin"]);
 
-  // Fetch all dashboard data using the centralized backend query layer
+  // Fetch both dashboard and ledger movements in parallel for the consolidated workspace
+  const [dashboardData, ledgerData] = await Promise.all([
+    getAdminDashboardData(userRole.storeId),
+    getLedgerData(storeSlug),
+  ]);
+
   const {
     products,
     rawSessions,
@@ -20,7 +26,9 @@ export default async function AdminDashboardPage({
     recentAdjustments,
     store,
     staffCount,
-  } = await getAdminDashboardData(userRole.storeId);
+  } = dashboardData;
+
+  const { transactions } = ledgerData;
 
   return (
     <div className="lg:p-8 max-w-full mx-auto pb-24">
@@ -30,8 +38,9 @@ export default async function AdminDashboardPage({
         rawSessions={rawSessions || []}
         rawSaleItems={rawSaleItems as any}
         recentAdjustments={recentAdjustments || []}
-        title="Store Performance Hub"
-        subtitle="A real-time overview of your lifetime revenue, inventory health, and core business metrics."
+        transactions={transactions || []}
+        title="Operational Hub"
+        subtitle="A real-time overview of your store's lifetime revenue, inventory health, and audit movement logs."
         plan={store?.plan || 'free'}
         isExempt={store?.is_billing_exempt || false}
         staffCount={staffCount || 0}

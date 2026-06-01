@@ -13,51 +13,62 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Store, BillingUsage, InventoryMovement, TenantSubscription } from '@/lib/types';
 import { getProductCount } from './products';
 import { getStaffCount } from './staff';
+import { unstable_cache } from 'next/cache';
 
 // ─── QUERIES ─────────────────────────────────────────────────
 
 /**
  * Fetches store details by slug.
  */
-export async function getStoreBySlug(slug: string): Promise<Pick<Store, 'id' | 'name' | 'plan'> | null> {
-  const { data, error } = await supabaseAdmin
-    .from('stores')
-    .select('id, name, plan')
-    .eq('slug', slug)
-    .single();
-  if (error) console.error('[queries/store] getStoreBySlug error:', error.message);
-  return data || null;
-}
+export const getStoreBySlug = unstable_cache(
+  async (slug: string): Promise<Pick<Store, 'id' | 'name' | 'plan'> | null> => {
+    const { data, error } = await supabaseAdmin
+      .from('stores')
+      .select('id, name, plan')
+      .eq('slug', slug)
+      .single();
+    if (error) console.error('[queries/store] getStoreBySlug error:', error.message);
+    return data || null;
+  },
+  ['store-by-slug'],
+  { revalidate: 60, tags: ['store'] }
+);
 
 /**
  * Fetches store meta (plan + billing exemption) by ID.
  */
-export async function getStoreMeta(
-  storeId: string
-): Promise<Pick<Store, 'plan' | 'is_billing_exempt' | 'name'> | null> {
-  const { data, error } = await supabaseAdmin
-    .from('stores')
-    .select('name, plan, is_billing_exempt')
-    .eq('id', storeId)
-    .single();
-  if (error) console.error('[queries/store] getStoreMeta error:', error.message);
-  return data || null;
-}
+export const getStoreMeta = unstable_cache(
+  async (storeId: string): Promise<Pick<Store, 'plan' | 'is_billing_exempt' | 'name'> | null> => {
+    const { data, error } = await supabaseAdmin
+      .from('stores')
+      .select('name, plan, is_billing_exempt')
+      .eq('id', storeId)
+      .single();
+    if (error) console.error('[queries/store] getStoreMeta error:', error.message);
+    return data || null;
+  },
+  ['store-meta'],
+  { revalidate: 60, tags: ['store'] }
+);
 
 /**
  * Fetches subscription record for a store.
  */
-export async function getSubscription(storeId: string): Promise<TenantSubscription | null> {
-  const { data, error } = await supabaseAdmin
-    .from('tenant_subscriptions')
-    .select('*')
-    .eq('store_id', storeId)
-    .single();
-  if (error && error.code !== 'PGRST116') {
-    console.error('[queries/store] getSubscription error:', error.message);
-  }
-  return data || null;
-}
+export const getSubscription = unstable_cache(
+  async (storeId: string): Promise<TenantSubscription | null> => {
+    const { data, error } = await supabaseAdmin
+      .from('tenant_subscriptions')
+      .select('*')
+      .eq('store_id', storeId)
+      .single();
+    if (error && error.code !== 'PGRST116') {
+      console.error('[queries/store] getSubscription error:', error.message);
+    }
+    return data || null;
+  },
+  ['store-subscription'],
+  { revalidate: 60, tags: ['billing'] }
+);
 
 /**
  * Fetches billing usage stats (product count + staff count) for a store.

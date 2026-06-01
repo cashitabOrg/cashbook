@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Search, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@teispace/next-themes";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 

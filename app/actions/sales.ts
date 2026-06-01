@@ -47,34 +47,10 @@ export async function deleteSaleItem(itemId: string) {
     }
 
     // 2. Stock refund is handled atomically by the DB trigger 'trg_master_sale_sync'.
-    // APPLICATION-LEVEL SAFETY NET: Also refund stock directly in case trigger is not active.
-    const { data: prodForDelete } = await supabaseAdmin
-      .from('products')
-      .select('quantity')
-      .eq('id', item.product_id)
-      .single();
+    // DO NOT add any application-level stock adjustment here — the trigger is the
+    // single source of truth. A duplicate app-level refund causes double-deduction.
 
-    if (prodForDelete) {
-      await supabaseAdmin
-        .from('products')
-        .update({ quantity: Number(prodForDelete.quantity) + Number(item.quantity) })
-        .eq('id', item.product_id);
-
-      // Also log the void movement manually as a fallback
-      await supabaseAdmin.from('inventory_movements').insert({
-        store_id: item.store_id,
-        product_id: item.product_id,
-        transaction_type: 'SALE_VOID',
-        quantity_before: Number(prodForDelete.quantity),
-        quantity_change: Number(item.quantity),
-        quantity_after: Number(prodForDelete.quantity) + Number(item.quantity),
-        reference_id: item.id,
-        note: `[APP] DELETED - Restored ${item.quantity} back to stock`,
-        actor_id: userRole.id
-      });
-    }
-
-    // 3. Fetch the session to deduct its revenue
+    // 3. Deduct this item's revenue from the session total
     if (item.session_id) {
        const { data: session } = await supabaseAdmin
          .from('sales_sessions')
@@ -100,7 +76,7 @@ export async function deleteSaleItem(itemId: string) {
       return { error: 'Failed to mark sale item as deleted in database.' };
     }
 
-    // 5. Invalidate the entire routing cache so all dashboards reflect the stock return and revenue drop
+    // 5. Invalidate sales-related pages so all dashboards reflect the change
     revalidatePath('/', 'layout');
 
     return { success: true };
@@ -162,37 +138,11 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
     // if new qty DECREASED, we sold less → stock goes UP (positive)
     const stockDiff = Number(item.quantity) - newQty; // inverse of qtyDiff: positive = refund, negative = more consumed
 
-    // APPLICATION-LEVEL SAFETY NET: Sync stock directly (reliable regardless of DB trigger state)
-    if (stockDiff !== 0) {
-      const { data: prodForEdit } = await supabaseAdmin
-        .from('products')
-        .select('quantity')
-        .eq('id', effectiveProductId)
-        .single();
+    // Stock adjustment is handled atomically by the DB trigger 'trg_master_sale_sync'.
+    // DO NOT add any application-level stock diff here — trigger is the single source
+    // of truth. A duplicate app-level adjustment causes double-deduction.
 
-      if (prodForEdit) {
-        const qtyBefore = Number(prodForEdit.quantity);
-        await supabaseAdmin
-          .from('products')
-          .update({ quantity: qtyBefore + stockDiff })
-          .eq('id', effectiveProductId);
-
-        // Log the edit movement
-        await supabaseAdmin.from('inventory_movements').insert({
-          store_id: item.store_id,
-          product_id: effectiveProductId,
-          transaction_type: 'SALE_EDIT',
-          quantity_before: qtyBefore,
-          quantity_change: stockDiff,
-          quantity_after: qtyBefore + stockDiff,
-          reference_id: item.id,
-          note: `[APP] EDITED - Qty changed from ${item.quantity} to ${newQty}`,
-          actor_id: userRole.id
-        });
-      }
-    }
-
-    // 3. Compute session revenue adjustment
+    // 3. Adjust session revenue by the difference
     if (revDiff !== 0 && item.session_id) {
        const { data: session } = await supabaseAdmin
          .from('sales_sessions')
@@ -234,7 +184,7 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
       return { error: 'Failed to save edits to database.' };
     }
 
-    // 5. Invalidate the entire routing cache
+    // 5. Invalidate sales-related pages so all dashboards reflect the change
     revalidatePath('/', 'layout');
 
     return { success: true };
@@ -281,6 +231,48 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
 
     if (updateError) {
       return { error: 'Failed to update approval status.' };
+    }
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function approveSession(sessionId: string, reason?: string): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const userRole = await requireRole(["admin", "super_admin"]);
+    
+    if (!sessionId) {
+      return { error: 'Session ID is required.' };
+    }
+
+    const { data: session, error: fetchError } = await supabaseAdmin
+      .from('sales_sessions')
+      .select('id, store_id, approval_status')
+      .eq('id', sessionId)
+      .single();
+
+    if (fetchError || !session) {
+      return { error: 'Sales session not found.' };
+    }
+
+    if (userRole.role !== 'super_admin' && session.store_id !== userRole.storeId) {
+      return { error: 'Unauthorized permission to approve this session.' };
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('sales_sessions')
+      .update({
+        approval_status: 'approved',
+        approved_by: userRole.id,
+        approval_reason: reason || null
+      })
+      .eq('id', sessionId);
+
+    if (updateError) {
+      return { error: 'Failed to update session approval status.' };
     }
 
     revalidatePath('/', 'layout');

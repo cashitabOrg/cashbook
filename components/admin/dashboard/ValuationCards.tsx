@@ -13,7 +13,6 @@ export default function ValuationCards({
   potentialProfit
 }: ValuationCardsProps) {
 
-  console.log(totalStockCost,totalRetailValue,potentialProfit)
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <Card className="flex items-center gap-4">

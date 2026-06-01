@@ -2,6 +2,7 @@ import AdminProductsClient from "@/components/admin/AdminProductsClient";
 import { requireRole } from "@/lib/auth";
 import { getProducts } from "@/lib/queries/products";
 import { getStoreMeta } from "@/lib/queries/store";
+import { getReportSalesData } from "@/lib/queries/sales";
 
 export const dynamic = "force-dynamic";
 
@@ -13,16 +14,20 @@ export default async function AdminProductsPage({
   const { storeSlug } = await params;
   const userRole = await requireRole(["admin", "super_admin"]);
 
-  // 1. Fetch store meta
-  const store = await getStoreMeta(userRole.storeId);
-
-  // 2. Fetch products exclusively for this store
-  const products = await getProducts(userRole.storeId);
+  // Fetch store details, catalog products, and daily sales reports in parallel
+  const [store, products, salesRes] = await Promise.all([
+    getStoreMeta(userRole.storeId),
+    getProducts(userRole.storeId),
+    getReportSalesData(userRole.storeId),
+  ]);
 
   return (
     <AdminProductsClient 
+      storeId={userRole.storeId}
+      storeName={store?.name || "Store"}
       storeSlug={storeSlug} 
       products={products || []} 
+      salesData={salesRes?.data || []}
       plan={store?.plan || 'free'}
       isExempt={store?.is_billing_exempt || false}
     />

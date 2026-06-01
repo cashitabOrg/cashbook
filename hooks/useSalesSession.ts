@@ -33,7 +33,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       .from('sale_items')
       .select('id, product_id, quantity, subtotal, created_at, products(name)')
       .order('created_at', { ascending: true })
-      .eq('session_id', sessionId);
+      .eq('session_id', sessionId)
+      .eq('is_deleted', false);
       
     if (data && !error) {
       // Find which of our local rows are still pending in the queue
@@ -289,6 +290,12 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     }
 
     setRows(prev => prev.filter(r => r.localId !== localId));
+
+    // If the row was already synced to Supabase (had a dbId), reconcile
+    // state with server truth to prevent ghost rows or stale data.
+    if (row.synced && row.dbId) {
+      refreshSession();
+    }
   };
 
   const uncommitRow = async (localId: string) => {
