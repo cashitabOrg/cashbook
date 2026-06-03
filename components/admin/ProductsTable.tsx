@@ -5,7 +5,7 @@ import ProductModal from "./ProductModal";
 import ProductDetailsDrawer from "./ProductDetailsDrawer";
 import { deleteProduct } from "@/app/actions/products";
 import { toast } from "sonner";
-import { Plus, Trash2, AlertTriangle, Archive } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Archive, ChevronDown, ChevronUp } from "lucide-react";
 
 type Product = {
   id: string;
@@ -32,6 +32,7 @@ export default function ProductsTable({
   
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleManageProduct = (product: Product) => {
     setActiveProduct(product);
@@ -93,7 +94,7 @@ export default function ProductsTable({
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow-sm dark:shadow-2xl ring-1 ring-gray-200 dark:ring-[#2C2C2E] sm:rounded-lg transition-colors">
+              <div className="hidden md:block overflow-hidden shadow-sm dark:shadow-2xl ring-1 ring-gray-200 dark:ring-[#2C2C2E] sm:rounded-lg transition-colors">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-[#2C2C2E]">
                   <thead className="bg-gray-50 dark:bg-[#252528]">
                     <tr>
@@ -175,8 +176,83 @@ export default function ProductsTable({
                   )}
                 </tbody>
               </table>
+              </div>
+              
+              {/* Mobile Cards View */}
+              <div className="md:hidden flex flex-col gap-3 mt-4">
+                {products.length === 0 ? (
+                  <div className="py-12 text-center border rounded-lg border-gray-200 dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
+                    <Archive className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-2" />
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">No products</h3>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Get started by adding your first product.</p>
+                  </div>
+                ) : (
+                  products.map((product) => {
+                    const isLowStock = product.quantity < product.min_quantity;
+                    const isExpanded = expandedId === product.id;
+
+                    return (
+                      <div key={product.id} className="flex flex-col bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-xl overflow-hidden shadow-sm">
+                        <div 
+                          onClick={() => setExpandedId(prev => prev === product.id ? null : product.id)}
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252528]/50 transition-colors"
+                        >
+                          <div className="flex flex-col gap-1.5">
+                            <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{product.name}</span>
+                            {isLowStock ? (
+                              <span className="inline-flex items-center w-fit rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-500 dark:text-red-400 ring-1 ring-inset ring-red-500/20">
+                                <AlertTriangle className="w-3 h-3 mr-1" />
+                                Low Stock
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center w-fit rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+                                Healthy
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="p-4 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30 flex flex-col gap-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Stock Level</span>
+                                <span className="text-sm font-mono font-bold text-gray-900 dark:text-gray-200">{Number(product.quantity || 0).toFixed(2)}</span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Unit</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{product.unit}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 mt-2">
+                              <button
+                                onClick={() => handleManageProduct(product)}
+                                className="w-full flex justify-center items-center gap-2 py-2.5 text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 dark:text-blue-400 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 rounded-lg transition-all active:scale-95 border border-blue-500/20"
+                              >
+                                Manage Stock
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDelete(product.id, product.name)}
+                                disabled={isDeleting === product.id}
+                                className="w-full flex justify-center items-center gap-2 py-2.5 text-xs font-black uppercase tracking-widest text-red-600 bg-red-500/10 hover:bg-red-500/20 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg transition-all active:scale-95 border border-red-500/20 disabled:opacity-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete Product
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </div>
         </div>
         </div>
       </div>

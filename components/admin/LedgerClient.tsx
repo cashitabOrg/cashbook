@@ -101,9 +101,9 @@ export default function LedgerClient({ transactions: initialTransactions, produc
             <p className="text-sm mt-2">No transactions match these filters.</p>
           </div>
         ) : (
-          <div className="w-full min-w-[1000px]">
+          <div className="w-full md:min-w-[1000px]">
             {/* Table Header Wrapper */}
-            <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-200 dark:border-[#2C2C2E] bg-gray-50/80 dark:bg-[#252528]/80 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10 transition-colors">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-200 dark:border-[#2C2C2E] bg-gray-50/80 dark:bg-[#252528]/80 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10 transition-colors">
               <div className="col-span-1 pl-2">S/N</div>
               <div className="col-span-2">Time Recorded</div>
               <div className="col-span-3">Item & Context</div>

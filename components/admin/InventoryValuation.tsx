@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, TrendingUp, History, Download, DollarSign, Package } from "lucide-react";
+import { Calculator, TrendingUp, History, Download, DollarSign, Package, ChevronDown, ChevronUp } from "lucide-react";
 import PriceHistoryModal from "./PriceHistoryModal";
 
 type Product = {
@@ -19,6 +19,7 @@ export default function InventoryValuation({
   products: Product[] 
 }) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const totalCostValue = products.reduce((acc, curr) => acc + (curr.quantity * (curr.cost_price || 0)), 0);
   const totalSellingValue = products.reduce((acc, curr) => acc + (curr.quantity * (curr.selling_price || 0)), 0);
@@ -71,7 +72,7 @@ export default function InventoryValuation({
                 Export Ledger
             </button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-[#2C2C2E]">
             <thead className="bg-gray-50 dark:bg-[#252528]">
               <tr>
@@ -127,6 +128,81 @@ export default function InventoryValuation({
                 </tr>
             </tfoot>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden flex flex-col divide-y divide-gray-200 dark:divide-[#2C2C2E]">
+          {products.map((product, idx) => {
+            const costVal = product.quantity * (product.cost_price || 0);
+            const sellVal = product.quantity * (product.selling_price || 0);
+            const isExpanded = expandedId === product.id;
+
+            return (
+              <div key={product.id} className="flex flex-col bg-white dark:bg-[#1C1C1E] hover:bg-gray-50 dark:hover:bg-[#252528]/50 transition-colors">
+                <div 
+                  onClick={() => setExpandedId(prev => prev === product.id ? null : product.id)}
+                  className="flex items-center justify-between p-4 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-400 font-mono font-bold bg-gray-50 dark:bg-[#252528] px-1.5 py-0.5 rounded border border-gray-200 dark:border-[#3A3A3C]">#{idx + 1}</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{product.name}</span>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">{Number(product.quantity || 0).toFixed(2)} {product.unit}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="px-4 pb-4 flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-[#252528]/30 p-3 rounded-xl border border-gray-100 dark:border-[#2C2C2E]">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Unit Cost</span>
+                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">₦{(product.cost_price || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5 text-amber-500">Total Cost</span>
+                        <span className="text-xs font-black font-mono text-amber-500 dark:text-amber-400">₦{costVal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Unit Selling</span>
+                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">₦{(product.selling_price || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5 text-blue-500">Total Selling</span>
+                        <span className="text-xs font-black font-mono text-blue-500 dark:text-blue-400">₦{sellVal.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setSelectedProductId(product.id)}
+                      className="w-full flex justify-center items-center gap-2 py-2 text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 rounded-lg transition-all active:scale-95 border border-blue-100 dark:border-blue-500/20"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      View Pricing History
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Mobile Footer for Grand Totals */}
+          <div className="bg-gray-50 dark:bg-[#252528] p-4 flex flex-col gap-2 border-t-2 border-gray-200 dark:border-[#2C2C2E]">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 text-center mb-1">Grand Totals</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col items-center justify-center p-2 bg-amber-50/50 dark:bg-amber-500/10 rounded-lg border border-amber-100/50 dark:border-amber-500/20">
+                <span className="text-[9px] text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider font-bold mb-0.5">Total Cost</span>
+                <span className="text-sm font-black font-mono text-amber-500 dark:text-amber-400">₦{totalCostValue.toFixed(2)}</span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-2 bg-blue-50/50 dark:bg-blue-500/10 rounded-lg border border-blue-100/50 dark:border-blue-500/20">
+                <span className="text-[9px] text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider font-bold mb-0.5">Total Selling</span>
+                <span className="text-sm font-black font-mono text-blue-500 dark:text-blue-400">₦{totalSellingValue.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

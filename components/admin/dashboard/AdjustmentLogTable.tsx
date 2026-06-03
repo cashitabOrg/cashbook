@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import {
   Table,
@@ -7,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { format } from "date-fns";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 type AdjustmentLogTableProps = {
   recentAdjustments?: any[];
@@ -15,6 +19,12 @@ type AdjustmentLogTableProps = {
 export default function AdjustmentLogTable({
   recentAdjustments,
 }: AdjustmentLogTableProps) {
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
+
+  const toggleExpand = (id: string | number) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <Card className="flex flex-col p-0 overflow-hidden">
       <CardHeader className="px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
@@ -26,7 +36,8 @@ export default function AdjustmentLogTable({
         </div>
       </CardHeader>
 
-      <div className="overflow-x-auto p-4">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto p-4">
         <Table>
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent">
@@ -83,6 +94,98 @@ export default function AdjustmentLogTable({
             )}
           </tbody>
         </Table>
+      </div>
+
+      {/* Mobile Cards View */}
+      <div className="md:hidden flex flex-col p-4 gap-3">
+        {!recentAdjustments || recentAdjustments.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 italic border rounded-lg border-gray-100 dark:border-[#2C2C2E]">
+            No recent adjustments found.
+          </div>
+        ) : (
+          recentAdjustments.map((adj, idx) => {
+            const isExpanded = expandedId === adj.id;
+            return (
+              <div
+                key={adj.id}
+                className="flex flex-col border border-gray-100 dark:border-[#2C2C2E] rounded-lg overflow-hidden bg-white dark:bg-[#1E1E20] shadow-sm transition-all"
+              >
+                {/* Card Header (Always Visible) */}
+                <div
+                  onClick={() => toggleExpand(adj.id)}
+                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252528]/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-400 font-mono italic">
+                      #{idx + 1}
+                    </span>
+                    <span className="font-semibold text-sm">
+                      {adj.products?.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-xs font-black ${adj.quantity_change < 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}
+                    >
+                      {adj.quantity_change < 0 ? "-" : "+"}
+                      {Math.abs(adj.quantity_change).toFixed(2)}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Card Body (Expanded Details) */}
+                {isExpanded && (
+                  <div className="p-3 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30">
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
+                          Time
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-300 text-xs">
+                          {format(new Date(adj.created_at), "MMM d, HH:mm")}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
+                          Admin
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-300 text-xs font-medium">
+                          {adj.users?.full_name || "Admin"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col col-span-2 sm:col-span-1">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
+                          Reason
+                        </span>
+                        <div className="mt-0.5">
+                          <span className="bg-gray-200 dark:bg-[#353538] text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded text-[10px] uppercase tracking-tighter font-bold">
+                            {adj.reason}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col col-span-2">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
+                          Notes
+                        </span>
+                        <span className="text-gray-500 text-xs italic break-words">
+                          {adj.note || "No notes provided."}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </Card>
   );
