@@ -83,8 +83,7 @@ export default function PublicPricingPage() {
       const handler = PaystackPop.setup({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         email: user.email || '',
-        amount: amount * 100, // kobo
-        plan: planCode,
+        ...(planCode ? { plan: planCode } : { amount: amount * 100 }),
         metadata: {
           storeId,
           planId,
@@ -189,6 +188,9 @@ export default function PublicPricingPage() {
               </span>
             </button>
           </div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-4">
+            ✨ Every plan includes a <span className="font-bold text-emerald-600">14-day free trial</span> — no credit card required.
+          </p>
         </div>
 
         {/* Pricing Cards Grid */}
@@ -246,7 +248,7 @@ export default function PublicPricingPage() {
               disabled={checkoutPlan !== null}
               className="w-full py-4 rounded-2xl bg-slate-100 hover:bg-[#0052FF] text-[#001A4D] hover:text-white font-extrabold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2"
             >
-              {checkoutPlan === 'starter' ? <Loader2 className="w-4 h-4 animate-spin" /> : "Subscribe Starter"}
+              {checkoutPlan === 'starter' ? <Loader2 className="w-4 h-4 animate-spin" /> : user ? 'Subscribe Starter' : 'Start Free Trial'}
             </button>
           </div>
 
@@ -297,7 +299,7 @@ export default function PublicPricingPage() {
               disabled={checkoutPlan !== null}
               className="w-full py-4 rounded-2xl bg-[#0052FF] hover:bg-blue-700 text-white font-extrabold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
             >
-              {checkoutPlan === 'growth' ? <Loader2 className="w-4 h-4 animate-spin" /> : "Subscribe Growth"}
+              {checkoutPlan === 'growth' ? <Loader2 className="w-4 h-4 animate-spin" /> : user ? 'Subscribe Growth' : 'Start Free Trial'}
             </button>
           </div>
 
@@ -349,7 +351,7 @@ export default function PublicPricingPage() {
               disabled={checkoutPlan !== null}
               className="w-full py-4 rounded-2xl bg-slate-100 hover:bg-[#0052FF] text-[#001A4D] hover:text-white font-extrabold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2"
             >
-              {checkoutPlan === 'business' ? <Loader2 className="w-4 h-4 animate-spin" /> : "Subscribe Business"}
+              {checkoutPlan === 'business' ? <Loader2 className="w-4 h-4 animate-spin" /> : user ? 'Subscribe Business' : 'Start Free Trial'}
             </button>
           </div>
 
@@ -389,12 +391,12 @@ export default function PublicPricingPage() {
               >
                 <Phone className="w-4 h-4" /> WhatsApp Us
               </a>
-              <Link
-                href="/contact"
+              <a
+                href="mailto:cashitab@gmail.com"
                 className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 border border-slate-700"
               >
                 <MessageSquare className="w-4 h-4" /> Contact Us
-              </Link>
+              </a>
             </div>
           </div>
 

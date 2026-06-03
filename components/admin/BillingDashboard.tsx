@@ -83,8 +83,7 @@ export default function BillingDashboard({
       const handler = PaystackPop.setup({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         email: userEmail,
-        amount: amount * 100, // kobo
-        plan: planCode,
+        ...(planCode ? { plan: planCode } : { amount: amount * 100 }),
         metadata: {
           storeId,
           planId,
@@ -284,12 +283,12 @@ export default function BillingDashboard({
               >
                 <Phone className="w-3.5 h-3.5" /> WhatsApp Us
               </a>
-              <Link
-                href="/contact"
+              <a
+                href="mailto:cashitab@gmail.com"
                 className="w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-750"
               >
                 <MessageSquare className="w-3.5 h-3.5" /> Contact Us
-              </Link>
+              </a>
             </div>
          </div>
       </div>

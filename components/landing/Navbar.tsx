@@ -26,25 +26,31 @@ export default function Navbar() {
           About
         </Link>
         <Link
+          href="/pricing"
+          className="text-sm font-semibold text-slate-600 hover:text-[#0052FF]"
+        >
+          Pricing
+        </Link>
+        <Link
           href="/contact"
           className="text-sm font-semibold text-slate-600 hover:text-[#0052FF]"
         >
           Contact
-        </Link>
-        <Link
-          href="#"
-          className="text-sm font-semibold text-slate-600 hover:text-[#0052FF]"
-        >
-          Blog
         </Link>
       </nav>
 
       <div className="flex items-center gap-4">
         <Link
           href="/login"
-          className="flex items-center gap-2 text-sm font-bold bg-[#DCEBFF] text-[#0052FF] px-6 py-2.5 rounded-full hover:bg-blue-100 transition-colors"
+          className="hidden sm:inline-flex text-sm font-semibold text-slate-600 hover:text-[#0052FF] transition-colors"
         >
-          Sign in <ArrowRight className="w-4 h-4" />
+          Sign in
+        </Link>
+        <Link
+          href="/register"
+          className="flex items-center gap-2 text-sm font-bold bg-[#0052FF] text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors shadow-md shadow-blue-500/20"
+        >
+          Get Started <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </header>
