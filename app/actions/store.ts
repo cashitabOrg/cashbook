@@ -22,6 +22,25 @@ export async function createStoreProfile(formData: FormData) {
     return { error: 'Unauthorized. Please log in again.' }
   }
 
+  // Check store creation limits
+  const { checkPlanLimit } = require("@/lib/planEnforcement");
+  const { data: userProfile } = await supabaseAdmin
+    .from('users')
+    .select('store_id')
+    .eq('email', user.email)
+    .not('store_id', 'is', null)
+    .limit(1);
+
+  if (userProfile && userProfile.length > 0) {
+    const existingStoreId = userProfile[0].store_id;
+    const limitCheck = await checkPlanLimit(existingStoreId, 'add_store', user.email);
+    if (!limitCheck.allowed) {
+      return {
+        error: `Upgrade required: You have reached your limit of ${limitCheck.limit} store(s) on your current plan. Please upgrade to the ${limitCheck.nextPlan?.toUpperCase()} plan (${limitCheck.nextPrice}) to add more stores.`
+      };
+    }
+  }
+
   // Check if store slug already exists - use admin client for consistent reads
   const { data: existingStore } = await supabaseAdmin
     .from('stores')

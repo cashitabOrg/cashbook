@@ -9,6 +9,8 @@ import StaffHeader from "./staff/StaffHeader";
 import StaffMobileList from "./staff/StaffMobileList";
 import StaffDesktopTable from "./staff/StaffDesktopTable";
 import StaffModal from "./StaffModal";
+import UpgradePromptModal from "./UpgradePromptModal";
+import { PlanType } from "@/lib/plans";
 
 type Staff = {
   id: string;
@@ -23,21 +25,31 @@ export default function StaffTable({
   staffList,
   plan,
   isExempt,
-  totalUserCount
+  totalUserCount,
+  storeId = "",
+  userEmail = "",
 }: {
   storeSlug: string;
   staffList: Staff[];
   plan: string;
   isExempt?: boolean;
   totalUserCount: number;
+  storeId?: string;
+  userEmail?: string;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [activeStaff, setActiveStaff] = useState<Staff | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const limits = getPlanLimits(plan);
+  // Normalize legacy plans
+  let activePlan = plan.toLowerCase() as PlanType;
+  if ((activePlan as string) === 'basic') activePlan = 'growth';
+  if ((activePlan as string) === 'pro') activePlan = 'business';
+
+  const limits = getPlanLimits(activePlan);
   const usagePercentage = Math.min(100, (totalUserCount / limits.maxStaff) * 100);
   const isNearLimit = usagePercentage >= 80;
   const isLimitReached = totalUserCount >= limits.maxStaff;
@@ -48,6 +60,10 @@ export default function StaffTable({
   };
 
   const handleAddNew = () => {
+    if (isLimitReached && !isExempt) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     setActiveStaff(null);
     setModalOpen(true);
   };
@@ -92,7 +108,7 @@ export default function StaffTable({
         usagePercentage={usagePercentage}
         isNearLimit={isNearLimit}
         isLimitReached={isLimitReached}
-        plan={plan}
+        plan={activePlan}
         isExempt={isExempt}
         handleAddNew={handleAddNew}
       />
@@ -126,6 +142,20 @@ export default function StaffTable({
         storeSlug={storeSlug}
         staff={activeStaff}
       />
+
+      {upgradeModalOpen && (
+        <UpgradePromptModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          title="Staff Limit Reached"
+          description={`Your current ${activePlan.toUpperCase()} plan limits you to a maximum of ${limits.maxStaff} staff accounts.`}
+          nextPlanName={activePlan === 'starter' ? 'growth' : 'business'}
+          nextPlanPrice={activePlan === 'starter' ? '₦15,000/mo' : '₦35,000/mo'}
+          storeSlug={storeSlug}
+          storeId={storeId}
+          userEmail={userEmail}
+        />
+      )}
     </>
   );
 }

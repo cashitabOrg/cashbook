@@ -19,6 +19,8 @@ interface SettingsClientProps {
     products: number;
     staff: number;
   };
+  storeId: string;
+  userEmail: string;
 }
 
 export default function SettingsClient({
@@ -29,7 +31,9 @@ export default function SettingsClient({
   totalUserCount,
   currentPlan,
   subscription,
-  usage
+  usage,
+  storeId,
+  userEmail
 }: SettingsClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -47,6 +51,7 @@ export default function SettingsClient({
   const handleTabChange = (newTab: "staff" | "billing") => {
     setActiveTab(newTab);
     const params = new URLSearchParams(window.location.search);
+    params.set(newTab, newTab); // wait, keep original routing
     params.set("tab", newTab);
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
@@ -90,6 +95,8 @@ export default function SettingsClient({
             plan={plan}
             isExempt={isExempt}
             totalUserCount={totalUserCount}
+            storeId={storeId}
+            userEmail={userEmail}
           />
         ) : (
           <BillingDashboard
@@ -97,6 +104,8 @@ export default function SettingsClient({
             currentPlan={currentPlan}
             subscription={subscription}
             usage={usage}
+            storeId={storeId}
+            userEmail={userEmail}
           />
         )}
       </div>

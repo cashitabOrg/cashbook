@@ -13,7 +13,7 @@
 
 // ─── CORE ENTITIES ───────────────────────────────────────────
 
-export type PlanType = 'free' | 'basic' | 'pro';
+export type PlanType = 'free' | 'starter' | 'growth' | 'business';
 
 export interface Store {
   id: string;

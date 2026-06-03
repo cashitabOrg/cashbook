@@ -37,11 +37,23 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Fetch subscription metadata
-  const subscription = await getSubscriptionData(store.id);
-  const expiryDate = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
-  const daysRemaining = expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-  const isExpired = daysRemaining !== null && daysRemaining < 0;
+  // Fetch subscription metadata using unified plan enforcement system
+  const { getStoreSubscriptionStatus } = require("@/lib/planEnforcement");
+  const subStatus = await getStoreSubscriptionStatus(store.id);
+  
+  if (subStatus.isExpired) {
+    const LockoutClient = require("@/components/admin/LockoutClient").default;
+    return (
+      <LockoutClient
+        storeName={store.name}
+        storeSlug={storeSlug}
+        storeId={store.id}
+        userEmail={userRole.email}
+        expiredPlan={subStatus.plan}
+        signOutAction={signOut}
+      />
+    );
+  }
 
   // Sidebar link items
   const navItems = [
@@ -49,6 +61,8 @@ export default async function AdminLayout({
     { name: "Products & Stock", href: `/${storeSlug}/admin/products`, icon: "PackageSearch" },
     { name: "Settings", href: `/${storeSlug}/admin/settings`, icon: "Settings" },
   ];
+
+  const TrialBanner = require("@/components/layout/TrialBanner").default;
 
   return (
     <div className="flex h-[100dvh] bg-white dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
@@ -79,10 +93,17 @@ export default async function AdminLayout({
         </div>
         
         <div className="flex-1 lg:p-0">
+          {subStatus.isTrial && (
+            <TrialBanner 
+              storeSlug={storeSlug} 
+              daysRemaining={subStatus.trialDaysLeft} 
+            />
+          )}
+          
           <BillingBanner 
             storeSlug={storeSlug}
             plan={store.plan}
-            daysRemaining={daysRemaining}
+            daysRemaining={subStatus.expiryDate ? Math.ceil((new Date(subStatus.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null}
             isExempt={store.is_billing_exempt}
           />
           {children}

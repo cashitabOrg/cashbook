@@ -30,24 +30,32 @@ export default function AdminProductsClient({
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<"manage" | "reports" | "valuation">("manage");
 
+  // Normalize plan name
+  let activePlan = plan.toLowerCase();
+  if (activePlan === 'basic') activePlan = 'growth';
+  if (activePlan === 'pro') activePlan = 'business';
+
+  const limits = getPlanLimits(activePlan);
+  const canExportReports = limits.features.exportReports;
+
   useEffect(() => {
-    if (tabParam === "reports") {
+    if (tabParam === "reports" && canExportReports) {
       setActiveTab("reports");
     } else if (tabParam === "valuation") {
       setActiveTab("valuation");
     } else {
       setActiveTab("manage");
     }
-  }, [tabParam]);
+  }, [tabParam, canExportReports]);
 
   const handleTabChange = (newTab: "manage" | "reports" | "valuation") => {
+    if (newTab === "reports" && !canExportReports) return;
     setActiveTab(newTab);
     const params = new URLSearchParams(window.location.search);
     params.set("tab", newTab);
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
 
-  const limits = getPlanLimits(plan);
   const usagePercentage = Math.min(100, (products.length / limits.maxProducts) * 100);
   const isNearLimit = usagePercentage >= 80;
   const isLimitReached = products.length >= limits.maxProducts;
@@ -68,17 +76,21 @@ export default function AdminProductsClient({
             <Settings2 className="w-3.5 h-3.5" />
             Inventory Grid
           </button>
-          <button
-            onClick={() => handleTabChange("reports")}
-            className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-              activeTab === "reports"
-                ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3A3A3C]/50"
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5" />
-            Daily Sales Reports
-          </button>
+          
+          {canExportReports && (
+            <button
+              onClick={() => handleTabChange("reports")}
+              className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                activeTab === "reports"
+                  ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3A3A3C]/50"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Daily Sales Reports
+            </button>
+          )}
+
           <button
             onClick={() => handleTabChange("valuation")}
             className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${

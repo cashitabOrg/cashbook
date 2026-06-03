@@ -41,6 +41,8 @@ export default async function AdminSettingsPage({
         currentPlan={billingData.store?.plan as PlanType || 'free'}
         subscription={billingData.subscription}
         usage={billingData.usage}
+        storeId={userRole.storeId}
+        userEmail={userRole.email}
       />
     </div>
   );

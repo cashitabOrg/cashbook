@@ -57,13 +57,27 @@ import { unstable_cache } from 'next/cache';
  */
 export const getClosedSessions = unstable_cache(
   async (storeId: string): Promise<RawSession[]> => {
+    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
+    const subStatus = await getStoreSubscriptionStatus(storeId);
+
+    let query = supabaseAdmin
+      .from('sales_sessions')
+      .select('total_revenue, started_at')
+      .eq('store_id', storeId)
+      .eq('status', 'closed');
+
+    if (subStatus.plan === 'starter') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 90);
+      query = query.gte('started_at', minDate.toISOString());
+    } else if (subStatus.plan === 'growth') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 180);
+      query = query.gte('started_at', minDate.toISOString());
+    }
+
     const { data, error } = await withRetry<RawSession[]>(
-      async () =>
-        await supabaseAdmin
-          .from('sales_sessions')
-          .select('total_revenue, started_at')
-          .eq('store_id', storeId)
-          .eq('status', 'closed'),
+      async () => await query,
       'getClosedSessions'
     );
     if (error) console.error('[queries/sales] getClosedSessions error:', error.message);
@@ -80,12 +94,26 @@ export const getClosedSessions = unstable_cache(
  */
 export const getSaleItemsForAnalytics = unstable_cache(
   async (storeId: string): Promise<RawSaleItem[]> => {
+    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
+    const subStatus = await getStoreSubscriptionStatus(storeId);
+
+    let query = supabaseAdmin
+      .from('sale_items')
+      .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
+      .eq('store_id', storeId);
+
+    if (subStatus.plan === 'starter') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 90);
+      query = query.gte('created_at', minDate.toISOString());
+    } else if (subStatus.plan === 'growth') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 180);
+      query = query.gte('created_at', minDate.toISOString());
+    }
+
     const { data, error } = await withRetry<any[]>(
-      async () =>
-        await supabaseAdmin
-          .from('sale_items')
-          .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
-          .eq('store_id', storeId),
+      async () => await query,
       'getSaleItemsForAnalytics'
     );
     if (error) console.error('[queries/sales] getSaleItemsForAnalytics error:', error.message);
@@ -111,30 +139,44 @@ export const getReportSalesData = unstable_cache(
     data: ReportSaleRow[];
     error: string | null;
   }> => {
+    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
+    const subStatus = await getStoreSubscriptionStatus(storeId);
+
+    let query = supabaseAdmin
+      .from('sale_items')
+      .select(`
+        id,
+        quantity,
+        subtotal,
+        unit_price,
+        unit_cost,
+        created_at,
+        is_deleted,
+        products (name),
+        sales_sessions!inner (
+          id,
+          started_at,
+          status,
+          approval_status,
+          users!manager_id (full_name)
+        )
+      `)
+      .eq('store_id', storeId)
+      .eq('sales_sessions.status', 'closed')
+      .order('created_at', { ascending: true });
+
+    if (subStatus.plan === 'starter') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 90);
+      query = query.gte('created_at', minDate.toISOString());
+    } else if (subStatus.plan === 'growth') {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 180);
+      query = query.gte('created_at', minDate.toISOString());
+    }
+
     const { data: salesRaw, error } = await withRetry<any[]>(
-      async () =>
-        await supabaseAdmin
-          .from('sale_items')
-          .select(`
-            id,
-            quantity,
-            subtotal,
-            unit_price,
-            unit_cost,
-            created_at,
-            is_deleted,
-            products (name),
-            sales_sessions!inner (
-              id,
-              started_at,
-              status,
-              approval_status,
-              users!manager_id (full_name)
-            )
-          `)
-          .eq('store_id', storeId)
-          .eq('sales_sessions.status', 'closed')
-          .order('created_at', { ascending: true }),
+      async () => await query,
       'getReportSalesData'
     );
 
@@ -190,15 +232,29 @@ export async function getManagerHistory(
   error: string | null;
 }> {
   // 1. Fetch closed sessions for this manager
+  const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
+  const subStatus = await getStoreSubscriptionStatus(storeId);
+
+  let query = supabaseAdmin
+    .from('sales_sessions')
+    .select('id, started_at, ended_at, total_revenue, status, approval_status')
+    .eq('store_id', storeId)
+    .eq('manager_id', managerId)
+    .eq('status', 'closed')
+    .order('started_at', { ascending: false });
+
+  if (subStatus.plan === 'starter') {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() - 90);
+    query = query.gte('started_at', minDate.toISOString());
+  } else if (subStatus.plan === 'growth') {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() - 180);
+    query = query.gte('started_at', minDate.toISOString());
+  }
+
   const { data: sessions, error: sessionsError } = await withRetry<any[]>(
-    async () =>
-      await supabaseAdmin
-        .from('sales_sessions')
-        .select('id, started_at, ended_at, total_revenue, status, approval_status')
-        .eq('store_id', storeId)
-        .eq('manager_id', managerId)
-        .eq('status', 'closed')
-        .order('started_at', { ascending: false }),
+    async () => await query,
     'getManagerHistory:sessions'
   );
 

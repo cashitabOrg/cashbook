@@ -15,24 +15,13 @@ export async function createManager(storeSlug: string, formData: FormData) {
   const subStatus = await checkActiveSubscription(userRole.storeId);
   if (!subStatus.active) return { error: subStatus.error };
 
-  // 1. Get current store plan and user count
-  const { data: storeData } = await adminClient
-    .from("stores")
-    .select("plan, is_billing_exempt")
-    .eq("id", userRole.storeId)
-    .single();
-
-  const { count: userCount } = await adminClient
-    .from("users")
-    .select("*", { count: 'exact', head: true })
-    .eq("store_id", userRole.storeId);
-
-  const limits = getPlanLimits(storeData?.plan);
-
-  // Skip capacity check if exempt from billing
-  if (!storeData?.is_billing_exempt && userCount !== null && userCount >= limits.maxStaff) {
-    return { 
-      error: `Upgrade required: The '${storeData?.plan?.toUpperCase()}' tier only allows up to ${limits.maxStaff} staff members. You currently have ${userCount}.` 
+  // 1. Get current store plan limits
+  const { checkPlanLimit } = require("@/lib/planEnforcement");
+  const limitCheck = await checkPlanLimit(userRole.storeId, 'add_staff');
+  
+  if (!limitCheck.allowed) {
+    return {
+      error: `Upgrade required: The active plan limit of ${limitCheck.limit} staff members has been reached. Please upgrade to the ${limitCheck.nextPlan?.toUpperCase()} plan (${limitCheck.nextPrice}) to add more staff.`
     };
   }
 
