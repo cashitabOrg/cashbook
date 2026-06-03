@@ -20,6 +20,7 @@ import {
   DailyHistoryGroup,
   ProductOption,
 } from '@/lib/types';
+import { getStoreSubscriptionStatus } from '@/lib/planEnforcement';
 
 /** Retry helper for transient network errors */
 async function withRetry<T>(
@@ -57,7 +58,6 @@ import { unstable_cache } from 'next/cache';
  */
 export const getClosedSessions = unstable_cache(
   async (storeId: string): Promise<RawSession[]> => {
-    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
     let query = supabaseAdmin
@@ -94,7 +94,6 @@ export const getClosedSessions = unstable_cache(
  */
 export const getSaleItemsForAnalytics = unstable_cache(
   async (storeId: string): Promise<RawSaleItem[]> => {
-    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
     let query = supabaseAdmin
@@ -139,7 +138,6 @@ export const getReportSalesData = unstable_cache(
     data: ReportSaleRow[];
     error: string | null;
   }> => {
-    const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
     let query = supabaseAdmin
@@ -232,7 +230,6 @@ export async function getManagerHistory(
   error: string | null;
 }> {
   // 1. Fetch closed sessions for this manager
-  const { getStoreSubscriptionStatus } = require('@/lib/planEnforcement');
   const subStatus = await getStoreSubscriptionStatus(storeId);
 
   let query = supabaseAdmin

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { checkPlanLimit } from '@/lib/planEnforcement'
 
 export async function createStoreProfile(formData: FormData) {
   const storeName = formData.get('storeName') as string
@@ -23,7 +24,6 @@ export async function createStoreProfile(formData: FormData) {
   }
 
   // Check store creation limits
-  const { checkPlanLimit } = require("@/lib/planEnforcement");
   const { data: userProfile } = await supabaseAdmin
     .from('users')
     .select('store_id')

@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getPlanLimits } from "@/lib/plans";
 import { checkActiveSubscription } from "./billing";
+import { checkPlanLimit } from "@/lib/planEnforcement";
 
 export async function createManager(storeSlug: string, formData: FormData) {
   const userRole = await requireRole(["admin", "super_admin"]);
@@ -16,7 +17,6 @@ export async function createManager(storeSlug: string, formData: FormData) {
   if (!subStatus.active) return { error: subStatus.error };
 
   // 1. Get current store plan limits
-  const { checkPlanLimit } = require("@/lib/planEnforcement");
   const limitCheck = await checkPlanLimit(userRole.storeId, 'add_staff');
   
   if (!limitCheck.allowed) {

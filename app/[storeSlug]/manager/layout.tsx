@@ -8,6 +8,9 @@ import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import BillingBanner from "@/components/layout/BillingBanner";
 import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
 import { getSubscriptionData } from "@/app/actions/billing";
+import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
+import LockoutClient from "@/components/admin/LockoutClient";
+import TrialBanner from "@/components/layout/TrialBanner";
 
 export default async function ManagerLayout({
   children,
@@ -38,11 +41,9 @@ export default async function ManagerLayout({
   }
 
   // Fetch subscription metadata using unified plan enforcement system
-  const { getStoreSubscriptionStatus } = require("@/lib/planEnforcement");
   const subStatus = await getStoreSubscriptionStatus(store.id);
   
   if (subStatus.isExpired) {
-    const LockoutClient = require("@/components/admin/LockoutClient").default;
     return (
       <LockoutClient
         storeName={store.name}
@@ -60,8 +61,6 @@ export default async function ManagerLayout({
     { name: "Sales Point", href: `/${storeSlug}/manager/sales`, icon: "ShoppingCart" },
     { name: "History", href: `/${storeSlug}/manager/history`, icon: "History" },
   ];
-
-  const TrialBanner = require("@/components/layout/TrialBanner").default;
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">

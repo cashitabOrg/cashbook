@@ -53,8 +53,7 @@ export default function LockoutClient({
       const handler = PaystackPop.setup({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         email: userEmail,
-        amount: amount * 100, // kobo
-        plan: planCode,
+        ...(planCode ? { plan: planCode } : { amount: amount * 100 }),
         metadata: {
           storeId,
           planId: selectedPlan,

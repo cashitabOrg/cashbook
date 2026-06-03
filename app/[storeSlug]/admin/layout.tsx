@@ -9,6 +9,9 @@ import BillingBanner from "@/components/layout/BillingBanner";
 import Header from "@/components/layout/Header";
 import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
 import { getSubscriptionData } from "@/app/actions/billing";
+import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
+import LockoutClient from "@/components/admin/LockoutClient";
+import TrialBanner from "@/components/layout/TrialBanner";
 
 export default async function AdminLayout({
   children,
@@ -38,11 +41,9 @@ export default async function AdminLayout({
   }
 
   // Fetch subscription metadata using unified plan enforcement system
-  const { getStoreSubscriptionStatus } = require("@/lib/planEnforcement");
   const subStatus = await getStoreSubscriptionStatus(store.id);
   
   if (subStatus.isExpired) {
-    const LockoutClient = require("@/components/admin/LockoutClient").default;
     return (
       <LockoutClient
         storeName={store.name}
@@ -61,8 +62,6 @@ export default async function AdminLayout({
     { name: "Products & Stock", href: `/${storeSlug}/admin/products`, icon: "PackageSearch" },
     { name: "Settings", href: `/${storeSlug}/admin/settings`, icon: "Settings" },
   ];
-
-  const TrialBanner = require("@/components/layout/TrialBanner").default;
 
   return (
     <div className="flex h-[100dvh] bg-white dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
