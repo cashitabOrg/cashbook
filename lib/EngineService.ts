@@ -9,7 +9,8 @@ class EngineService {
     const { data: products, error } = await this.supabase
       .from('products')
       .select('id, store_id, name, unit, quantity, min_quantity')
-      .eq('store_id', storeId);
+      .eq('store_id', storeId)
+      .eq('is_archived', false);
 
     if (error) {
       console.error('Failed to fetch products for hydration', error);

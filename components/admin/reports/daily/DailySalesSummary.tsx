@@ -11,15 +11,13 @@ type DailySalesSummaryProps = {
   };
   isExpanded: boolean;
   onToggle: (date: string) => void;
-  variance: number;
 };
 
 export default function DailySalesSummary({
   dateStr,
   data,
   isExpanded,
-  onToggle,
-  variance
+  onToggle
 }: DailySalesSummaryProps) {
   return (
     <button
@@ -44,12 +42,6 @@ export default function DailySalesSummary({
         </div>
       </div>
       <div className="flex items-center gap-6 md:gap-10">
-        <div className="hidden md:block text-right">
-          <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">Variance (Audit)</p>
-          <p className={`text-sm font-black ${variance < -1 ? 'text-rose-600' : 'text-emerald-600'}`}>
-            { variance < -1 ? `₦${variance.toFixed(2)}` : 'MATCH' }
-          </p>
-        </div>
         <div className="md:block text-right">
           <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">Total Revenue</p>
           <p className="text-sm font-black text-emerald-600">₦{data.revenue.toFixed(2)}</p>

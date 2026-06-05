@@ -5,6 +5,7 @@ const PRECACHE_ASSETS = [
   '/',
   '/favicon.ico',
   '/Logo_cashitab.png',
+  '/logo-icon.png',
 ];
 
 self.addEventListener('install', (event) => {

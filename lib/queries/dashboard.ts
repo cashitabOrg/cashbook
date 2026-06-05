@@ -128,6 +128,7 @@ export async function getManagerDashboardData(storeId: string): Promise<ManagerD
       .from('products')
       .select('id, name, quantity, min_quantity')
       .eq('store_id', storeId)
+      .eq('is_archived', false)
       .order('name')
       .then(({ data, error }) => {
         if (error) console.error('[queries/dashboard] manager products error:', error.message);

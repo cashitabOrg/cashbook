@@ -8,6 +8,7 @@ import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import BillingBanner from "@/components/layout/BillingBanner";
 import Header from "@/components/layout/Header";
 import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
+import InstallAppButton from "@/components/landing/InstallAppButton";
 import { getSubscriptionData } from "@/app/actions/billing";
 import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
 import LockoutClient from "@/components/admin/LockoutClient";
@@ -60,6 +61,7 @@ export default async function AdminLayout({
   const navItems = [
     { name: "Dashboard", href: `/${storeSlug}/admin/dashboard`, icon: "LayoutDashboard" },
     { name: "Products & Stock", href: `/${storeSlug}/admin/products`, icon: "PackageSearch" },
+    { name: "Reports", href: `/${storeSlug}/admin/reports`, icon: "FileText" },
     { name: "Settings", href: `/${storeSlug}/admin/settings`, icon: "Settings" },
   ];
 
@@ -82,6 +84,7 @@ export default async function AdminLayout({
         <div className="md:hidden h-14 bg-gray-50 dark:bg-[#111111] border-b border-gray-200 dark:border-[#2C2C2E] flex items-center px-4 justify-between shrink-0">
            <span className="font-semibold truncate">{store.name} - Admin</span>
            <div className="flex items-center gap-1">
+             <InstallAppButton variant="mobile-header" />
              <MobileThemeToggle />
              <form action={signOut}>
               <button type="submit" className="text-gray-500 hover:text-red-500 p-2">

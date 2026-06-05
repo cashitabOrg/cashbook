@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 import { toast } from "sonner";
 import DailySalesRow from "./DailySalesRow";
 import ReportsHeader from "./reports/ReportsHeader";
+import { getPlanLimits } from "@/lib/plans";
 
 type SessionGroup = {
   id: string;
@@ -76,6 +77,13 @@ export default function ReportsClient({
   const [sales, setSales] = useState<SaleRecord[]>(salesData);
   const [approvingDate, setApprovingDate] = useState<string | null>(null);
   const [isPreparingExport, setIsPreparingExport] = useState(false);
+  
+  // Normalize plan and calculate export capability
+  let activePlan = plan.toLowerCase();
+  if (activePlan === 'basic') activePlan = 'growth';
+  if (activePlan === 'pro') activePlan = 'business';
+  const limits = getPlanLimits(activePlan);
+  const canExportReports = limits.features.exportReports || isBillingExempt;
   
   useEffect(() => {
     setIsClient(true);
@@ -331,6 +339,7 @@ export default function ReportsClient({
         totalSalesRevenue={totalSalesRevenue}
         totalSalesProfit={totalSalesProfit}
         performanceArray={performanceArray}
+        canExportReports={canExportReports}
       />
 
       <div className="flex-1 overflow-auto">

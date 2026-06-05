@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { 
   CheckCircle2, 
-  Zap, 
   ShieldCheck, 
   Rocket, 
   Star, 
-  Calendar, 
   AlertCircle,
   Crown,
   Loader2,
@@ -15,23 +13,9 @@ import {
   MessageSquare
 } from "lucide-react";
 import { PLAN_LIMITS, PlanType, getPlanLimits, getPaystackPlanCode } from "@/lib/plans";
+import { openPaystack } from "@/lib/paystack";
 import { toast } from "sonner";
 import Link from "next/link";
-
-// Dynamic script loader for Paystack Inline JS
-const loadPaystack = (): Promise<any> => {
-  return new Promise((resolve) => {
-    if ((window as any).PaystackPop) {
-      resolve((window as any).PaystackPop);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => resolve((window as any).PaystackPop);
-    document.body.appendChild(script);
-  });
-};
 
 interface BillingDashboardProps {
   storeSlug: string;
@@ -78,30 +62,20 @@ export default function BillingDashboard({
       const amount = cycle === 'monthly' ? planLimits.priceMonthly : planLimits.priceAnnual;
       const planCode = getPaystackPlanCode(planId, cycle);
 
-      // Load Paystack Pop
-      const PaystackPop = await loadPaystack();
-      const handler = PaystackPop.setup({
+      await openPaystack({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         email: userEmail,
         ...(planCode ? { plan: planCode } : { amount: amount * 100 }),
-        metadata: {
-          storeId,
-          planId,
-          cycle,
-          userId: userEmail, // metadata uses email or id
-        },
-        callback: function (response: any) {
+        metadata: { storeId, planId, cycle, userId: userEmail },
+        onSuccess: (_transaction) => {
           toast.success("Payment successful! Activating subscription...");
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          setTimeout(() => window.location.reload(), 1500);
         },
-        onClose: function () {
+        onCancel: () => {
           toast.info("Checkout closed.");
           setCheckoutPlan(null);
         },
       });
-      handler.openIframe();
     } catch (err: any) {
       toast.error(err?.message || "Failed to initialize payment.");
       setCheckoutPlan(null);

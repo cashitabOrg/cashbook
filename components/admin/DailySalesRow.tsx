@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState, memo } from "react";
+import { useMemo, memo } from "react";
 import { ShieldBan, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import DailySalesSummary from "./reports/daily/DailySalesSummary";
 import DailySalesPerformance from "./reports/daily/DailySalesPerformance";
-import DailySalesIntelTable from "./reports/daily/DailySalesIntelTable";
 import DailySalesLogsTable from "./reports/daily/DailySalesLogsTable";
 
 interface SaleRecord {
@@ -96,9 +95,6 @@ const DailySalesRow = memo(function DailySalesRow({
     return { sortedIntel, sortedPerf };
   }, [isExpanded, data.items]);
 
-  const [activeSubTab, setActiveSubTab] = useState<"logs" | "intel">("logs");
-
-  const variance = data.revenue - data.expectedRevenue;
   const sessionsList = data.sessions ? Object.values(data.sessions) : [];
 
   return (
@@ -108,7 +104,6 @@ const DailySalesRow = memo(function DailySalesRow({
         data={data}
         isExpanded={isExpanded}
         onToggle={onToggle}
-        variance={variance}
       />
 
       {isExpanded && (
@@ -192,38 +187,7 @@ const DailySalesRow = memo(function DailySalesRow({
 
           <DailySalesPerformance sortedPerf={intelligence.sortedPerf} />
 
-          {/* Tab Switcher */}
-          <div className="flex bg-gray-100 dark:bg-[#2C2C2E] p-1 rounded-xl mb-4 w-fit border border-gray-200 dark:border-[#3A3A3C]">
-            <button
-              onClick={() => setActiveSubTab("logs")}
-              className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                activeSubTab === "logs" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              }`}
-            >
-              Sales Logs
-            </button>
-            <button
-              onClick={() => {
-                if (plan === 'free' && !isExempt) {
-                  toast.error("Upgrade to Basic or Pro to unlock Sales Intelligence.");
-                  return;
-                }
-                setActiveSubTab("intel");
-              }}
-              className={`px-4 py-1.5 text-[10px] font-bold rounded-lg transition-all relative ${
-                activeSubTab === "intel" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              }`}
-            >
-              Sales Intelligence
-              {plan === 'free' && !isExempt && <ShieldBan className="w-2.5 h-2.5 text-amber-500 absolute top-0 right-1" />}
-            </button>
-          </div>
-
-          {activeSubTab === "intel" ? (
-             <DailySalesIntelTable sortedIntel={intelligence.sortedIntel} />
-          ) : (
-             <DailySalesLogsTable items={data.items} />
-          )}
+          <DailySalesLogsTable items={data.items} />
         </div>
       )}
     </div>

@@ -53,8 +53,9 @@ export const getProducts = unstable_cache(
       async () =>
         await supabaseAdmin
           .from('products')
-          .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, created_at')
+          .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, is_archived, created_at')
           .eq('store_id', storeId)
+          .eq('is_archived', false)
           .order('name'),
       'getProducts'
     );
@@ -74,8 +75,9 @@ export async function getProductsForSalesPoint(storeId: string): Promise<Product
     async () =>
       await supabaseAdmin
         .from('products')
-        .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, created_at')
+        .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, is_archived, created_at')
         .eq('store_id', storeId)
+        .eq('is_archived', false)
         .order('name'),
     'getProductsForSalesPoint'
   );
@@ -93,6 +95,7 @@ export async function getProductOptions(storeId: string): Promise<ProductOption[
         .from('products')
         .select('id, name')
         .eq('store_id', storeId)
+        .eq('is_archived', false)
         .order('name'),
     'getProductOptions'
   );
@@ -116,7 +119,7 @@ export async function getProductById(productId: string, storeId: string): Promis
 }
 
 /**
- * Returns the total product count for a store.
+ * Returns the total active (non-archived) product count for a store.
  * Used by billing/plan limit checks.
  */
 export const getProductCount = unstable_cache(
@@ -124,7 +127,8 @@ export const getProductCount = unstable_cache(
     const { count, error } = await supabaseAdmin
       .from('products')
       .select('*', { count: 'exact', head: true })
-      .eq('store_id', storeId);
+      .eq('store_id', storeId)
+      .eq('is_archived', false);
     if (error) console.error('[queries/products] getProductCount error:', error.message);
     return count || 0;
   },

@@ -1,6 +1,13 @@
 import { Search, Calendar, Filter, RotateCcw, Download } from "lucide-react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import SalesReportPDF from "../SalesReportPDF";
+import dynamic from "next/dynamic";
+import { toast } from "sonner";
+
+// Dynamically import the PDF button with SSR disabled.
+// @react-pdf/renderer uses browser-only canvas APIs (frame.join etc.) that crash on the server.
+const PDFExportButton = dynamic(
+  () => import("./PDFExportButton"),
+  { ssr: false, loading: () => <span className="text-xs text-gray-400 animate-pulse">Loading PDF...</span> }
+);
 
 type ReportsHeaderProps = {
   searchQuery: string;
@@ -22,6 +29,7 @@ type ReportsHeaderProps = {
   totalSalesRevenue: number;
   totalSalesProfit: number;
   performanceArray: any[];
+  canExportReports: boolean;
 };
 
 export default function ReportsHeader({
@@ -43,7 +51,8 @@ export default function ReportsHeader({
   totalSalesQty,
   totalSalesRevenue,
   totalSalesProfit,
-  performanceArray
+  performanceArray,
+  canExportReports,
 }: ReportsHeaderProps) {
   return (
     <div className="bg-gray-50 dark:bg-[#1C1C1E] border-b border-gray-200 dark:border-[#2C2C2E] px-4 lg:px-6 py-4 shrink-0 transition-colors">
@@ -106,31 +115,29 @@ export default function ReportsHeader({
             <>
               {!isPreparingExport ? (
                 <button 
-                  onClick={() => setIsPreparingExport(true)}
+                  onClick={() => {
+                    if (!canExportReports) {
+                      toast.error("Upgrade to Basic or Pro to unlock PDF exporting.");
+                      return;
+                    }
+                    setIsPreparingExport(true);
+                  }}
                   className="bg-white dark:bg-[#252528] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-[#3A3A3C] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] transition-colors shadow-sm"
                 >
                   <Download className="w-3.5 h-3.5 text-blue-500" /> EXPORT PDF
                 </button>
               ) : (
-                <PDFDownloadLink
-                  document={
-                    <SalesReportPDF
-                      storeName={storeName}
-                      period={`${startDate} to ${endDate}`}
-                      data={filteredSales}
-                      totalQty={totalSalesQty}
-                      totalRevenue={totalSalesRevenue}
-                      totalProfit={totalSalesProfit}
-                      performanceSummary={performanceArray}
-                    />
-                  }
-                  fileName={`sales-report.pdf`}
-                  className="bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 animate-pulse"
-                  onClick={() => setTimeout(() => setIsPreparingExport(false), 2000)}
-                >
-                  {/* @ts-ignore */}
-                  {({ loading }) => loading ? "GENERATING..." : <><Download className="w-3 h-3" /> READY! DOWNLOAD</>}
-                </PDFDownloadLink>
+                <PDFExportButton
+                  storeName={storeName}
+                  startDate={startDate}
+                  endDate={endDate}
+                  filteredSales={filteredSales}
+                  totalSalesQty={totalSalesQty}
+                  totalSalesRevenue={totalSalesRevenue}
+                  totalSalesProfit={totalSalesProfit}
+                  performanceArray={performanceArray}
+                  onDownloaded={() => setIsPreparingExport(false)}
+                />
               )}
             </>
           )}

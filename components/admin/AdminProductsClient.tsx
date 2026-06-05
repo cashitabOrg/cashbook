@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProductsTable from "./ProductsTable";
 import InventoryValuation from "./InventoryValuation";
-import ReportsClient from "./ReportsClient";
-import { Archive, BarChart3, Settings2, Zap, FileText } from "lucide-react";
+import { Archive, BarChart3, Settings2, Zap } from "lucide-react";
 import { getPlanLimits } from "@/lib/plans";
 
 export default function AdminProductsClient({ 
@@ -13,7 +12,6 @@ export default function AdminProductsClient({
   storeName,
   storeSlug, 
   products,
-  salesData,
   plan,
   isExempt = false
 }: { 
@@ -21,14 +19,13 @@ export default function AdminProductsClient({
   storeName: string;
   storeSlug: string; 
   products: any[];
-  salesData: any[];
   plan: string;
   isExempt?: boolean;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"manage" | "reports" | "valuation">("manage");
+  const [activeTab, setActiveTab] = useState<"manage" | "valuation">("manage");
 
   // Normalize plan name
   let activePlan = plan.toLowerCase();
@@ -36,20 +33,16 @@ export default function AdminProductsClient({
   if (activePlan === 'pro') activePlan = 'business';
 
   const limits = getPlanLimits(activePlan);
-  const canExportReports = limits.features.exportReports;
 
   useEffect(() => {
-    if (tabParam === "reports" && canExportReports) {
-      setActiveTab("reports");
-    } else if (tabParam === "valuation") {
+    if (tabParam === "valuation") {
       setActiveTab("valuation");
     } else {
       setActiveTab("manage");
     }
-  }, [tabParam, canExportReports]);
+  }, [tabParam]);
 
-  const handleTabChange = (newTab: "manage" | "reports" | "valuation") => {
-    if (newTab === "reports" && !canExportReports) return;
+  const handleTabChange = (newTab: "manage" | "valuation") => {
     setActiveTab(newTab);
     const params = new URLSearchParams(window.location.search);
     params.set("tab", newTab);
@@ -76,20 +69,6 @@ export default function AdminProductsClient({
             <Settings2 className="w-3.5 h-3.5" />
             Inventory Grid
           </button>
-          
-          {canExportReports && (
-            <button
-              onClick={() => handleTabChange("reports")}
-              className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                activeTab === "reports"
-                  ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3A3A3C]/50"
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              Daily Sales Reports
-            </button>
-          )}
 
           <button
             onClick={() => handleTabChange("valuation")}
@@ -136,14 +115,6 @@ export default function AdminProductsClient({
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         {activeTab === "manage" ? (
           <ProductsTable storeSlug={storeSlug} products={products} isLimitReached={isLimitReached} />
-        ) : activeTab === "reports" ? (
-          <ReportsClient 
-            storeId={storeId}
-            storeName={storeName}
-            plan={plan}
-            isBillingExempt={isExempt}
-            salesData={salesData}
-          />
         ) : (
           <InventoryValuation products={products} />
         )}

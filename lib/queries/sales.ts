@@ -13,6 +13,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { format, parseISO } from 'date-fns';
 import { toLagosDateString } from '@/lib/date-utils';
+import { unstable_cache } from 'next/cache';
 import {
   RawSession,
   RawSaleItem,
@@ -50,7 +51,6 @@ async function withRetry<T>(
 
 // ─── QUERIES ─────────────────────────────────────────────────
 
-import { unstable_cache } from 'next/cache';
 
 /**
  * Fetches closed sessions for revenue analytics.
@@ -64,7 +64,9 @@ export const getClosedSessions = unstable_cache(
       .from('sales_sessions')
       .select('total_revenue, started_at')
       .eq('store_id', storeId)
-      .eq('status', 'closed');
+      .eq('status', 'closed')
+      .order('started_at', { ascending: false })
+      .limit(500);
 
     if (subStatus.plan === 'starter') {
       const minDate = new Date();
@@ -99,7 +101,9 @@ export const getSaleItemsForAnalytics = unstable_cache(
     let query = supabaseAdmin
       .from('sale_items')
       .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
-      .eq('store_id', storeId);
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+      .limit(1000);
 
     if (subStatus.plan === 'starter') {
       const minDate = new Date();
@@ -129,15 +133,10 @@ export const getSaleItemsForAnalytics = unstable_cache(
   { revalidate: 30, tags: ['sales'] }
 );
 
-/**
- * Fetches fully-joined sales data for the reports page.
- * Returns normalized, de-duplicated ReportSaleRow[].
- */
-export const getReportSalesData = unstable_cache(
-  async (storeId: string): Promise<{
-    data: ReportSaleRow[];
-    error: string | null;
-  }> => {
+export async function getReportSalesData(storeId: string): Promise<{
+  data: ReportSaleRow[];
+  error: string | null;
+}> {
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
     let query = supabaseAdmin
@@ -161,7 +160,8 @@ export const getReportSalesData = unstable_cache(
       `)
       .eq('store_id', storeId)
       .eq('sales_sessions.status', 'closed')
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(500);
 
     if (subStatus.plan === 'starter') {
       const minDate = new Date();
@@ -212,10 +212,7 @@ export const getReportSalesData = unstable_cache(
     });
 
     return { data: salesData, error: null };
-  },
-  ['report-sales-data'],
-  { revalidate: 60, tags: ['sales'] }
-);
+}
 
 /**
  * Fetches a manager's closed sessions grouped by day.
@@ -271,7 +268,8 @@ export async function getManagerHistory(
       await supabaseAdmin
         .from('sale_items')
         .select('id, session_id, product_id, quantity, subtotal, created_at, is_deleted, products(name)')
-        .in('session_id', sessionIds),
+        .in('session_id', sessionIds)
+        .limit(500),
     'getManagerHistory:saleItems'
   );
 
@@ -282,6 +280,7 @@ export async function getManagerHistory(
         .from('products')
         .select('id, name')
         .eq('store_id', storeId)
+        .eq('is_archived', false)
         .order('name', { ascending: true }),
     'getManagerHistory:products'
   );
@@ -375,7 +374,9 @@ export async function getSessionDates(storeId: string): Promise<string[]> {
   const { data, error } = await supabaseAdmin
     .from('sales_sessions')
     .select('started_at')
-    .eq('store_id', storeId);
+    .eq('store_id', storeId)
+    .order('started_at', { ascending: false })
+    .limit(90);
 
   if (error) {
     console.error('[queries/sales] getSessionDates error:', error.message);

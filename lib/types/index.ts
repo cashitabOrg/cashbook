@@ -45,6 +45,7 @@ export interface Product {
   min_quantity: number;
   cost_price: number;
   selling_price: number;
+  is_archived: boolean;
   created_at: string;
 }
 

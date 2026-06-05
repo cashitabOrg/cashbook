@@ -4,21 +4,7 @@ import { useState } from "react";
 import { Lock, CreditCard, LogOut, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PLAN_LIMITS, getPaystackPlanCode, PlanType } from "@/lib/plans";
-
-// Dynamic script loader for Paystack Inline JS
-const loadPaystack = (): Promise<any> => {
-  return new Promise((resolve) => {
-    if ((window as any).PaystackPop) {
-      resolve((window as any).PaystackPop);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => resolve((window as any).PaystackPop);
-    document.body.appendChild(script);
-  });
-};
+import { openPaystack } from "@/lib/paystack";
 
 interface LockoutClientProps {
   storeName: string;
@@ -49,28 +35,20 @@ export default function LockoutClient({
       const amount = planLimits.priceMonthly;
       const planCode = getPaystackPlanCode(selectedPlan, 'monthly');
 
-      const PaystackPop = await loadPaystack();
-      const handler = PaystackPop.setup({
+      await openPaystack({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         email: userEmail,
         ...(planCode ? { plan: planCode } : { amount: amount * 100 }),
-        metadata: {
-          storeId,
-          planId: selectedPlan,
-          cycle: 'monthly',
-        },
-        callback: function (response: any) {
+        metadata: { storeId, planId: selectedPlan, cycle: 'monthly' },
+        onSuccess: (_transaction) => {
           toast.success("Payment successful! Access unlocked.");
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          setTimeout(() => window.location.reload(), 1500);
         },
-        onClose: function () {
+        onCancel: () => {
           toast.info("Payment closed.");
           setLoading(false);
         },
       });
-      handler.openIframe();
     } catch (err: any) {
       toast.error(err?.message || "Failed to initialize payment.");
       setLoading(false);

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTheme } from "@teispace/next-themes";
+import InstallAppButton from "@/components/landing/InstallAppButton";
 import {
   LogOut,
   LayoutDashboard,
@@ -129,6 +130,9 @@ export default function UnifiedSidebar({
 
         {/* Footer: Theme Toggle + Profile + Logout */}
         <div className="mt-auto border-t border-gray-200 dark:border-[#2C2C2E] py-4 px-2 flex flex-col gap-1">
+
+          {/* PWA Install Button */}
+          <InstallAppButton variant="sidebar" expanded={expanded} />
 
           {/* 1. Theme Toggle */}
           {mounted && (

@@ -45,7 +45,7 @@ export default function ProductsTable({
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete ${name}? This cannot be undone.`)) {
+    if (!confirm(`Archive "${name}"? It will be hidden from all active lists but its sales history and audit trail will be fully preserved.`)) {
       return;
     }
     
@@ -57,7 +57,7 @@ export default function ProductsTable({
     if (res?.error) {
       toast.error(res.error);
     } else {
-      toast.success("Product deleted successfully");
+      toast.success(`"${name}" has been archived.`);
     }
     setIsDeleting(null);
   };
@@ -241,8 +241,8 @@ export default function ProductsTable({
                                 disabled={isDeleting === product.id}
                                 className="w-full flex justify-center items-center gap-2 py-2.5 text-xs font-black uppercase tracking-widest text-red-600 bg-red-500/10 hover:bg-red-500/20 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg transition-all active:scale-95 border border-red-500/20 disabled:opacity-50"
                               >
-                                <Trash2 className="w-4 h-4" />
-                                Delete Product
+                                <Archive className="w-4 h-4" />
+                                Archive Product
                               </button>
                             </div>
                           </div>

@@ -127,6 +127,7 @@ export async function getLedgerData(storeSlug: string): Promise<{
       .from('products')
       .select('id, name')
       .eq('store_id', store.id)
+      .eq('is_archived', false)
       .order('name', { ascending: true }),
 
     supabaseAdmin
@@ -138,7 +139,7 @@ export async function getLedgerData(storeSlug: string): Promise<{
       `)
       .eq('store_id', store.id)
       .order('created_at', { ascending: false })
-      .limit(1500),
+      .limit(250),
   ]);
 
   if (transactionsRes.error) {

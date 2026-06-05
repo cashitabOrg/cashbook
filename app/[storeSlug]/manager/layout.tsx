@@ -7,6 +7,7 @@ import UnifiedSidebar from "@/components/layout/UnifiedSidebar";
 import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import BillingBanner from "@/components/layout/BillingBanner";
 import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
+import InstallAppButton from "@/components/landing/InstallAppButton";
 import { getSubscriptionData } from "@/app/actions/billing";
 import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
 import LockoutClient from "@/components/admin/LockoutClient";
@@ -78,6 +79,7 @@ export default async function ManagerLayout({
         <div className="md:hidden h-14 shrink-0 bg-gray-50 dark:bg-[#111111] border-b border-gray-200 dark:border-[#2C2C2E] flex items-center px-4 text-gray-900 dark:text-white justify-between">
            <span className="font-semibold truncate">{store.name} - POS</span>
            <div className="flex items-center gap-1">
+             <InstallAppButton variant="mobile-header" />
              <MobileThemeToggle />
              <form action={signOut}>
               <button type="submit" className="text-gray-500 hover:text-red-500 p-2">

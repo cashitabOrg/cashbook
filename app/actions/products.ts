@@ -32,7 +32,8 @@ export async function addProduct(storeSlug: string, formData: FormData) {
   const { count: productCount } = await supabaseAdmin
     .from("products")
     .select("*", { count: 'exact', head: true })
-    .eq("store_id", userRole.storeId);
+    .eq("store_id", userRole.storeId)
+    .eq("is_archived", false);
 
   const limits = getPlanLimits(storeData?.plan);
 
@@ -130,9 +131,12 @@ export async function deleteProduct(storeSlug: string, formData: FormData) {
 
   const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
 
+  // Soft-archive: set is_archived=true instead of hard DELETE.
+  // This preserves all sale_items, inventory_movements, and audit history
+  // that reference this product — the FK constraint is never violated.
   const { error } = await supabase
     .from("products")
-    .delete()
+    .update({ is_archived: true })
     .eq("id", id)
     .eq("store_id", userRole.storeId);
 
