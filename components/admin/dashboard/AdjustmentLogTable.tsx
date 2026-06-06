@@ -66,7 +66,7 @@ export default function AdjustmentLogTable({
                   <TableCell className="text-[10px] text-gray-400 font-mono italic">
                     {idx + 1}
                   </TableCell>
-                  <TableCell className="text-xs text-gray-500">
+                  <TableCell className="text-xs text-gray-500" suppressHydrationWarning>
                     {format(new Date(adj.created_at), "MMM d, HH:mm")}
                   </TableCell>
                   <TableCell className="font-semibold">
@@ -146,7 +146,7 @@ export default function AdjustmentLogTable({
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
                           Time
                         </span>
-                        <span className="text-gray-600 dark:text-gray-300 text-xs">
+                        <span className="text-gray-600 dark:text-gray-300 text-xs" suppressHydrationWarning>
                           {format(new Date(adj.created_at), "MMM d, HH:mm")}
                         </span>
                       </div>
