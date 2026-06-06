@@ -141,8 +141,8 @@ export default function AdjustmentLogTable({
                 {/* Card Body (Expanded Details) */}
                 {isExpanded && (
                   <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30 space-y-1.5">
-                    {/* Row 1: Time, Reason, Staff inline with nice spacing */}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                    {/* Row 1: Time, Reason, Staff justified to fill the card width */}
+                    <div className="flex items-center justify-between w-full text-xs gap-2">
                       <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
                         <span className="font-bold text-gray-900 dark:text-gray-100">Time:</span>{" "}
                         <span className="font-mono text-gray-700 dark:text-gray-300" suppressHydrationWarning>{format(new Date(adj.created_at), "MMM d, HH:mm")}</span>
@@ -153,7 +153,7 @@ export default function AdjustmentLogTable({
                           {adj.reason}
                         </span>
                       </span>
-                      <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                      <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap text-right">
                         <span className="font-bold text-gray-900 dark:text-gray-100">Staff:</span>{" "}
                         <span className="text-gray-700 dark:text-gray-300">{adj.users?.full_name || "Admin"}</span>
                       </span>
