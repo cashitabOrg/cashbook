@@ -102,6 +102,7 @@ export default async function ManagerLayout({
             plan={store.plan}
             daysRemaining={subStatus.expiryDate ? Math.ceil((new Date(subStatus.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null}
             isExempt={store.is_billing_exempt}
+            isTrial={subStatus.isTrial}
           />
           {children}
         </div>

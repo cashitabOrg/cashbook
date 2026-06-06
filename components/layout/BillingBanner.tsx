@@ -9,6 +9,7 @@ interface BillingBannerProps {
   plan: string;
   daysRemaining: number | null;
   isExempt?: boolean;
+  isTrial?: boolean;
 }
 
 export default function BillingBanner({
@@ -16,6 +17,7 @@ export default function BillingBanner({
   plan,
   daysRemaining,
   isExempt,
+  isTrial,
 }: BillingBannerProps) {
   const pathname = usePathname();
 
@@ -51,6 +53,10 @@ export default function BillingBanner({
   const isExpiringSoon =
     daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 3;
   const isFree = plan === "free";
+
+  // When on the free plan during an active trial, TrialBanner already shows.
+  // Don't stack a second "Kiosk Mode" banner on top of it.
+  if (isFree && isTrial) return null;
 
   if (!isExpired && !isExpiringSoon && !isFree) return null;
 
