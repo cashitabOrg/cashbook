@@ -247,6 +247,18 @@ export default function AdminDashboardClient({
     return products.filter(p => p.name.toLowerCase().includes(lowerQuery));
   }, [products, searchQuery]);
 
+  // Stock Adjustment Table Search Filter
+  const filteredAdjustments = useMemo(() => {
+    if (!recentAdjustments) return [];
+    if (!searchQuery) return recentAdjustments;
+    const lowerQuery = searchQuery.toLowerCase();
+    return recentAdjustments.filter(adj => 
+      adj.products?.name?.toLowerCase().includes(lowerQuery) ||
+      adj.reason?.toLowerCase().includes(lowerQuery) ||
+      (adj.users?.full_name || "Admin").toLowerCase().includes(lowerQuery)
+    );
+  }, [recentAdjustments, searchQuery]);
+
   const lowStockCount = products.filter((p) => p.quantity < p.min_quantity).length;
   const totalStockCost = products.reduce((acc, curr) => acc + (curr.quantity * (curr.cost_price || 0)), 0);
   const totalRetailValue = products.reduce((acc, curr) => acc + (curr.quantity * (curr.selling_price || 0)), 0);
@@ -322,7 +334,7 @@ export default function AdminDashboardClient({
             />
           </div>
 
-          <AdjustmentLogTable recentAdjustments={recentAdjustments} />
+           <AdjustmentLogTable recentAdjustments={filteredAdjustments} />
         </div>
       ) : (
         <div className="px-2 lg:px-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
