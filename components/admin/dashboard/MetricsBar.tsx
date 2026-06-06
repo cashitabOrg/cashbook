@@ -62,7 +62,44 @@ export default function MetricsBar({
   const fmt = (n: number) =>
     "₦" + n.toLocaleString(undefined, { minimumFractionDigits: 0 });
 
-  const isToday = startDate === endDate;
+  const getRangeLabel = () => {
+    if (!startDate || !endDate) return "Range";
+    
+    // Normalize to date objects at midnight local time to avoid timezone shifts
+    const parseLocalDate = (dateStr: string) => {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    };
+
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
+    
+    const today = new Date();
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      if (start.getTime() === t.getTime()) {
+        return "Today";
+      }
+      const yesterday = new Date(t);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (start.getTime() === yesterday.getTime()) {
+        return "Yesterday";
+      }
+      return "1 Day";
+    }
+
+    if (diffDays === 7) return "7 Days";
+    if (diffDays === 30 || diffDays === 31) return "Month";
+    if (diffDays >= 89 && diffDays <= 93) return "3 Months";
+    if (diffDays >= 178 && diffDays <= 186) return "6 Months";
+    if (diffDays >= 364 && diffDays <= 366) return "1 Year";
+
+    return `${diffDays + 1} Days`;
+  };
 
   return (
     <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide lg:grid lg:grid-cols-6 lg:overflow-visible pb-1 lg:pb-0">
@@ -70,7 +107,7 @@ export default function MetricsBar({
       <MetricCard
         icon={<DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />}
         iconBg="bg-blue-100 dark:bg-blue-500/10"
-        label={`Revenue (${isToday ? "Today" : "Range"})`}
+        label={`Revenue (${getRangeLabel()})`}
         value={fmt(totalRevenue)}
       />
 
