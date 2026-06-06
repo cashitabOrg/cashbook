@@ -13,11 +13,10 @@ import {
 import ExpandTableModal from "@/components/shared/ExpandTableModal";
 import { getPlanLimits } from "@/lib/plans";
 import DashboardHeader from "./dashboard/DashboardHeader";
-import SummaryCards from "./dashboard/SummaryCards";
+import MetricsBar from "./dashboard/MetricsBar";
 import PerformanceTable from "./dashboard/PerformanceTable";
 import InventoryMonitorTable from "./dashboard/InventoryMonitorTable";
 import AdjustmentLogTable from "./dashboard/AdjustmentLogTable";
-import ValuationCards from "./dashboard/ValuationCards";
 import LedgerClient from "./LedgerClient";
 
 type Product = {
@@ -280,12 +279,15 @@ export default function AdminDashboardClient({
       
       {activeTab === "overview" ? (
         <div className="px-2 lg:px-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <SummaryCards 
+          <MetricsBar
             totalRevenue={metrics.totalRevenue}
             startDate={startDate}
             endDate={endDate}
             productsCount={products.length}
             lowStockCount={lowStockCount}
+            totalStockCost={totalStockCost}
+            totalRetailValue={totalRetailValue}
+            potentialProfit={potentialProfit}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -296,18 +298,6 @@ export default function AdminDashboardClient({
             <InventoryMonitorTable 
               filteredInventory={filteredInventory}
               onExpand={() => setIsStockOpen(true)}
-            />
-          </div>
-
-          {/* Inventory Valuation Snapshot - static values independent of date range */}
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3 px-1">
-              Inventory Snapshot
-            </p>
-            <ValuationCards 
-              totalStockCost={totalStockCost}
-              totalRetailValue={totalRetailValue}
-              potentialProfit={potentialProfit}
             />
           </div>
 
