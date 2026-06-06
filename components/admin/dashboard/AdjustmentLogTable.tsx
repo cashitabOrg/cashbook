@@ -27,17 +27,17 @@ export default function AdjustmentLogTable({
 
   return (
     <Card className="flex flex-col p-0 overflow-hidden">
-      <CardHeader className="px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
+      <CardHeader className="px-3 py-3 md:px-6 md:py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
         <div>
           <CardTitle>Stock Adjustment Log</CardTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
             Most recent inventory corrections and spoilage logs.
           </p>
         </div>
       </CardHeader>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto p-4">
+      <div className="hidden md:block overflow-x-auto p-2 md:p-4">
         <Table>
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent">
@@ -97,7 +97,7 @@ export default function AdjustmentLogTable({
       </div>
 
       {/* Mobile Cards View */}
-      <div className="md:hidden flex flex-col p-4 gap-3">
+      <div className="md:hidden flex flex-col p-2 gap-2">
         {!recentAdjustments || recentAdjustments.length === 0 ? (
           <div className="py-12 text-center text-gray-500 italic border rounded-lg border-gray-100 dark:border-[#2C2C2E]">
             No recent adjustments found.
@@ -113,7 +113,7 @@ export default function AdjustmentLogTable({
                 {/* Card Header (Always Visible) */}
                 <div
                   onClick={() => toggleExpand(adj.id)}
-                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252528]/50"
+                  className="flex items-center justify-between p-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252528]/50"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] text-gray-400 font-mono italic">
@@ -140,8 +140,8 @@ export default function AdjustmentLogTable({
 
                 {/* Card Body (Expanded Details) */}
                 {isExpanded && (
-                  <div className="p-3 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30">
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                  <div className="p-2.5 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30">
+                    <div className="grid grid-cols-2 gap-y-2.5 gap-x-3 text-xs">
                       <div className="flex flex-col">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">
                           Time

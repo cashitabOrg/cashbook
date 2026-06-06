@@ -28,10 +28,10 @@ export default function InventoryMonitorTable({
 }: InventoryMonitorTableProps) {
   return (
     <Card className="flex flex-col h-[450px] p-0 overflow-hidden">
-      <CardHeader className="px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
+      <CardHeader className="px-3 py-3 md:px-6 md:py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
         <div>
           <CardTitle>Monitor stock</CardTitle>
-          <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+          <span className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-gray-400">
             Live Status
           </span>
         </div>
@@ -52,11 +52,11 @@ export default function InventoryMonitorTable({
         </div>
       </CardHeader>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto p-2 md:p-4">
         <Table>
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent">
-              <TableHead className="w-12">SN</TableHead>
+              <TableHead className="w-8 sm:w-12">SN</TableHead>
               <TableHead>Product</TableHead>
               <TableHead className="text-right">Stock</TableHead>
               <TableHead className="text-center">Health</TableHead>

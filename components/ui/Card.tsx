@@ -5,9 +5,10 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Card({ children, className = "", ...props }: CardProps) {
+  const hasPadding = className.includes("p-") || className.includes("px-") || className.includes("py-");
   return (
     <div 
-      className={`bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl p-6 shadow-sm ${className}`} 
+      className={`bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl ${hasPadding ? "" : "p-6"} shadow-sm ${className}`} 
       {...props}
     >
       {children}

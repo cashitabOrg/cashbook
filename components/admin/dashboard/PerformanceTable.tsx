@@ -24,10 +24,10 @@ export default function PerformanceTable({
 }: PerformanceTableProps) {
   return (
     <Card className="flex flex-col h-[450px] p-0 overflow-hidden">
-      <CardHeader className="px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
+      <CardHeader className="px-3 py-3 md:px-6 md:py-4 border-b border-gray-100 dark:border-[#2C2C2E] flex flex-row justify-between items-center mb-0 bg-gray-50 dark:bg-[#252528]/50">
         <div>
           <CardTitle>My Sales</CardTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
             Sales breakdown for selected range.
           </p>
         </div>
@@ -43,11 +43,11 @@ export default function PerformanceTable({
         </div>
       </CardHeader>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto p-2 md:p-4">
         <Table>
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent">
-              <TableHead className="w-12">SN</TableHead>
+              <TableHead className="w-8 sm:w-12">SN</TableHead>
               <TableHead>Product Name</TableHead>
               <TableHead className="text-right">Units Sold</TableHead>
               <TableHead className="text-right">Revenue</TableHead>
