@@ -140,31 +140,30 @@ export default function AdjustmentLogTable({
 
                 {/* Card Body (Expanded Details) */}
                 {isExpanded && (
-                  <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30 space-y-2">
-                    {/* Row 1: Time + Admin */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Time</span>
-                        <span className="text-[11px] text-gray-600 dark:text-gray-300 font-mono" suppressHydrationWarning>
-                          {format(new Date(adj.created_at), "MMM d, HH:mm")}
+                  <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30 space-y-1.5">
+                    {/* Row 1: Time · Reason · Staff — all inline */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Time:</span>{" "}
+                        <span className="font-mono" suppressHydrationWarning>{format(new Date(adj.created_at), "MMM d, HH:mm")}</span>
+                      </span>
+                      <span className="text-gray-300 dark:text-gray-600 select-none">·</span>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Reason:</span>{" "}
+                        <span className="bg-gray-200 dark:bg-[#353538] text-gray-700 dark:text-gray-200 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold">
+                          {adj.reason}
                         </span>
-                      </div>
-                      <div className="flex flex-col min-w-0 text-right">
-                        <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Admin</span>
-                        <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium truncate">
-                          {adj.users?.full_name || "Admin"}
-                        </span>
-                      </div>
+                      </span>
+                      <span className="text-gray-300 dark:text-gray-600 select-none">·</span>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Staff:</span>{" "}
+                        <span className="font-medium">{adj.users?.full_name || "Admin"}</span>
+                      </span>
                     </div>
-
-                    {/* Row 2: Reason badge + Notes inline */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="bg-gray-200 dark:bg-[#353538] text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold shrink-0">
-                        {adj.reason}
-                      </span>
-                      <span className="text-[11px] text-gray-400 italic truncate flex-1 min-w-0">
-                        {adj.note || "No notes."}
-                      </span>
+                    {/* Row 2: Note */}
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                      <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Note:</span>{" "}
+                      <span className="italic">{adj.note || "No notes provided."}</span>
                     </div>
                   </div>
                 )}
