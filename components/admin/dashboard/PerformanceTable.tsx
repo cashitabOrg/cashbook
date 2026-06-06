@@ -43,7 +43,7 @@ export default function PerformanceTable({
         </div>
       </CardHeader>
 
-      <div className="flex-1 overflow-auto p-2 md:p-4">
+      <div className="flex-1 overflow-auto p-2 md:p-4 scrollbar-hide md:custom-scrollbar">
         <Table>
           <TableHeader>
             <TableRow className="border-none hover:bg-transparent">

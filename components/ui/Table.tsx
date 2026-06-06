@@ -2,7 +2,7 @@ import React from "react";
 
 export function Table({ children, className = "", ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto scrollbar-hide md:custom-scrollbar">
       <table className={`w-full text-left border-collapse ${className}`} {...props}>
         {children}
       </table>
