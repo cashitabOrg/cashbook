@@ -287,7 +287,7 @@ export default function AdminDashboardClient({
         <div className="flex gap-6 -mb-px">
           <button
             onClick={() => handleTabChange("overview")}
-            className={`py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === "overview"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -298,7 +298,7 @@ export default function AdminDashboardClient({
           </button>
           <button
             onClick={() => handleTabChange("ledger")}
-            className={`py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === "ledger"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
