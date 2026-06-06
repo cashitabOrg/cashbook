@@ -92,10 +92,24 @@ export default function AdminDashboardClient({
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
   
-  // Filtering State - Default to Last 7 Days
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
+  // Filtering State - Default to Today
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [searchQuery, setSearchQuery] = useState("");
+
+  const getActivePreset = () => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+    
+    if (startDate === today && endDate === today) return "today";
+    if (startDate === yesterday && endDate === yesterday) return "yesterday";
+    if (startDate === format(subDays(new Date(), 7), "yyyy-MM-dd") && endDate === today) return "7d";
+    if (startDate === format(subMonths(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1m";
+    if (startDate === format(subMonths(new Date(), 3), "yyyy-MM-dd") && endDate === today) return "3m";
+    if (startDate === format(subMonths(new Date(), 6), "yyyy-MM-dd") && endDate === today) return "6m";
+    if (startDate === format(subYears(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1y";
+    return ""; // Custom or un-mapped range
+  };
 
   const getDatePreset = (range: string) => {
     const today = new Date();
@@ -247,6 +261,7 @@ export default function AdminDashboardClient({
         endDate={endDate}
         setEndDate={setEndDate}
         applyPreset={applyPreset}
+        activePreset={getActivePreset()}
       />
 
       {/* Premium Tab Switcher */}

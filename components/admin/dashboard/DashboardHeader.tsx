@@ -9,6 +9,7 @@ type DashboardHeaderProps = {
   endDate: string;
   setEndDate: (val: string) => void;
   applyPreset: (range: string) => void;
+  activePreset: string;
 };
 
 export default function DashboardHeader({
@@ -19,7 +20,8 @@ export default function DashboardHeader({
   setStartDate,
   endDate,
   setEndDate,
-  applyPreset
+  applyPreset,
+  activePreset
 }: DashboardHeaderProps) {
   return (
     <div className="bg-white dark:bg-[#1C1C1E] lg:border border-gray-200 dark:border-[#2C2C2E] lg:rounded-2xl px-4 lg:px-6 py-4 shadow-sm relative overflow-hidden mb-2">
@@ -48,16 +50,18 @@ export default function DashboardHeader({
           <div className="relative shrink-0">
              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-500 pointer-events-none" />
              <select
+               value={activePreset}
                onChange={(e) => applyPreset(e.target.value)}
                className="bg-gray-50 dark:bg-[#252528] border border-gray-200 dark:border-[#2C2C2E] text-gray-900 dark:text-white text-[10px] font-bold rounded-xl pl-8 pr-8 py-1.5 outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-blue-400 transition-all"
              >
-               <option value="7d">Last 7 Days</option>
                <option value="today">Today</option>
                <option value="yesterday">Yesterday</option>
+               <option value="7d">Last 7 Days</option>
                <option value="1m">Last Month</option>
                <option value="3m">3 Months</option>
                <option value="6m">6 Months</option>
                <option value="1y">1 Year</option>
+               <option value="">Custom</option>
              </select>
              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-500 pointer-events-none" />
           </div>
