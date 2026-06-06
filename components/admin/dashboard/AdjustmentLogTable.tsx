@@ -141,29 +141,27 @@ export default function AdjustmentLogTable({
                 {/* Card Body (Expanded Details) */}
                 {isExpanded && (
                   <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#2C2C2E] bg-gray-50 dark:bg-[#252528]/30 space-y-1.5">
-                    {/* Row 1: Time · Reason · Staff — all inline */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Time:</span>{" "}
-                        <span className="font-mono" suppressHydrationWarning>{format(new Date(adj.created_at), "MMM d, HH:mm")}</span>
+                    {/* Row 1: Time, Reason, Staff inline with nice spacing */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                      <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                        <span className="font-bold text-gray-900 dark:text-gray-100">Time:</span>{" "}
+                        <span className="font-mono text-gray-700 dark:text-gray-300" suppressHydrationWarning>{format(new Date(adj.created_at), "MMM d, HH:mm")}</span>
                       </span>
-                      <span className="text-gray-300 dark:text-gray-600 select-none">·</span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Reason:</span>{" "}
-                        <span className="bg-gray-200 dark:bg-[#353538] text-gray-700 dark:text-gray-200 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold">
+                      <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                        <span className="font-bold text-gray-900 dark:text-gray-100">Reason:</span>{" "}
+                        <span className="bg-gray-200 dark:bg-[#353538] text-gray-700 dark:text-gray-200 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold">
                           {adj.reason}
                         </span>
                       </span>
-                      <span className="text-gray-300 dark:text-gray-600 select-none">·</span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                        <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Staff:</span>{" "}
-                        <span className="font-medium">{adj.users?.full_name || "Admin"}</span>
+                      <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                        <span className="font-bold text-gray-900 dark:text-gray-100">Staff:</span>{" "}
+                        <span className="text-gray-700 dark:text-gray-300">{adj.users?.full_name || "Admin"}</span>
                       </span>
                     </div>
                     {/* Row 2: Note */}
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400">
-                      <span className="font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Note:</span>{" "}
-                      <span className="italic">{adj.note || "No notes provided."}</span>
+                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-bold text-gray-900 dark:text-gray-100">Note:</span>{" "}
+                      <span className="italic text-gray-600 dark:text-gray-400">{adj.note || "No notes provided."}</span>
                     </div>
                   </div>
                 )}
