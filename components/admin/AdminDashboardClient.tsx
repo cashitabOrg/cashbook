@@ -92,12 +92,18 @@ export default function AdminDashboardClient({
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
   
-  // Filtering State - Default to Today
-  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  // Filtering State - Default to Today (initialized on mount to avoid timezone/hydration mismatch)
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    setStartDate(format(new Date(), "yyyy-MM-dd"));
+    setEndDate(format(new Date(), "yyyy-MM-dd"));
+  }, []);
+
   const getActivePreset = () => {
+    if (!startDate || !endDate) return "today";
     const today = format(new Date(), "yyyy-MM-dd");
     const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
     
