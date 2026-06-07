@@ -1,4 +1,5 @@
 import { ShoppingCart } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type CorrectionHeaderProps = {
   targetDate: string;
@@ -48,7 +49,7 @@ export default function CorrectionHeader({
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Session Revenue</p>
-            <p className="text-xl lg:text-2xl font-black text-purple-600">₦{totalRevenue.toFixed(2)}</p>
+            <p className="text-xl lg:text-2xl font-black text-purple-600">{formatCurrency(totalRevenue)}</p>
           </div>
         </div>
         

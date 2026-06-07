@@ -113,7 +113,7 @@ export default async function AdminLayout({
         </div>
       </main>
 
-      <MobileFooterNav navItems={navItems} accentColor="text-[#00A9B0]" />
+      <MobileFooterNav navItems={navItems} accentColor="text-[#0052FF]" />
     </div>
   );
 }

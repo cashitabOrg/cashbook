@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Search, Calendar, ChevronDown, RotateCcw } from "lucide-react";
 
 type DashboardHeaderProps = {
   title: string;
   searchQuery: string;
   setSearchQuery: (val: string) => void;
-  products: any[];
   startDate: string;
   setStartDate: (val: string) => void;
   endDate: string;
@@ -20,7 +19,6 @@ export default function DashboardHeader({
   title,
   searchQuery,
   setSearchQuery,
-  products,
   startDate,
   setStartDate,
   endDate,
@@ -31,27 +29,6 @@ export default function DashboardHeader({
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [tempStartDate, setTempStartDate] = useState(startDate);
   const [tempEndDate, setTempEndDate] = useState(endDate);
-  
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const suggestions = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const lower = searchQuery.toLowerCase();
-    return (products || [])
-      .filter((p) => p.name?.toLowerCase().includes(lower))
-      .slice(0, 5);
-  }, [products, searchQuery]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleSelectChange = (value: string) => {
     if (value === "") {
@@ -67,58 +44,17 @@ export default function DashboardHeader({
     <div className="bg-white dark:bg-[#1C1C1E] lg:border border-gray-200 dark:border-[#2C2C2E] lg:rounded-2xl px-4 lg:px-6 py-3.5 shadow-sm relative overflow-hidden mb-2">
       <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
       
-      <div className="relative z-10 flex flex-row flex-wrap items-center justify-between gap-3 w-full">
+      <div className="relative z-20 flex flex-row flex-wrap items-center justify-between gap-3 w-full">
         {/* Search Box */}
-        <div ref={containerRef} className="relative flex-1 min-w-[200px] max-w-xs md:max-w-sm group">
+        <div className="relative flex-1 min-w-[200px] max-w-xs md:max-w-sm group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 transition-colors" />
           <input
             type="text"
             placeholder="Search catalog, history, or notes..."
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-gray-50 dark:bg-[#252528] border border-gray-200 dark:border-[#2C2C2E] rounded-xl pl-9 pr-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-1 focus:ring-blue-400 transition-all outline-none font-medium"
           />
-
-          {/* Autocomplete Suggestion Dropdown */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-              <div className="p-1.5 max-h-60 overflow-y-auto">
-                <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-2.5 py-1 uppercase tracking-wider">
-                  Product Suggestions
-                </div>
-                {suggestions.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => {
-                      setSearchQuery(product.name);
-                      setShowSuggestions(false);
-                    }}
-                    className="w-full text-left px-2.5 py-2 hover:bg-gray-100 dark:hover:bg-[#252528] rounded-lg transition-colors flex items-center justify-between gap-2"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">
-                        {product.name}
-                      </span>
-                      {product.unit && (
-                        <span className="text-[9px] text-gray-500 dark:text-gray-400 uppercase">
-                          Unit: {product.unit}
-                        </span>
-                      )}
-                    </div>
-                    {product.quantity !== undefined && (
-                      <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-gray-400 shrink-0 bg-gray-50 dark:bg-[#2C2C2E] px-2 py-0.5 rounded border border-gray-200 dark:border-[#3A3A3C]">
-                        Stock: {product.quantity.toFixed(0)}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Date Filters & Controls Row */}

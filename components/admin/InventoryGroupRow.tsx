@@ -3,6 +3,7 @@
 import { useMemo, memo } from "react";
 import { format, parseISO } from "date-fns";
 import { ChevronRight, Calendar, Package, PackagePlus, Scale } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 interface InventoryGroupRowProps {
   groupKey: string;
@@ -104,7 +105,7 @@ const InventoryGroupRow = memo(function InventoryGroupRow({
                       </td>
                       <td className="py-2.5 px-4 text-right">
                          {item.type === 'restock' ? (
-                           <span className="font-mono text-blue-600 dark:text-blue-400 font-bold">₦{item.totalCost.toLocaleString()}</span>
+                           <span className="font-mono text-blue-600 dark:text-blue-400 font-bold">{formatCurrency(item.totalCost)}</span>
                          ) : (
                            <span className="text-gray-500 dark:text-gray-400 italic bg-gray-100 dark:bg-[#252528] px-1.5 py-0.5 rounded text-[10px]">{item.reason}</span>
                          )}

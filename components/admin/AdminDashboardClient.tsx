@@ -18,6 +18,7 @@ import PerformanceTable from "./dashboard/PerformanceTable";
 import InventoryMonitorTable from "./dashboard/InventoryMonitorTable";
 import AdjustmentLogTable from "./dashboard/AdjustmentLogTable";
 import LedgerClient from "./LedgerClient";
+import { formatCurrency } from "@/lib/format";
 
 type Product = {
   id: string;
@@ -272,7 +273,6 @@ export default function AdminDashboardClient({
         title={title}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        products={products}
         startDate={startDate}
         setStartDate={setStartDate}
         endDate={endDate}
@@ -282,11 +282,11 @@ export default function AdminDashboardClient({
       />
 
       {/* Premium Tab Switcher */}
-      <div className="border-b border-gray-200 dark:border-[#2C2C2E] px-4 lg:px-0">
-        <div className="flex gap-6 -mb-px">
+      <div className="border-b border-gray-200 dark:border-[#2C2C2E] px-2 lg:px-0">
+        <div className="flex gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-thin">
           <button
             onClick={() => handleTabChange("overview")}
-            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === "overview"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -297,7 +297,7 @@ export default function AdminDashboardClient({
           </button>
           <button
             onClick={() => handleTabChange("ledger")}
-            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === "ledger"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -370,7 +370,7 @@ export default function AdminDashboardClient({
                   <td className="py-4 px-8 text-xs text-gray-500 dark:text-gray-400 font-mono italic">{idx + 1}</td>
                   <td className="py-4 px-8 text-sm font-bold text-gray-900 dark:text-gray-100">{p.name}</td>
                   <td className="py-4 px-8 text-sm text-gray-500 dark:text-gray-400 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-8 text-sm text-emerald-600 dark:text-emerald-500 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-600 dark:text-emerald-500 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}

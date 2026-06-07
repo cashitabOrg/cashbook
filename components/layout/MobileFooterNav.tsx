@@ -40,7 +40,7 @@ export default function MobileFooterNav({
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-200 z-50 px-2 py-1 pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-[#111111]/80 backdrop-blur-lg border-t border-slate-200 dark:border-[#2C2C2E] z-50 px-2 py-1 pb-safe">
       <div className="flex justify-around items-center h-14 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = IconMap[item.icon] || FileText;

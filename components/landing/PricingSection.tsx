@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CheckCircle2, ArrowRight, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { formatCurrency } from "@/lib/format";
 
 interface Plan {
   name: string;
@@ -86,7 +87,7 @@ const plans: Plan[] = [
 ];
 
 function formatPrice(amount: number) {
-  return `₦${amount.toLocaleString()}`;
+  return formatCurrency(amount);
 }
 
 function PricingCard({ plan, cycle }: { plan: Plan; cycle: 'monthly' | 'annual' }) {

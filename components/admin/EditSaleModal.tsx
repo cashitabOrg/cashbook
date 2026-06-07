@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Pencil, Trash2, X, AlertOctagon } from 'lucide-react'
 import { toast } from 'sonner'
 import { editSaleItem, deleteSaleItem } from '@/app/actions/sales'
+import { formatCurrency } from "@/lib/format";
 
 interface EditSaleModalProps {
   itemId: string;
@@ -130,7 +131,7 @@ export default function EditSaleModal({ itemId, productId, initialQty, initialRe
                       required
                     />
                     {unitPrice > 0 && (
-                      <p className="text-[10px] text-slate-400 mt-1">Unit price: ₦{unitPrice.toFixed(2)} · Revenue updates automatically</p>
+                      <p className="text-[10px] text-slate-400 mt-1">Unit price: {formatCurrency(unitPrice)} · Revenue updates automatically</p>
                     )}
                   </div>
                   <div>

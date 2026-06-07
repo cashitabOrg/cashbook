@@ -30,10 +30,10 @@ export default async function AdminDashboardPage({
     <div className="lg:p-8 max-w-full mx-auto pb-24">
       <AdminDashboardClient
         storeId={userRole.storeId as string}
-        initialProducts={products || []}
-        rawSessions={rawSessions || []}
-        rawSaleItems={rawSaleItems as any}
-        recentAdjustments={recentAdjustments || []}
+        initialProducts={JSON.parse(JSON.stringify(products || []))}
+        rawSessions={JSON.parse(JSON.stringify(rawSessions || []))}
+        rawSaleItems={JSON.parse(JSON.stringify(rawSaleItems || []))}
+        recentAdjustments={JSON.parse(JSON.stringify(recentAdjustments || []))}
         title="Operational Hub"
         subtitle="A real-time overview of your store's lifetime revenue, inventory health, and audit movement logs."
         plan={store?.plan || 'free'}

@@ -6,6 +6,7 @@ import { X, PlusCircle, Scale, Settings, History, TrendingUp, PackagePlus, Alert
 import { addStock, adjustStock, editProduct, getPriceHistory } from "@/app/actions/products";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/format";
 
 type ProductDetailsDrawerProps = {
   isOpen: boolean;
@@ -255,11 +256,11 @@ export default function ProductDetailsDrawer({
                     </div>
                     <div className="text-center border-x border-gray-100 dark:border-[#2C2C2E]">
                       <p className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Unit Cost</p>
-                      <p className="text-xs font-black text-gray-900 dark:text-gray-100">₦{Number(product.cost_price || 0).toLocaleString()}</p>
+                      <p className="text-xs font-black text-gray-900 dark:text-gray-100">{formatCurrency(Number(product.cost_price || 0))}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Retail Price</p>
-                      <p className="text-xs font-black text-blue-600 dark:text-blue-400">₦{Number(product.selling_price || 0).toLocaleString()}</p>
+                      <p className="text-xs font-black text-blue-600 dark:text-blue-400">{formatCurrency(Number(product.selling_price || 0))}</p>
                     </div>
                   </div>
 
@@ -361,7 +362,7 @@ export default function ProductDetailsDrawer({
                                 className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                               />
                               <label htmlFor="syncPriceDrawer" className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tight leading-tight cursor-pointer">
-                                Update main catalog prices to new values: Cost (₦{restockCost.toLocaleString()}) & Retail (₦{restockSelling.toLocaleString()})
+                                Update main catalog prices to new values: Cost ({formatCurrency(restockCost)}) & Retail ({formatCurrency(restockSelling)})
                               </label>
                             </div>
                           )}
@@ -370,16 +371,16 @@ export default function ProductDetailsDrawer({
                             <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 dark:bg-[#252528] border border-gray-100 dark:border-[#3A3A3C] rounded-xl text-[10px]">
                               <div>
                                 <p className="font-bold text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Investment</p>
-                                <p className="font-black text-gray-900 dark:text-white ml-1">₦{totalInvestment.toLocaleString()}</p>
+                                <p className="font-black text-gray-900 dark:text-white ml-1">{formatCurrency(totalInvestment)}</p>
                               </div>
                               <div>
                                 <p className="font-bold text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Expected Rev</p>
-                                <p className="font-black text-gray-900 dark:text-white ml-1">₦{expectedRevenue.toLocaleString()}</p>
+                                <p className="font-black text-gray-900 dark:text-white ml-1">{formatCurrency(expectedRevenue)}</p>
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-gray-400 uppercase tracking-widest mb-0.5 pr-1">Profit</p>
                                 <p className={`font-black pr-1 ${projectedProfit >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                                  ₦{projectedProfit.toLocaleString()}
+                                  {formatCurrency(projectedProfit)}
                                 </p>
                               </div>
                             </div>
@@ -614,9 +615,9 @@ export default function ProductDetailsDrawer({
                                       <div key={log.id} className="p-3 bg-gray-50 dark:bg-[#252528] rounded-xl border border-gray-100 dark:border-[#3A3A3C] shadow-sm text-[10px] flex justify-between items-start">
                                         <div className="space-y-0.5">
                                           <div className="flex gap-2">
-                                            <span>Cost: ₦{log.old_cost}➔₦{log.new_cost}</span>
+                                            <span>Cost: {formatCurrency(log.old_cost)}➔{formatCurrency(log.new_cost)}</span>
                                             <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
-                                            <span className="text-blue-600 dark:text-blue-400">Retail: ₦{log.old_selling}➔₦{log.new_selling}</span>
+                                            <span className="text-blue-600 dark:text-blue-400">Retail: {formatCurrency(log.old_selling)}➔{formatCurrency(log.new_selling)}</span>
                                           </div>
                                           <p className="text-[8px] text-gray-400 font-medium">By {log.users?.full_name || 'Admin'}</p>
                                         </div>
@@ -640,7 +641,7 @@ export default function ProductDetailsDrawer({
                                         <div className="flex justify-between items-start">
                                           <div>
                                             <p className="font-black text-gray-800 dark:text-white">+{log.quantity_added} units added</p>
-                                            <p className="text-[9px] text-emerald-600 dark:text-emerald-500 font-bold">Cost: ₦{log.unit_cost}</p>
+                                            <p className="text-[9px] text-emerald-600 dark:text-emerald-500 font-bold">Cost: {formatCurrency(log.unit_cost)}</p>
                                             {log.note && <p className="text-[9px] text-gray-400 italic">"{log.note}"</p>}
                                           </div>
                                           <span className="text-[8px] text-gray-400">{format(new Date(log.created_at), "MM/dd")}</span>

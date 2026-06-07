@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { AlertCircle, DollarSign, Package } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type SummaryCardsProps = {
   totalRevenue: number;
@@ -28,7 +29,7 @@ export default function SummaryCards({
             Revenue ({startDate === endDate ? "Today" : "Range"})
           </p>
           <p className="text-sm sm:text-lg md:text-2xl font-semibold mt-0.5 md:mt-1">
-            ₦{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+            {formatCurrency(totalRevenue)}
           </p>
         </div>
       </Card>

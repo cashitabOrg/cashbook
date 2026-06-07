@@ -1,4 +1,5 @@
 import { Award } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type HistoryPerformanceProps = {
   breakdownArray: any[];
@@ -19,7 +20,7 @@ export default function HistoryPerformance({ breakdownArray }: HistoryPerformanc
                 </p>
                 <div className="flex justify-between items-center gap-4 mt-2">
                   <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{item.qtySold.toFixed(2)} qty</span>
-                  <span className="text-[10px] font-black text-emerald-600">₦{item.revenue.toFixed(2)}</span>
+                  <span className="text-[10px] font-black text-emerald-600">{formatCurrency(item.revenue)}</span>
                 </div>
              </div>
           </div>

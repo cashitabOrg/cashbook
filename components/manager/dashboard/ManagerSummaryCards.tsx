@@ -1,4 +1,5 @@
 import { DollarSign, Package, AlertCircle } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type ManagerSummaryCardsProps = {
   totalRevenue: number;
@@ -21,7 +22,7 @@ export default function ManagerSummaryCards({
             </div>
             <div className="text-center lg:text-left mt-2 lg:mt-0">
               <p className="text-[8px] lg:text-sm font-bold text-slate-500 uppercase tracking-tighter">Revenue</p>
-              <div className="text-xs lg:text-3xl font-extrabold text-slate-900 leading-none mt-1 truncate">₦{totalRevenue.toFixed(0)}</div>
+              <div className="text-xs lg:text-3xl font-extrabold text-slate-900 leading-none mt-1 truncate">{formatCurrency(totalRevenue)}</div>
             </div>
           </div>
         </div>

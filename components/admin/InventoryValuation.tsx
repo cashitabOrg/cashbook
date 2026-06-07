@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatCurrency } from "@/lib/format";
 import { Calculator, TrendingUp, History, Download, DollarSign, Package, ChevronDown, ChevronUp } from "lucide-react";
 import PriceHistoryModal from "./PriceHistoryModal";
 
@@ -35,7 +36,7 @@ export default function InventoryValuation({
           </div>
           <div>
             <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Total Stock Cost</p>
-            <p className="text-xl font-black text-gray-900 dark:text-white">₦{totalCostValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(totalCostValue)}</p>
           </div>
         </div>
 
@@ -45,7 +46,7 @@ export default function InventoryValuation({
           </div>
           <div>
             <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Total Retail Value</p>
-            <p className="text-xl font-black text-gray-900 dark:text-white">₦{totalSellingValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(totalSellingValue)}</p>
           </div>
         </div>
 
@@ -55,7 +56,7 @@ export default function InventoryValuation({
           </div>
           <div>
             <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Potential Profit</p>
-            <p className="text-xl font-black text-gray-900 dark:text-white">₦{potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-xl font-black text-gray-900 dark:text-white">{formatCurrency(potentialProfit)}</p>
           </div>
         </div>
       </div>
@@ -99,10 +100,10 @@ export default function InventoryValuation({
                       <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Per {product.unit}</p>
                     </td>
                     <td className="py-3 px-4 text-right text-xs font-mono text-gray-500 dark:text-gray-400">{Number(product.quantity || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs text-gray-500 dark:text-gray-400">₦{(product.cost_price || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs font-black text-amber-500 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10">₦{costVal.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs text-gray-500 dark:text-gray-400">₦{(product.selling_price || 0).toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-xs font-black text-blue-500 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10">₦{sellVal.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-xs text-gray-500 dark:text-gray-400">{formatCurrency((product.cost_price || 0))}</td>
+                    <td className="py-3 px-4 text-right text-xs font-black text-amber-500 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10">{formatCurrency(costVal)}</td>
+                    <td className="py-3 px-4 text-right text-xs text-gray-500 dark:text-gray-400">{formatCurrency((product.selling_price || 0))}</td>
+                    <td className="py-3 px-4 text-right text-xs font-black text-blue-500 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10">{formatCurrency(sellVal)}</td>
                     <td className="py-3 px-4 text-center">
                       <button 
                         onClick={() => setSelectedProductId(product.id)}
@@ -121,9 +122,9 @@ export default function InventoryValuation({
                     <td colSpan={2} className="py-3 px-4 text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white">Grand Totals</td>
                     <td className="py-3 px-4 text-right text-sm font-black text-gray-900 dark:text-white">{products.reduce((a,c) => a + Number(c.quantity), 0).toFixed(2)} Units</td>
                     <td></td>
-                    <td className="py-3 px-4 text-right text-sm font-black text-amber-500 dark:text-amber-400">₦{totalCostValue.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-sm font-black text-amber-500 dark:text-amber-400">{formatCurrency(totalCostValue)}</td>
                     <td></td>
-                    <td className="py-3 px-4 text-right text-sm font-black text-blue-500 dark:text-blue-400">₦{totalSellingValue.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right text-sm font-black text-blue-500 dark:text-blue-400">{formatCurrency(totalSellingValue)}</td>
                     <td></td>
                 </tr>
             </tfoot>
@@ -160,19 +161,19 @@ export default function InventoryValuation({
                     <div className="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-[#252528]/30 p-3 rounded-xl border border-gray-100 dark:border-[#2C2C2E]">
                       <div className="flex flex-col">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Unit Cost</span>
-                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">₦{(product.cost_price || 0).toFixed(2)}</span>
+                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">{formatCurrency((product.cost_price || 0))}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5 text-amber-500">Total Cost</span>
-                        <span className="text-xs font-black font-mono text-amber-500 dark:text-amber-400">₦{costVal.toFixed(2)}</span>
+                        <span className="text-xs font-black font-mono text-amber-500 dark:text-amber-400">{formatCurrency(costVal)}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Unit Selling</span>
-                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">₦{(product.selling_price || 0).toFixed(2)}</span>
+                        <span className="text-xs font-mono text-gray-600 dark:text-gray-300">{formatCurrency((product.selling_price || 0))}</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5 text-blue-500">Total Selling</span>
-                        <span className="text-xs font-black font-mono text-blue-500 dark:text-blue-400">₦{sellVal.toFixed(2)}</span>
+                        <span className="text-xs font-black font-mono text-blue-500 dark:text-blue-400">{formatCurrency(sellVal)}</span>
                       </div>
                     </div>
 
@@ -195,11 +196,11 @@ export default function InventoryValuation({
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col items-center justify-center p-2 bg-amber-50/50 dark:bg-amber-500/10 rounded-lg border border-amber-100/50 dark:border-amber-500/20">
                 <span className="text-[9px] text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider font-bold mb-0.5">Total Cost</span>
-                <span className="text-sm font-black font-mono text-amber-500 dark:text-amber-400">₦{totalCostValue.toFixed(2)}</span>
+                <span className="text-sm font-black font-mono text-amber-500 dark:text-amber-400">{formatCurrency(totalCostValue)}</span>
               </div>
               <div className="flex flex-col items-center justify-center p-2 bg-blue-50/50 dark:bg-blue-500/10 rounded-lg border border-blue-100/50 dark:border-blue-500/20">
                 <span className="text-[9px] text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider font-bold mb-0.5">Total Selling</span>
-                <span className="text-sm font-black font-mono text-blue-500 dark:text-blue-400">₦{totalSellingValue.toFixed(2)}</span>
+                <span className="text-sm font-black font-mono text-blue-500 dark:text-blue-400">{formatCurrency(totalSellingValue)}</span>
               </div>
             </div>
           </div>

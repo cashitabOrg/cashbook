@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { CheckCircle2, Calendar, ChevronRight } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type DailySalesSummaryProps = {
   dateStr: string;
@@ -44,7 +45,7 @@ export default function DailySalesSummary({
       <div className="flex items-center gap-6 md:gap-10">
         <div className="md:block text-right">
           <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">Total Revenue</p>
-          <p className="text-sm font-black text-emerald-600">₦{data.revenue.toFixed(2)}</p>
+          <p className="text-sm font-black text-emerald-600">{formatCurrency(data.revenue)}</p>
         </div>
         <div className="text-gray-400 dark:text-gray-500 ml-2">
            <ChevronRight className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />

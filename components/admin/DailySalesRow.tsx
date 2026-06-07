@@ -7,6 +7,7 @@ import { format, parseISO } from "date-fns";
 import DailySalesSummary from "./reports/daily/DailySalesSummary";
 import DailySalesPerformance from "./reports/daily/DailySalesPerformance";
 import DailySalesLogsTable from "./reports/daily/DailySalesLogsTable";
+import { formatCurrency } from "@/lib/format";
 
 interface SaleRecord {
   id: string;
@@ -161,7 +162,7 @@ const DailySalesRow = memo(function DailySalesRow({
                       <div className="border-t border-gray-50 dark:border-[#252528] pt-2.5 mt-2 flex items-center justify-between gap-2">
                         <div>
                           <div className="text-[9px] text-gray-400 dark:text-gray-500 font-medium">Revenue</div>
-                          <div className="text-[11px] font-black text-emerald-600 dark:text-emerald-400">₦{session.revenue.toLocaleString()}</div>
+                          <div className="text-[11px] font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(session.revenue)}</div>
                         </div>
 
                         {isSessApproved ? (

@@ -7,6 +7,7 @@ import { CheckCircle2, ChevronRight, MessageSquare, Phone, ArrowLeft, Loader2, Z
 import { createClient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { PLAN_LIMITS, getPaystackPlanCode, PlanType } from "@/lib/plans";
+import { formatCurrency } from "@/lib/format";
 
 // Dynamic script loader for Paystack Inline JS
 const loadPaystack = (): Promise<any> => {
@@ -113,7 +114,7 @@ export default function PublicPricingPage() {
   const getPriceText = (planId: PlanType) => {
     const limits = PLAN_LIMITS[planId];
     const amount = cycle === 'monthly' ? limits.priceMonthly : limits.priceAnnual;
-    return `₦${amount.toLocaleString()}`;
+    return formatCurrency(amount);
   };
 
   return (
