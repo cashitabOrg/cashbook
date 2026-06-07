@@ -64,7 +64,7 @@ export default async function ManagerLayout({
   ];
 
   return (
-    <div className="flex h-[100dvh] bg-gray-50 dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
+    <div className="flex h-[100dvh] bg-white dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
       <UnifiedSidebar 
         storeName={store.name}
         roleLabel="POS"
@@ -108,7 +108,7 @@ export default async function ManagerLayout({
         </div>
       </main>
 
-      <MobileFooterNav navItems={navItems} accentColor="text-emerald-500" />
+      <MobileFooterNav navItems={navItems} accentColor="text-[#0052FF]" />
     </div>
   );
 }

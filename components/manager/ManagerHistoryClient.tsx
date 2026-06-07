@@ -52,12 +52,12 @@ export default function ManagerHistoryClient({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {dailyGroups.length === 0 ? (
-        <div className="text-center py-20 bg-white lg:rounded-xl lg:shadow-sm lg:border border-slate-200">
+        <div className="text-center py-20 bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E]">
           <Calendar className="mx-auto h-12 w-12 text-slate-200 mb-4" />
-          <h3 className="text-sm font-bold text-slate-900">No Sales History Found</h3>
-          <p className="mt-1 text-xs text-slate-500">Your completed sales sessions will appear here.</p>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">No Sales History Found</h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-gray-400">Your completed sales sessions will appear here.</p>
         </div>
       ) : (
         dailyGroups.map((group) => (
