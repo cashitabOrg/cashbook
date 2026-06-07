@@ -47,24 +47,20 @@ import { unstable_cache } from 'next/cache';
  * Fetches all products for a given store, ordered by name.
  * Returns full product data including prices for admin screens.
  */
-export const getProducts = unstable_cache(
-  async (storeId: string): Promise<Product[]> => {
-    const { data, error } = await withRetry<Product[]>(
-      async () =>
-        await supabaseAdmin
-          .from('products')
-          .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, is_archived, created_at')
-          .eq('store_id', storeId)
-          .eq('is_archived', false)
-          .order('name'),
-      'getProducts'
-    );
-    if (error) console.error('[queries/products] getProducts error:', error.message);
-    return data || [];
-  },
-  ['products'],
-  { revalidate: 60, tags: ['products'] }
-);
+export async function getProducts(storeId: string): Promise<Product[]> {
+  const { data, error } = await withRetry<Product[]>(
+    async () =>
+      await supabaseAdmin
+        .from('products')
+        .select('id, store_id, name, unit, quantity, min_quantity, cost_price, selling_price, is_archived, created_at')
+        .eq('store_id', storeId)
+        .eq('is_archived', false)
+        .order('name'),
+    'getProducts'
+  );
+  if (error) console.error('[queries/products] getProducts error:', error.message);
+  return data || [];
+}
 
 /**
  * Fetches lightweight product data for the manager sales point.
@@ -122,16 +118,12 @@ export async function getProductById(productId: string, storeId: string): Promis
  * Returns the total active (non-archived) product count for a store.
  * Used by billing/plan limit checks.
  */
-export const getProductCount = unstable_cache(
-  async (storeId: string): Promise<number> => {
-    const { count, error } = await supabaseAdmin
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('store_id', storeId)
-      .eq('is_archived', false);
-    if (error) console.error('[queries/products] getProductCount error:', error.message);
-    return count || 0;
-  },
-  ['products-count'],
-  { revalidate: 60, tags: ['products'] }
-);
+export async function getProductCount(storeId: string): Promise<number> {
+  const { count, error } = await supabaseAdmin
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('store_id', storeId)
+    .eq('is_archived', false);
+  if (error) console.error('[queries/products] getProductCount error:', error.message);
+  return count || 0;
+}
