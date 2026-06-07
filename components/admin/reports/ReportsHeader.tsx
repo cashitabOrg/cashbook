@@ -60,14 +60,14 @@ export default function ReportsHeader({
         <div className="flex items-center gap-2 lg:gap-6 w-full xl:w-auto overflow-x-auto scrollbar-hide pb-1 xl:pb-0">
           <h1 className="text-sm lg:text-lg font-black text-gray-900 dark:text-white tracking-tight leading-none shrink-0 border-b-2 border-blue-500 pb-1 uppercase">Sales Reconciliation</h1>
           
-          <div className="relative flex-1 min-w-[120px] max-w-[180px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+          <div className="relative flex-1 min-w-0 max-w-xs md:max-w-sm group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 transition-colors" />
             <input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-[#252528] border border-gray-200 dark:border-[#3A3A3C] rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors"
+              className="w-full bg-gray-50 dark:bg-[#252528] border border-gray-200 dark:border-[#2C2C2E] rounded-xl pl-9 pr-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-1 focus:ring-blue-400 transition-all outline-none font-medium"
             />
           </div>
         </div>

@@ -5,7 +5,7 @@ import ProductModal from "./ProductModal";
 import ProductDetailsDrawer from "./ProductDetailsDrawer";
 import { deleteProduct } from "@/app/actions/products";
 import { toast } from "sonner";
-import { Plus, Trash2, AlertTriangle, Archive, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, Archive, ChevronDown, ChevronUp, Search } from "lucide-react";
 
 type Product = {
   id: string;
@@ -33,6 +33,11 @@ export default function ProductsTable({
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProducts = products.filter((p) =>
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleManageProduct = (product: Product) => {
     setActiveProduct(product);
@@ -64,29 +69,41 @@ export default function ProductsTable({
 
   return (
     <>
-      <div className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-xl px-4 lg:px-6 py-4 flex items-center justify-between mb-4 shadow-sm dark:shadow-2xl transition-colors">
-        <div className="flex items-center gap-4">
+      <div className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-xl px-4 lg:px-6 py-4 flex flex-row items-center justify-between gap-2 sm:gap-4 mb-4 shadow-sm dark:shadow-2xl transition-colors">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
             <Archive className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Products</h1>
-            <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Inventory Management</p>
+            <h1 className="text-sm sm:text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">Products</h1>
+            <p className="hidden sm:block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Inventory Management</p>
           </div>
+        </div>
+
+        {/* Unified Search Box */}
+        <div className="relative flex-1 min-w-0 max-w-xs md:max-w-sm group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 transition-colors" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-gray-50 dark:bg-[#252528] border border-gray-200 dark:border-[#2C2C2E] rounded-xl pl-9 pr-3 py-1.5 text-xs text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-1 focus:ring-blue-400 transition-all outline-none font-medium"
+          />
         </div>
         
         <button
           type="button"
           onClick={handleAddNew}
           disabled={isLimitReached}
-          className={`relative z-10 inline-flex items-center rounded-xl px-4 py-2 text-[10px] font-black shadow-sm transition-all active:scale-95 gap-2 uppercase tracking-widest ${
+          className={`relative z-10 inline-flex items-center rounded-xl px-4 py-2 text-[10px] font-black shadow-sm transition-all active:scale-95 gap-2 uppercase tracking-widest shrink-0 ${
             isLimitReached 
               ? "bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed grayscale" 
               : "bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
           }`}
         >
           {isLimitReached ? <AlertTriangle className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {isLimitReached ? "Limit Reached" : "Add Product"}
+          <span className="hidden sm:inline">{isLimitReached ? "Limit Reached" : "Add Product"}</span>
         </button>
       </div>
 
@@ -116,7 +133,7 @@ export default function ProductsTable({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
-                    {products.length === 0 ? (
+                    {filteredProducts.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-12 text-center">
                         <Archive className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
@@ -125,7 +142,7 @@ export default function ProductsTable({
                       </td>
                     </tr>
                   ) : (
-                    products.map((product) => {
+                    filteredProducts.map((product) => {
                       const isLowStock = product.quantity < product.min_quantity;
                       
                       return (
@@ -180,14 +197,14 @@ export default function ProductsTable({
               
               {/* Mobile Cards View */}
               <div className="md:hidden flex flex-col gap-3 mt-4">
-                {products.length === 0 ? (
+                {filteredProducts.length === 0 ? (
                   <div className="py-12 text-center border rounded-lg border-gray-200 dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]">
                     <Archive className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-2" />
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white">No products</h3>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Get started by adding your first product.</p>
                   </div>
                 ) : (
-                  products.map((product) => {
+                  filteredProducts.map((product) => {
                     const isLowStock = product.quantity < product.min_quantity;
                     const isExpanded = expandedId === product.id;
 
