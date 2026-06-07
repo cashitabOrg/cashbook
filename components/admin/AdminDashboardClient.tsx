@@ -48,7 +48,6 @@ export default function AdminDashboardClient({
   rawSessions,
   rawSaleItems,
   recentAdjustments,
-  transactions = [],
   title,
   subtitle,
   plan = 'free',
@@ -60,7 +59,6 @@ export default function AdminDashboardClient({
   rawSessions: RawSession[];
   rawSaleItems: RawSaleItem[];
   recentAdjustments?: any[];
-  transactions?: any[];
   title: string;
   subtitle: string;
   plan?: string;
@@ -238,7 +236,7 @@ export default function AdminDashboardClient({
     const topProducts = Object.values(productStats).sort((a, b) => b.total_qty_sold - a.total_qty_sold);
 
     return { totalRevenue, topProducts };
-  }, [startDate, endDate, rawSessions, rawSaleItems, searchQuery]);
+  }, [startDate, endDate, rawSessions, rawSaleItems, searchQuery, sessions]);
 
   // Inventory Table Search Filter
   const filteredInventory = useMemo(() => {
@@ -274,6 +272,7 @@ export default function AdminDashboardClient({
         title={title}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        products={products}
         startDate={startDate}
         setStartDate={setStartDate}
         endDate={endDate}
@@ -338,7 +337,10 @@ export default function AdminDashboardClient({
         </div>
       ) : (
         <div className="px-2 lg:px-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <LedgerClient transactions={transactions} products={products} storeId={storeId} />
+          <LedgerClient 
+            storeId={storeId} 
+            searchQuery={searchQuery}
+          />
         </div>
       )}
 

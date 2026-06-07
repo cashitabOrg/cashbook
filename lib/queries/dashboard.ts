@@ -16,7 +16,11 @@ import { getProducts } from './products';
 import { getClosedSessions, getSaleItemsForAnalytics } from './sales';
 import { getStaffCount } from './staff';
 
-/** Retry helper for transient network errors */
+/** Retry helper for transient network errors.
+ * IMPORTANT: queryFn must build a *fresh* Supabase query object on every call.
+ * Supabase's PostgrestBuilder caches its internal fetch promise after the first await,
+ * so passing the same query object into every retry returns the cached failure.
+ */
 async function withRetry<T>(
   queryFn: () => Promise<{ data: T | null; error: any; count?: number | null }>,
   label: string,
@@ -24,19 +28,33 @@ async function withRetry<T>(
 ): Promise<{ data: T | null; error: any; count?: number | null }> {
   let attempts = 0;
   while (attempts < maxAttempts) {
-    const res = await queryFn();
-    if (!res.error) return res;
-    const isNetwork =
-      res.error.message?.includes('fetch failed') ||
-      res.error.message?.includes('ENOTFOUND') ||
-      res.error.code === 'PGRST301';
-    if (isNetwork) {
-      attempts++;
-      const delay = 200 * attempts;
-      console.warn(`[queries/dashboard] ${label} retry ${attempts}/${maxAttempts} in ${delay}ms`);
-      await new Promise((r) => setTimeout(r, delay));
-    } else {
-      return res;
+    try {
+      const res = await queryFn();
+      if (!res.error) return res;
+      const isNetwork =
+        res.error.message?.includes('fetch failed') ||
+        res.error.message?.includes('ENOTFOUND') ||
+        res.error.code === 'PGRST301';
+      if (isNetwork) {
+        attempts++;
+        const delay = 200 * attempts;
+        console.warn(`[queries/dashboard] ${label} retry ${attempts}/${maxAttempts} in ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        return res; // Non-network error — don't retry
+      }
+    } catch (thrown: any) {
+      const isNetwork =
+        thrown?.message?.includes('fetch failed') ||
+        thrown?.message?.includes('ENOTFOUND');
+      if (isNetwork && attempts < maxAttempts - 1) {
+        attempts++;
+        const delay = 200 * attempts;
+        console.warn(`[queries/dashboard] ${label} thrown-retry ${attempts}/${maxAttempts} in ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        return { data: null, error: thrown };
+      }
     }
   }
   return { data: null, error: new Error(`${label} failed after ${maxAttempts} retries`) };
