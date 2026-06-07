@@ -53,7 +53,9 @@ export default function AdminDashboardClient({
   subtitle,
   plan = 'free',
   isExempt = false,
-  staffCount = 0
+  staffCount = 0,
+  initialStartDate = "",
+  initialEndDate = ""
 }: {
   storeId: string;
   initialProducts: Product[];
@@ -65,6 +67,8 @@ export default function AdminDashboardClient({
   plan?: string;
   isExempt?: boolean;
   staffCount?: number;
+  initialStartDate?: string;
+  initialEndDate?: string;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [sessions, setSessions] = useState(rawSessions);
@@ -91,14 +95,15 @@ export default function AdminDashboardClient({
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
   
-  // Filtering State - Default to Today (initialized on mount to avoid timezone/hydration mismatch)
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Filtering State - Default to Today (pre-loaded with server values to prevent layout shift)
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setStartDate(format(new Date(), "yyyy-MM-dd"));
-    setEndDate(format(new Date(), "yyyy-MM-dd"));
+    const clientToday = format(new Date(), "yyyy-MM-dd");
+    setStartDate(clientToday);
+    setEndDate(clientToday);
   }, []);
 
   const getActivePreset = () => {

@@ -26,6 +26,8 @@ export default async function AdminDashboardPage({
     staffCount,
   } = dashboardData;
 
+  const todayStr = new Date().toISOString().split("T")[0];
+
   return (
     <div className="lg:p-8 max-w-full mx-auto pb-24">
       <AdminDashboardClient
@@ -39,6 +41,8 @@ export default async function AdminDashboardPage({
         plan={store?.plan || 'free'}
         isExempt={store?.is_billing_exempt || false}
         staffCount={staffCount || 0}
+        initialStartDate={todayStr}
+        initialEndDate={todayStr}
       />
     </div>
   );
