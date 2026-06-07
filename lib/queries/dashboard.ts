@@ -67,36 +67,45 @@ export async function getAdminDashboardData(storeId: string): Promise<AdminDashb
 
   // Fetch recent stock adjustments with relationship join + fallback
   let recentAdjustments: StockAdjustment[] = [];
-  let { data: adjData, error: adjErr } = await supabaseAdmin
-    .from('stock_adjustments')
-    .select(`
-      id,
-      quantity_change,
-      reason,
-      note,
-      created_at,
-      products (name),
-      users!admin_id (full_name)
-    `)
-    .eq('store_id', storeId)
-    .order('created_at', { ascending: false })
-    .limit(10);
+  let { data: adjData, error: adjErr } = await withRetry(
+    async () => await supabaseAdmin
+      .from('stock_adjustments')
+      .select(`
+        id,
+        quantity_change,
+        reason,
+        note,
+        created_at,
+        products (name),
+        users!admin_id (full_name)
+      `)
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    'stock_adjustments'
+  );
 
   if (adjErr?.message?.includes('relationship')) {
     // Fallback: fetch without join and manually attach names
-    const { data: fallbackAdj } = await supabaseAdmin
-      .from('stock_adjustments')
-      .select('id, quantity_change, reason, note, created_at, product_id')
-      .eq('store_id', storeId)
-      .order('created_at', { ascending: false })
-      .limit(10);
+    const { data: fallbackAdj } = await withRetry(
+      async () => await supabaseAdmin
+        .from('stock_adjustments')
+        .select('id, quantity_change, reason, note, created_at, product_id')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .limit(10),
+      'stock_adjustments_fallback'
+    );
 
     if (fallbackAdj) {
       const productIds = fallbackAdj.map((a: any) => a.product_id);
-      const { data: prodNames } = await supabaseAdmin
-        .from('products')
-        .select('id, name')
-        .in('id', productIds);
+      const { data: prodNames } = await withRetry(
+        async () => await supabaseAdmin
+          .from('products')
+          .select('id, name')
+          .in('id', productIds),
+        'stock_adjustments_fallback_products'
+      );
       adjData = fallbackAdj.map((a: any) => ({
         ...a,
         products: prodNames?.find((p: any) => p.id === a.product_id) || { name: 'Unknown' },
