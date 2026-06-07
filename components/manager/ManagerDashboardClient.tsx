@@ -12,6 +12,7 @@ import ManagerDashboardHeader from "./dashboard/ManagerDashboardHeader";
 import ManagerSummaryCards from "./dashboard/ManagerSummaryCards";
 import ManagerBestSellers from "./dashboard/ManagerBestSellers";
 import ManagerStockLevels from "./dashboard/ManagerStockLevels";
+import { formatCurrency } from "@/lib/format";
 
 type Product = {
   id: string;
@@ -246,7 +247,7 @@ export default function ManagerDashboardClient({
                   <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
                   <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
                   <td className="py-4 px-8 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-8 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-600 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}

@@ -1,4 +1,5 @@
 import { TrendingUp, Maximize2 } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type ManagerBestSellersProps = {
   topProducts: {
@@ -47,7 +48,7 @@ export default function ManagerBestSellers({ topProducts, onExpand }: ManagerBes
                   <td className="py-4 px-6 text-[10px] text-slate-400 font-mono italic">{idx + 1}</td>
                   <td className="py-4 px-6 text-sm font-bold text-slate-900">{p.name}</td>
                   <td className="py-4 px-6 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-6 text-sm text-emerald-600 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                  <td className="py-4 px-6 text-sm text-emerald-600 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}

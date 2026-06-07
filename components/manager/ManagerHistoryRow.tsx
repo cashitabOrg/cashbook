@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import HistoryRowHeader from "./history/HistoryRowHeader";
 import HistoryPerformance from "./history/HistoryPerformance";
 import HistoryTransactionLog from "./history/HistoryTransactionLog";
+import { formatCurrency } from "@/lib/format";
 
 interface ItemDetail {
   id?: string;
@@ -98,7 +99,7 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
           <div className="flex sm:hidden justify-between mb-4 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
             <div>
               <p className="text-xs text-slate-500">Revenue</p>
-              <p className="font-bold text-emerald-600">₦{dailyTotalRevenue.toFixed(2)}</p>
+              <p className="font-bold text-emerald-600">{formatCurrency(dailyTotalRevenue)}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500">Items Sold</p>

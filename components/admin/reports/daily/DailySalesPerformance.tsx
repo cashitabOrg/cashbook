@@ -1,4 +1,5 @@
 import { TrendingUp } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type DailySalesPerformanceProps = {
   sortedPerf: { name: string; qty: number; revenue: number }[];
@@ -17,7 +18,7 @@ export default function DailySalesPerformance({ sortedPerf }: DailySalesPerforma
               <span className="text-[11px] font-bold text-gray-900 dark:text-gray-200 truncate mb-1" title={item.name}>{item.name}</span>
               <div className="flex justify-between items-center text-[10px]">
                 <span className="text-gray-500 dark:text-gray-400 font-mono italic">{item.qty.toFixed(2)} qty</span>
-                <span className="text-emerald-600 font-black">₦{item.revenue.toFixed(2)}</span>
+                <span className="text-emerald-600 font-black">{formatCurrency(item.revenue)}</span>
               </div>
            </div>
          ))}

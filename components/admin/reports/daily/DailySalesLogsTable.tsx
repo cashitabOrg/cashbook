@@ -1,4 +1,5 @@
 import { format, parseISO } from "date-fns";
+import { formatCurrency } from "@/lib/format";
 
 type DailySalesLogsTableProps = {
   items: any[];
@@ -34,7 +35,7 @@ export default function DailySalesLogsTable({ items }: DailySalesLogsTableProps)
                     </div>
                   </td>
                   <td className="py-2 px-4 text-gray-500 dark:text-gray-400 text-right font-mono">{sale.qty.toFixed(2)}</td>
-                  <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">₦{sale.revenue.toFixed(2)}</td>
+                  <td className="py-2 px-4 font-black text-emerald-600 text-right pr-6">{formatCurrency(sale.revenue)}</td>
                 </tr>
               ))}
             </tbody>

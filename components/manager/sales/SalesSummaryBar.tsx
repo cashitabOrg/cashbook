@@ -1,4 +1,5 @@
 import { CheckCircle2, RefreshCw, ShoppingCart } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type SalesSummaryBarProps = {
   totalItems: number;
@@ -25,7 +26,7 @@ export default function SalesSummaryBar({
         </div>
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session Revenue</p>
-          <p className="text-xl lg:text-2xl font-black text-emerald-600 leading-none">₦{totalRevenue.toFixed(2)}</p>
+          <p className="text-xl lg:text-2xl font-black text-emerald-600 leading-none">{formatCurrency(totalRevenue)}</p>
         </div>
         
         {/* SYNC STATUS BADGE */}

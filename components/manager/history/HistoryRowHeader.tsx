@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type HistoryRowHeaderProps = {
   dateStr: string;
@@ -47,7 +48,7 @@ export default function HistoryRowHeader({
       <div className="flex items-center gap-8">
         <div className="hidden sm:block text-right">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Revenue</p>
-          <p className="text-lg font-bold text-emerald-600">₦{dailyTotalRevenue.toFixed(2)}</p>
+          <p className="text-lg font-bold text-emerald-600">{formatCurrency(dailyTotalRevenue)}</p>
         </div>
         <div className="hidden sm:block text-right">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Items Sold</p>

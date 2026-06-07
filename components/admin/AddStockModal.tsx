@@ -5,6 +5,7 @@ import { Fragment, useState, useEffect } from "react";
 import { addStock } from "@/app/actions/products";
 import { toast } from "sonner";
 import { PlusCircle, X } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type AddStockModalProps = {
   isOpen: boolean;
@@ -191,7 +192,7 @@ export default function AddStockModal({
                         className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                       />
                       <label htmlFor="syncPriceCheckbox" className="text-[9px] font-bold text-amber-700 uppercase tracking-tight leading-tight">
-                        Update product default prices to ₦{Number(cost || 0).toLocaleString()} (Cost) & ₦{Number(selling || 0).toLocaleString()} (Selling)
+                        Update product default prices to {formatCurrency(Number(cost || 0))} (Cost) & {formatCurrency(Number(selling || 0))} (Selling)
                       </label>
                     </div>
                   )}
@@ -201,16 +202,16 @@ export default function AddStockModal({
                     <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 dark:bg-[#252528] border border-gray-100 dark:border-[#3A3A3C] rounded-xl animate-in fade-in slide-in-from-top-1 duration-200">
                       <div>
                         <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Investment</p>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">₦{totalInvestment.toLocaleString()}</p>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">{formatCurrency(totalInvestment)}</p>
                       </div>
                       <div>
                         <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5 ml-1">Exp. Revenue</p>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">₦{expectedRevenue.toLocaleString()}</p>
+                        <p className="text-xs font-bold text-gray-900 dark:text-white ml-1">{formatCurrency(expectedRevenue)}</p>
                       </div>
                       <div className="text-right pr-1">
                         <p className="text-[8px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Exp. Profit</p>
                         <p className={`text-xs font-black ${projectedProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                          ₦{projectedProfit.toLocaleString()}
+                          {formatCurrency(projectedProfit)}
                         </p>
                       </div>
                     </div>

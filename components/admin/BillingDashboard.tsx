@@ -16,6 +16,7 @@ import { PLAN_LIMITS, PlanType, getPlanLimits, getPaystackPlanCode } from "@/lib
 import { openPaystack } from "@/lib/paystack";
 import { toast } from "sonner";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/format";
 
 interface BillingDashboardProps {
   storeSlug: string;
@@ -112,12 +113,12 @@ export default function BillingDashboard({
 
         <div className="mb-8">
           <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">₦{price.toLocaleString()}</span>
+            <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{formatCurrency(price)}</span>
             <span className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest">/ {cycle === 'monthly' ? 'mo' : 'yr'}</span>
           </div>
           {savings > 0 && (
             <div className="mt-2 inline-flex bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-2 py-0.5 rounded-lg border border-emerald-100 dark:border-emerald-500/20">
-               SAVE ₦{savings.toLocaleString()} ANNUALLY
+               SAVE {formatCurrency(savings)} ANNUALLY
             </div>
           )}
         </div>

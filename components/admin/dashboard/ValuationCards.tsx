@@ -1,4 +1,5 @@
 import { TrendingUp, Package, DollarSign } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
 
 type ValuationCardsProps = {
@@ -21,7 +22,7 @@ export default function ValuationCards({
         </div>
         <div>
           <p className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-tight">Stock Cost</p>
-          <p className="text-sm sm:text-lg md:text-2xl font-semibold mt-0.5 md:mt-1">₦{totalStockCost.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+          <p className="text-sm sm:text-lg md:text-2xl font-semibold mt-0.5 md:mt-1">{formatCurrency(totalStockCost)}</p>
         </div>
       </Card>
       
@@ -31,7 +32,7 @@ export default function ValuationCards({
         </div>
         <div>
           <p className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-tight">Retail Value</p>
-          <p className="text-sm sm:text-lg md:text-2xl font-semibold mt-0.5 md:mt-1">₦{totalRetailValue.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+          <p className="text-sm sm:text-lg md:text-2xl font-semibold mt-0.5 md:mt-1">{formatCurrency(totalRetailValue)}</p>
         </div>
       </Card>
 
@@ -41,7 +42,7 @@ export default function ValuationCards({
         </div>
         <div>
           <p className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-tight">Est. Profit Margin</p>
-          <p className="text-sm sm:text-lg md:text-2xl font-semibold text-emerald-600 mt-0.5 md:mt-1">₦{potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 0 })}</p>
+          <p className="text-sm sm:text-lg md:text-2xl font-semibold text-emerald-600 mt-0.5 md:mt-1">{formatCurrency(potentialProfit)}</p>
         </div>
       </Card>
     </div>

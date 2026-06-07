@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { Maximize2, TrendingUp } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
 
 type PerformanceTableProps = {
   topProducts: {
@@ -74,7 +75,7 @@ export default function PerformanceTable({
                     {p.total_qty_sold.toFixed(2)}
                   </TableCell>
                   <TableCell className="text-right font-semibold text-emerald-500">
-                    ₦{Number(p.total_revenue).toFixed(2)}
+                    {formatCurrency(Number(p.total_revenue))}
                   </TableCell>
                 </TableRow>
               ))

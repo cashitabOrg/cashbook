@@ -18,6 +18,7 @@ import PerformanceTable from "./dashboard/PerformanceTable";
 import InventoryMonitorTable from "./dashboard/InventoryMonitorTable";
 import AdjustmentLogTable from "./dashboard/AdjustmentLogTable";
 import LedgerClient from "./LedgerClient";
+import { formatCurrency } from "@/lib/format";
 
 type Product = {
   id: string;
@@ -368,7 +369,7 @@ export default function AdminDashboardClient({
                   <td className="py-4 px-8 text-xs text-gray-500 dark:text-gray-400 font-mono italic">{idx + 1}</td>
                   <td className="py-4 px-8 text-sm font-bold text-gray-900 dark:text-gray-100">{p.name}</td>
                   <td className="py-4 px-8 text-sm text-gray-500 dark:text-gray-400 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-8 text-sm text-emerald-600 dark:text-emerald-500 font-bold text-right">₦{Number(p.total_revenue).toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-600 dark:text-emerald-500 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}

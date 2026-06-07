@@ -1,4 +1,5 @@
 import EditSaleModal from "@/components/admin/EditSaleModal";
+import { formatCurrency } from "@/lib/format";
 
 type HistoryTransactionLogProps = {
   dailyHistoryItems: any[];
@@ -44,7 +45,7 @@ export default function HistoryTransactionLog({
                   </div>
                 </td>
                 <td className="py-3 px-4 text-xs text-slate-600 text-right font-mono">{entry.qty.toFixed(2)}</td>
-                <td className="py-3 px-4 text-xs font-black text-emerald-600 text-right">₦{entry.revenue.toFixed(2)}</td>
+                <td className="py-3 px-4 text-xs font-black text-emerald-600 text-right">{formatCurrency(entry.revenue)}</td>
                 <td className="py-3 px-4 text-right">
                    {!entry.isApproved && !entry.isDeleted && (
                      <EditSaleModal

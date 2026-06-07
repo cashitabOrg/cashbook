@@ -5,6 +5,7 @@ import { Fragment, useState, useEffect } from "react";
 import { getPriceHistory } from "@/app/actions/products";
 import { X, History, TrendingUp, PackagePlus, Clock, Scale } from "lucide-react";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/format";
 
 type PriceHistoryModalProps = {
   productId: string | null;
@@ -89,12 +90,12 @@ export default function PriceHistoryModal({ productId, onClose }: PriceHistoryMo
                                     <div className="flex items-center gap-3">
                                         <div className="text-[10px] space-y-0.5">
                                             <p className="font-bold text-gray-500 dark:text-gray-400 uppercase">Cost</p>
-                                            <p className="text-sm font-black text-gray-900 dark:text-white">₦{log.old_cost} → ₦{log.new_cost}</p>
+                                            <p className="text-sm font-black text-gray-900 dark:text-white">{formatCurrency(log.old_cost)} → {formatCurrency(log.new_cost)}</p>
                                         </div>
                                         <div className="w-px h-6 bg-gray-200 dark:bg-[#3A3A3C]" />
                                         <div className="text-[10px] space-y-0.5">
                                             <p className="font-bold text-gray-500 dark:text-gray-400 uppercase">Selling</p>
-                                            <p className="text-sm font-black text-blue-600 dark:text-blue-500">₦{log.old_selling} → ₦{log.new_selling}</p>
+                                            <p className="text-sm font-black text-blue-600 dark:text-blue-500">{formatCurrency(log.old_selling)} → {formatCurrency(log.new_selling)}</p>
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">By {log.users?.full_name || 'Admin'}</p>
@@ -122,7 +123,7 @@ export default function PriceHistoryModal({ productId, onClose }: PriceHistoryMo
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-0.5">
                                         <p className="text-xs font-black text-gray-900 dark:text-white">+{log.quantity_added} Units Added</p>
-                                        <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500">Unit Cost: ₦{log.unit_cost}</p>
+                                        <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500">Unit Cost: {formatCurrency(log.unit_cost)}</p>
                                         {log.note && <p className="text-[10px] italic text-gray-500 dark:text-gray-400 mt-1">"{log.note}"</p>}
                                     </div>
                                     <div className="text-right">
