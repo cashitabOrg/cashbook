@@ -23,7 +23,11 @@ import {
 } from '@/lib/types';
 import { getStoreSubscriptionStatus } from '@/lib/planEnforcement';
 
-/** Retry helper for transient network errors */
+/** Retry helper for transient network errors.
+ * IMPORTANT: queryFn must build a *fresh* Supabase query object on every call.
+ * Supabase's PostgrestBuilder caches its internal fetch promise after the first await,
+ * so passing the same query object into every retry returns the cached failure.
+ */
 async function withRetry<T>(
   queryFn: () => Promise<{ data: T | null; error: any }>,
   label: string,
@@ -31,19 +35,34 @@ async function withRetry<T>(
 ): Promise<{ data: T | null; error: any }> {
   let attempts = 0;
   while (attempts < maxAttempts) {
-    const res = await queryFn();
-    if (!res.error) return res;
-    const isNetwork =
-      res.error.message?.includes('fetch failed') ||
-      res.error.message?.includes('ENOTFOUND') ||
-      res.error.code === 'PGRST301';
-    if (isNetwork) {
-      attempts++;
-      const delay = 300 * attempts;
-      console.warn(`[queries/sales] ${label} retry ${attempts}/${maxAttempts} in ${delay}ms`);
-      await new Promise((r) => setTimeout(r, delay));
-    } else {
-      return res;
+    try {
+      const res = await queryFn();
+      if (!res.error) return res;
+      const isNetwork =
+        res.error.message?.includes('fetch failed') ||
+        res.error.message?.includes('ENOTFOUND') ||
+        res.error.code === 'PGRST301';
+      if (isNetwork) {
+        attempts++;
+        const delay = 300 * attempts;
+        console.warn(`[queries/sales] ${label} retry ${attempts}/${maxAttempts} in ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        return res; // Non-network error — don't retry
+      }
+    } catch (thrown: any) {
+      // queryFn threw instead of returning { data, error } — treat as network error
+      const isNetwork =
+        thrown?.message?.includes('fetch failed') ||
+        thrown?.message?.includes('ENOTFOUND');
+      if (isNetwork && attempts < maxAttempts - 1) {
+        attempts++;
+        const delay = 300 * attempts;
+        console.warn(`[queries/sales] ${label} thrown-retry ${attempts}/${maxAttempts} in ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        return { data: null, error: thrown };
+      }
     }
   }
   return { data: null, error: new Error(`${label} failed after ${maxAttempts} retries`) };
@@ -60,26 +79,28 @@ export const getClosedSessions = unstable_cache(
   async (storeId: string): Promise<RawSession[]> => {
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
-    let query = supabaseAdmin
-      .from('sales_sessions')
-      .select('total_revenue, started_at')
-      .eq('store_id', storeId)
-      .eq('status', 'closed')
-      .order('started_at', { ascending: false })
-      .limit(500);
+    // Compute date filter once (used inside the retry callback)
+    const minDate =
+      subStatus.plan === 'starter'
+        ? new Date(Date.now() - 90 * 86_400_000).toISOString()
+        : subStatus.plan === 'growth'
+        ? new Date(Date.now() - 180 * 86_400_000).toISOString()
+        : null;
 
-    if (subStatus.plan === 'starter') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 90);
-      query = query.gte('started_at', minDate.toISOString());
-    } else if (subStatus.plan === 'growth') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 180);
-      query = query.gte('started_at', minDate.toISOString());
-    }
-
+    // Build a FRESH query object inside the callback — Supabase's PostgrestBuilder
+    // caches its fetch promise after first await, so each retry needs a new instance.
     const { data, error } = await withRetry<RawSession[]>(
-      async () => await query,
+      async () => {
+        let q = supabaseAdmin
+          .from('sales_sessions')
+          .select('total_revenue, started_at')
+          .eq('store_id', storeId)
+          .eq('status', 'closed')
+          .order('started_at', { ascending: false })
+          .limit(500);
+        if (minDate) q = q.gte('started_at', minDate);
+        return await q;
+      },
       'getClosedSessions'
     );
     if (error) console.error('[queries/sales] getClosedSessions error:', error.message);
@@ -98,25 +119,27 @@ export const getSaleItemsForAnalytics = unstable_cache(
   async (storeId: string): Promise<RawSaleItem[]> => {
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
-    let query = supabaseAdmin
-      .from('sale_items')
-      .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
-      .eq('store_id', storeId)
-      .order('created_at', { ascending: false })
-      .limit(1000);
+    // Compute date filter once (used inside the retry callback)
+    const minDate =
+      subStatus.plan === 'starter'
+        ? new Date(Date.now() - 90 * 86_400_000).toISOString()
+        : subStatus.plan === 'growth'
+        ? new Date(Date.now() - 180 * 86_400_000).toISOString()
+        : null;
 
-    if (subStatus.plan === 'starter') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 90);
-      query = query.gte('created_at', minDate.toISOString());
-    } else if (subStatus.plan === 'growth') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 180);
-      query = query.gte('created_at', minDate.toISOString());
-    }
-
+    // Build a FRESH query object inside the callback — Supabase's PostgrestBuilder
+    // caches its fetch promise after first await, so each retry needs a new instance.
     const { data, error } = await withRetry<any[]>(
-      async () => await query,
+      async () => {
+        let q = supabaseAdmin
+          .from('sale_items')
+          .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
+          .eq('store_id', storeId)
+          .order('created_at', { ascending: false })
+          .limit(1000);
+        if (minDate) q = q.gte('created_at', minDate);
+        return await q;
+      },
       'getSaleItemsForAnalytics'
     );
     if (error) console.error('[queries/sales] getSaleItemsForAnalytics error:', error.message);

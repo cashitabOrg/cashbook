@@ -49,24 +49,26 @@ export default function AdminDashboardClient({
   rawSessions,
   rawSaleItems,
   recentAdjustments,
-  transactions = [],
   title,
   subtitle,
   plan = 'free',
   isExempt = false,
-  staffCount = 0
+  staffCount = 0,
+  initialStartDate = "",
+  initialEndDate = ""
 }: {
   storeId: string;
   initialProducts: Product[];
   rawSessions: RawSession[];
   rawSaleItems: RawSaleItem[];
   recentAdjustments?: any[];
-  transactions?: any[];
   title: string;
   subtitle: string;
   plan?: string;
   isExempt?: boolean;
   staffCount?: number;
+  initialStartDate?: string;
+  initialEndDate?: string;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [sessions, setSessions] = useState(rawSessions);
@@ -93,14 +95,15 @@ export default function AdminDashboardClient({
     router.replace(`${window.location.pathname}?${params.toString()}`);
   };
   
-  // Filtering State - Default to Today (initialized on mount to avoid timezone/hydration mismatch)
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Filtering State - Default to Today (pre-loaded with server values to prevent layout shift)
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setStartDate(format(new Date(), "yyyy-MM-dd"));
-    setEndDate(format(new Date(), "yyyy-MM-dd"));
+    const clientToday = format(new Date(), "yyyy-MM-dd");
+    setStartDate(clientToday);
+    setEndDate(clientToday);
   }, []);
 
   const getActivePreset = () => {
@@ -239,7 +242,7 @@ export default function AdminDashboardClient({
     const topProducts = Object.values(productStats).sort((a, b) => b.total_qty_sold - a.total_qty_sold);
 
     return { totalRevenue, topProducts };
-  }, [startDate, endDate, rawSessions, rawSaleItems, searchQuery]);
+  }, [startDate, endDate, rawSessions, rawSaleItems, searchQuery, sessions]);
 
   // Inventory Table Search Filter
   const filteredInventory = useMemo(() => {
@@ -284,11 +287,11 @@ export default function AdminDashboardClient({
       />
 
       {/* Premium Tab Switcher */}
-      <div className="border-b border-gray-200 dark:border-[#2C2C2E] px-4 lg:px-0">
-        <div className="flex gap-6 -mb-px">
+      <div className="border-b border-gray-200 dark:border-[#2C2C2E] px-2 lg:px-0">
+        <div className="flex gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-thin">
           <button
             onClick={() => handleTabChange("overview")}
-            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === "overview"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -299,7 +302,7 @@ export default function AdminDashboardClient({
           </button>
           <button
             onClick={() => handleTabChange("ledger")}
-            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === "ledger"
                 ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -339,7 +342,10 @@ export default function AdminDashboardClient({
         </div>
       ) : (
         <div className="px-2 lg:px-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <LedgerClient transactions={transactions} products={products} storeId={storeId} />
+          <LedgerClient 
+            storeId={storeId} 
+            searchQuery={searchQuery}
+          />
         </div>
       )}
 

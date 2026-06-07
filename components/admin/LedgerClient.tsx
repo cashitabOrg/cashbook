@@ -1,24 +1,42 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { Search, Activity, ShieldAlert } from "lucide-react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { ShieldAlert, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import LedgerToolbar from "./ledger/LedgerToolbar";
 import LedgerDayGroup from "./ledger/LedgerDayGroup";
+import { fetchLedgerData, type LedgerTransaction, type LedgerProduct } from "@/app/actions/ledger";
 
-export default function LedgerClient({ transactions: initialTransactions, products, storeId }: { transactions: any[], products: any[], storeId?: string }) {
-  const [transactions, setTransactions] = useState(initialTransactions);
+export default function LedgerClient({
+  storeId,
+  searchQuery,
+}: {
+  storeId: string;
+  searchQuery: string;
+}) {
+  const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
+  const [products, setProducts] = useState<LedgerProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"ALL" | "SALES" | "STOCK">("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState("ALL");
   const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
 
-  // Sync prop changes after router.refresh()
-  useEffect(() => {
-    setTransactions(initialTransactions);
-  }, [initialTransactions]);
+  // Fetch all ledger data client-side to avoid RSC serialization crashes
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const result = await fetchLedgerData(storeId);
+      setTransactions(result.transactions);
+      setProducts(result.products);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [storeId]);
 
-  // Real-time subscription: instantly show new inventory movements
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Real-time subscription: instantly prepend new inventory movements
   useEffect(() => {
     if (!storeId) return;
     const supabase = createClient();
@@ -30,8 +48,26 @@ export default function LedgerClient({ transactions: initialTransactions, produc
         table: 'inventory_movements',
         filter: `store_id=eq.${storeId}`,
       }, (payload) => {
-        // Prepend new movement to the top (newest first)
-        setTransactions(prev => [payload.new as any, ...prev]);
+        const row = payload.new as any;
+        const tx: LedgerTransaction = {
+          id: String(row.id ?? ''),
+          store_id: String(row.store_id ?? ''),
+          product_id: row.product_id ? String(row.product_id) : null,
+          transaction_type: String(row.transaction_type ?? ''),
+          quantity_before: Number(row.quantity_before ?? 0),
+          quantity_change: Number(row.quantity_change ?? 0),
+          quantity_after: Number(row.quantity_after ?? 0),
+          reference_id: row.reference_id ? String(row.reference_id) : null,
+          note: row.note ? String(row.note) : null,
+          actor_id: row.actor_id ? String(row.actor_id) : null,
+          created_at: String(row.created_at ?? ''),
+          product_name: null,
+          product_unit: null,
+          staff_name: null,
+          products: null,
+          users: null,
+        };
+        setTransactions(prev => [tx, ...prev]);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -44,33 +80,30 @@ export default function LedgerClient({ transactions: initialTransactions, produc
   // 1. Core Filtering Engine
   const filteredData = useMemo(() => {
     return transactions.filter((tx) => {
-      // Category Isolation (The 3 Tabs)
       if (activeTab === "SALES" && tx.transaction_type !== "SALE") return false;
       if (activeTab === "STOCK" && tx.transaction_type === "SALE") return false;
 
-      // Product Isolation (The Dropdown)
-      if (selectedProduct !== "ALL" && tx.product_id !== selectedProduct) return false;
-
-      // Smart Search String parsing
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const pName = (tx.products?.name || tx.product_name || "").toLowerCase();
-        const uName = tx.users?.full_name?.toLowerCase() || "";
-        const note = tx.note?.toLowerCase() || "";
+        const uName = (tx.users?.full_name || tx.staff_name || "").toLowerCase();
+        const note = (tx.note || "").toLowerCase();
         if (!pName.includes(query) && !uName.includes(query) && !note.includes(query)) return false;
       }
 
       return true;
     });
-  }, [transactions, activeTab, searchQuery, selectedProduct]);
+  }, [transactions, activeTab, searchQuery]);
 
-  // 2. The Grouping Engine (Transforms flat data into day-by-day nested arrays)
+  // 2. Grouping Engine — flat list → day-by-day nested arrays
   const groupedByDay = useMemo(() => {
-    const groups: { dateLabel: string, items: any[] }[] = [];
-    const map = new Map<string, any[]>();
-    
+    const groups: { dateLabel: string; items: LedgerTransaction[] }[] = [];
+    const map = new Map<string, LedgerTransaction[]>();
+
     filteredData.forEach(tx => {
-      const dateLabel = new Date(tx.created_at).toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
+      const dateLabel = new Date(tx.created_at).toLocaleDateString("en-US", {
+        weekday: 'long', month: 'long', day: 'numeric'
+      });
       if (!map.has(dateLabel)) {
         map.set(dateLabel, []);
         groups.push({ dateLabel, items: map.get(dateLabel)! });
@@ -83,18 +116,18 @@ export default function LedgerClient({ transactions: initialTransactions, produc
 
   return (
     <div className="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl flex flex-col transition-colors">
-      <LedgerToolbar 
+      <LedgerToolbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        selectedProduct={selectedProduct}
-        setSelectedProduct={setSelectedProduct}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        products={products}
       />
 
       <div className="overflow-x-auto">
-        {groupedByDay.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+            <p className="text-sm font-medium">Loading movement log…</p>
+          </div>
+        ) : groupedByDay.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
             <ShieldAlert className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
             <p className="text-xl font-medium text-gray-900 dark:text-white">No Stock Movements Found</p>
@@ -102,11 +135,11 @@ export default function LedgerClient({ transactions: initialTransactions, produc
           </div>
         ) : (
           <div className="w-full md:min-w-[1000px]">
-            {/* Table Header Wrapper */}
+            {/* Table Header */}
             <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-200 dark:border-[#2C2C2E] bg-gray-50/80 dark:bg-[#252528]/80 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10 transition-colors">
               <div className="col-span-1 pl-2">S/N</div>
               <div className="col-span-2">Time Recorded</div>
-              <div className="col-span-3">Item & Context</div>
+              <div className="col-span-3">Item &amp; Context</div>
               <div className="col-span-1 text-right">Initial</div>
               <div className="col-span-2 text-center text-gray-700 dark:text-gray-300 font-black">DELTA ( ± )</div>
               <div className="col-span-1 text-left">New Total</div>
@@ -114,7 +147,7 @@ export default function LedgerClient({ transactions: initialTransactions, produc
             </div>
 
             {groupedByDay.map((group) => (
-              <LedgerDayGroup 
+              <LedgerDayGroup
                 key={group.dateLabel}
                 group={group}
                 isOpen={openDays[group.dateLabel] || false}
