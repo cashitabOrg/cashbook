@@ -28,7 +28,27 @@ export default async function AdminDashboardPage({
     staffCount,
   } = dashboardData;
 
-  const { transactions } = ledgerData;
+  // Sanitize: flatten all Supabase join objects into plain JSON before crossing the RSC boundary.
+  // This prevents Turbopack's "Cannot read properties of undefined (reading 'stack')" crash.
+  const safeTransactions = (ledgerData.transactions || []).map((tx) => ({
+    id: tx.id ?? null,
+    store_id: tx.store_id ?? null,
+    product_id: tx.product_id ?? null,
+    transaction_type: tx.transaction_type ?? "",
+    quantity_before: Number(tx.quantity_before ?? 0),
+    quantity_change: Number(tx.quantity_change ?? 0),
+    quantity_after: Number(tx.quantity_after ?? 0),
+    reference_id: tx.reference_id ?? null,
+    note: tx.note ?? null,
+    actor_id: tx.actor_id ?? null,
+    created_at: tx.created_at ?? "",
+    product_name: (tx.products as any)?.name ?? null,
+    product_unit: (tx.products as any)?.unit ?? null,
+    staff_name: (tx.users as any)?.full_name ?? null,
+    // Keep nested for backwards compat with LedgerClient filter/display logic
+    products: tx.products ? { name: (tx.products as any).name ?? "", unit: (tx.products as any).unit ?? "" } : null,
+    users: tx.users ? { full_name: (tx.users as any).full_name ?? "" } : null,
+  }));
 
   return (
     <div className="lg:p-8 max-w-full mx-auto pb-24">
@@ -38,7 +58,7 @@ export default async function AdminDashboardPage({
         rawSessions={rawSessions || []}
         rawSaleItems={rawSaleItems as any}
         recentAdjustments={recentAdjustments || []}
-        transactions={transactions || []}
+        transactions={safeTransactions}
         title="Operational Hub"
         subtitle="A real-time overview of your store's lifetime revenue, inventory health, and audit movement logs."
         plan={store?.plan || 'free'}

@@ -1,3 +1,5 @@
+"use client";
+
 import { ChevronDown, ChevronRight, CalendarDays } from "lucide-react";
 import LedgerTransactionRow from "./LedgerTransactionRow";
 
