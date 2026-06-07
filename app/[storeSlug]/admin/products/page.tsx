@@ -24,7 +24,7 @@ export default async function AdminProductsPage({
       storeId={userRole.storeId}
       storeName={store?.name || "Store"}
       storeSlug={storeSlug} 
-      products={products || []} 
+      products={JSON.parse(JSON.stringify(products || []))} 
       plan={store?.plan || 'free'}
       isExempt={store?.is_billing_exempt || false}
     />
