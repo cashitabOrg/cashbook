@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSalesSession, SaleRow } from "@/hooks/useSalesSession";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, LocalProduct } from "@/lib/db";
@@ -29,6 +29,26 @@ export default function SalesPointUI({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+
+  // Measure summary bar height dynamically for sticky column header offset
+  const summaryBarRef = useRef<HTMLDivElement>(null);
+  const [summaryBarHeight, setSummaryBarHeight] = useState(68);
+
+  useEffect(() => {
+    const wrapper = summaryBarRef.current;
+    if (!wrapper) return;
+    const measureHeight = () => {
+      // Measure the inner SalesSummaryBar element directly (not the wrapper),
+      // so mb-2 margin on the bar is excluded from the sticky offset calculation.
+      const child = wrapper.firstElementChild as HTMLElement | null;
+      setSummaryBarHeight(child ? child.offsetHeight : wrapper.offsetHeight);
+    };
+    const target = (wrapper.firstElementChild as HTMLElement) ?? wrapper;
+    const observer = new ResizeObserver(measureHeight);
+    observer.observe(target);
+    measureHeight();
+    return () => observer.disconnect();
+  }, []);
 
   // 2. Hydrate Dexie cache initially if online
   useEffect(() => {
@@ -216,18 +236,20 @@ export default function SalesPointUI({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-[100dvh] w-full max-w-7xl mx-auto lg:px-8 lg:py-6 lg:h-auto">
+    <div className="flex flex-col w-full max-w-7xl mx-auto lg:px-8 lg:py-6">
       <SalesTopBanner isOnline={isOnline} isStale={isStale} />
 
-      <SalesSummaryBar 
-        totalItems={totalItems}
-        totalRevenue={totalRevenue}
-        pendingSyncCount={pendingSyncCount}
-        isEnding={isEnding}
-        handleEndSession={handleEndSession}
-      />
+      <div ref={summaryBarRef}>
+        <SalesSummaryBar 
+          totalItems={totalItems}
+          totalRevenue={totalRevenue}
+          pendingSyncCount={pendingSyncCount}
+          isEnding={isEnding}
+          handleEndSession={handleEndSession}
+        />
+      </div>
 
-      <div className="flex-1 overflow-visible flex flex-col mb-24 lg:mb-0 px-2 lg:px-0">
+      <div className="flex flex-col mb-24 lg:mb-0 px-2 lg:px-0">
         <SalesEntryTable 
           rows={rows}
           products={products}
@@ -239,6 +261,7 @@ export default function SalesPointUI({
           removeRow={removeRow}
           refreshSession={refreshSession}
           addEmptyRow={addEmptyRow}
+          stickyTop={summaryBarHeight}
         />
 
         <ProductPickerModal 

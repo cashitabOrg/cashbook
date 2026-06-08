@@ -81,7 +81,7 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
   }, [isExpanded, sessions, productBreakdown]);
 
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] overflow-hidden transition-all duration-200 mx-4 lg:mx-8 mb-4">
+    <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] overflow-hidden transition-all duration-200 mb-2">
       <HistoryRowHeader 
         dateStr={dateStr}
         sessionsCount={sessions.length}
@@ -94,16 +94,16 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
 
       {/* Expandable Content */}
       {isExpanded && (
-        <div className="border-t border-slate-100 dark:border-[#2C2C2E] bg-slate-50 dark:bg-[#252528]/50 p-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="border-t border-slate-100 dark:border-[#2C2C2E] bg-slate-50 dark:bg-[#252528]/50 p-3 animate-in slide-in-from-top-2 duration-300">
           {/* Mobile Stats */}
-          <div className="flex sm:hidden justify-between mb-4 bg-white dark:bg-[#1C1C1E] p-3 rounded-lg border border-slate-200 dark:border-[#2C2C2E] shadow-sm">
+          <div className="flex sm:hidden justify-between mb-3 bg-white dark:bg-[#1C1C1E] px-3 py-2 rounded-lg border border-slate-200 dark:border-[#2C2C2E] shadow-sm">
             <div>
-              <p className="text-xs text-slate-500 dark:text-gray-400">Revenue</p>
-              <p className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(dailyTotalRevenue)}</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-wider">Revenue</p>
+              <p className="font-bold text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(dailyTotalRevenue)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-500 dark:text-gray-400">Items Sold</p>
-              <p className="font-bold text-slate-900 dark:text-white">{dailyTotalItems.toFixed(2)}</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-wider">Items Sold</p>
+              <p className="font-bold text-sm text-slate-900 dark:text-white">{dailyTotalItems.toFixed(2)}</p>
             </div>
           </div>
 

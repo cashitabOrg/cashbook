@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { CheckCircle2, RefreshCw, ShoppingCart } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 
@@ -16,34 +17,48 @@ export default function SalesSummaryBar({
   isEnding,
   handleEndSession
 }: SalesSummaryBarProps) {
+  const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingSyncCount === 0) {
+      const now = new Date();
+      setLastSyncedTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }
+  }, [pendingSyncCount]);
+
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] p-4 lg:p-6 mb-2 lg:mb-6 flex flex-wrap gap-4 justify-between items-center isolate relative overflow-hidden shrink-0 border-b border-slate-100 dark:border-[#2C2C2E]">
+    <div className="sticky top-0 z-30 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-sm lg:rounded-xl lg:shadow-md lg:border border-slate-200 dark:border-[#2C2C2E] p-4 lg:p-6 mb-2 lg:mb-6 flex flex-row justify-between items-center gap-3 sm:gap-4 isolate relative overflow-hidden shrink-0 border-b border-slate-100 dark:border-[#2C2C2E] shadow-sm min-h-[68px] lg:min-h-[88px]">
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="relative z-10 flex gap-4 lg:gap-8 items-center">
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Total Items</p>
-          <p className="text-xl lg:text-2xl font-black text-slate-900 dark:text-white leading-none">{totalItems.toFixed(2)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Session Revenue</p>
-          <p className="text-xl lg:text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{formatCurrency(totalRevenue)}</p>
+      
+      <div className="relative z-10 flex flex-col items-start gap-1 min-w-0">
+        {/* Row for Total Items and Session Revenue */}
+        <div className="flex flex-row items-center gap-3 sm:gap-5 flex-nowrap whitespace-nowrap">
+          <div className="flex items-baseline gap-1">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Total Items</span>
+            <span className="text-xs sm:text-lg font-black text-slate-900 dark:text-white leading-none">{totalItems.toFixed(2)}</span>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Session Revenue</span>
+            <span className="text-xs sm:text-lg font-black text-emerald-600 dark:text-emerald-400 leading-none">{formatCurrency(totalRevenue)}</span>
+          </div>
         </div>
         
-        {/* SYNC STATUS BADGE */}
-        <div className="h-10 w-px bg-slate-100 dark:bg-[#2C2C2E] mx-2 hidden sm:block" />
-        
-        <div className="flex flex-col">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Sync Status</p>
+        {/* Sync Status Message - Underneath */}
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-gray-500 font-light tracking-tight">
           {pendingSyncCount > 0 ? (
-            <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-100 animate-pulse transition-all">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span className="text-[10px] font-black uppercase tracking-tight">{pendingSyncCount} Items Syncing...</span>
-            </div>
+            <>
+              <RefreshCw className="w-3 h-3 text-blue-500 dark:text-blue-400 animate-spin shrink-0" />
+              <span>
+                Sync Status: <span className="font-normal text-blue-500 dark:text-blue-400">Saving & syncing {pendingSyncCount} items... (Pending)</span>
+              </span>
+            </>
           ) : (
-            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-100 transition-all">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-black uppercase tracking-tight">Cloud Synced</span>
-            </div>
+            <>
+              <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 shrink-0" />
+              <span>
+                Sync Status: <span className="font-normal text-emerald-600 dark:text-emerald-400">Cloud Synced (Up to date {lastSyncedTime ? `at ${lastSyncedTime}` : ''})</span>
+              </span>
+            </>
           )}
         </div>
       </div>
@@ -51,7 +66,7 @@ export default function SalesSummaryBar({
       <button
         onClick={handleEndSession}
         disabled={isEnding}
-        className="relative z-10 inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-black text-white shadow-lg hover:bg-blue-700 transition-all active:scale-95 gap-2 uppercase tracking-widest disabled:opacity-50"
+        className="relative z-10 inline-flex items-center rounded-xl bg-blue-600 px-3 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-black text-white shadow-lg hover:bg-blue-700 transition-all active:scale-95 gap-1.5 uppercase tracking-widest disabled:opacity-50 shrink-0"
       >
         <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
         {isEnding ? "Ending..." : "End Session"}
