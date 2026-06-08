@@ -216,7 +216,7 @@ export default function SalesPointUI({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-[100dvh] bg-slate-50/50 w-full max-w-7xl mx-auto lg:px-8 lg:py-6 lg:h-auto">
+    <div className="flex-1 flex flex-col h-[100dvh] w-full max-w-7xl mx-auto lg:px-8 lg:py-6 lg:h-auto">
       <SalesTopBanner isOnline={isOnline} isStale={isStale} />
 
       <SalesSummaryBar 

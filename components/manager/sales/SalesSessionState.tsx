@@ -30,7 +30,7 @@ export default function SalesSessionState({
           {/* Background dynamic glow */}
           <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-[4rem] blur-3xl opacity-50 group-hover:opacity-100 transition duration-1000" />
           
-          <div className="relative bg-white/80 backdrop-blur-2xl p-10 lg:p-12 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white/50 ring-1 ring-slate-950/5 overflow-hidden">
+          <div className="relative bg-white dark:bg-[#1C1C1E]/80 backdrop-blur-2xl p-10 lg:p-12 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white/50 ring-1 ring-slate-950/5 overflow-hidden">
             {/* Decorative corner accent */}
             <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl" />
             
@@ -42,13 +42,13 @@ export default function SalesSessionState({
                 </div>
               </div>
 
-              <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter uppercase">
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter uppercase">
                 Unfinished Session <br />
-                <span className="text-blue-600">Detected</span>
+                <span className="text-blue-600 dark:text-blue-400">Detected</span>
               </h2>
               
-              <p className="text-slate-500 mb-10 text-base lg:text-lg leading-relaxed font-medium">
-                We found an open session from <span className="text-slate-900 font-bold underline decoration-blue-500/30 whitespace-nowrap">{new Date(orphanedSession.started_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>. 
+              <p className="text-slate-500 dark:text-gray-400 mb-10 text-base lg:text-lg leading-relaxed font-medium">
+                We found an open session from <span className="text-slate-900 dark:text-white font-bold underline decoration-blue-500/30 whitespace-nowrap">{new Date(orphanedSession.started_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>. 
                 Ready to pick up where you left off?
               </p>
 
@@ -69,7 +69,7 @@ export default function SalesSessionState({
                 <button
                   onClick={closeOrphanedSession}
                   disabled={isRecovering}
-                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 border border-slate-200/50"
+                  className="w-full bg-slate-50 dark:bg-[#252528] hover:bg-slate-100 dark:bg-[#2C2C2E] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 border border-slate-200 dark:border-[#2C2C2E]/50"
                 >
                   Start Fresh
                 </button>
@@ -83,11 +83,11 @@ export default function SalesSessionState({
         </div>
       ) : (
         <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-blue-50 p-6 rounded-full mb-6">
-            <ShoppingBag className="w-16 h-16 text-blue-600" />
+          <div className="bg-blue-50 dark:bg-blue-500/10 p-6 rounded-full mb-6">
+            <ShoppingBag className="w-16 h-16 text-blue-600 dark:text-blue-400" />
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Ready for Sales</h2>
-          <p className="text-slate-500 max-w-md mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Ready for Sales</h2>
+          <p className="text-slate-500 dark:text-gray-400 max-w-md mb-8">
             Start a new session to begin recording sales, applying prices, and automatically updating stock in real-time.
           </p>
           <button
@@ -99,7 +99,7 @@ export default function SalesSessionState({
           </button>
           
           {!isOnline && (
-            <div className="mt-8 flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-full text-sm font-medium">
+            <div className="mt-8 flex items-center gap-2 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-4 py-2 rounded-full text-sm font-medium">
               <WifiOff className="w-4 h-4" />
               Offline Mode — Changes will sync on reconnect
             </div>

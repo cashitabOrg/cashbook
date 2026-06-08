@@ -229,8 +229,8 @@ export default function ManagerDashboardClient({
         subtitle="Full sales breakdown for selected date range"
         icon={<TrendingUp className="w-4 h-4" />}
       >
-        <table className="min-w-full divide-y divide-slate-100">
-          <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <table className="min-w-full divide-y divide-slate-100 dark:divide-[#2C2C2E]">
+          <thead className="bg-slate-50/80 dark:bg-[#252528]/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">
             <tr>
               <th className="py-4 px-8 text-left w-12">SN</th>
               <th className="py-4 px-8 text-left">Item Name</th>
@@ -238,16 +238,16 @@ export default function ManagerDashboardClient({
               <th className="py-4 px-8 text-right">Total</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-100">
+          <tbody className="bg-white dark:bg-[#1C1C1E] divide-y divide-slate-100 dark:divide-[#2C2C2E]">
             {metrics.topProducts.length === 0 ? (
-              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No sales data available.</td></tr>
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 dark:text-gray-500 italic">No sales data available.</td></tr>
             ) : (
               metrics.topProducts.map((p, idx) => (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                  <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
-                  <td className="py-4 px-8 text-sm text-slate-600 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-8 text-sm text-emerald-600 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
+                <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-[#252528]/50 transition-colors">
+                  <td className="py-4 px-8 text-xs text-slate-400 dark:text-gray-500 font-mono italic">{idx + 1}</td>
+                  <td className="py-4 px-8 text-sm font-bold text-slate-900 dark:text-white">{p.name}</td>
+                  <td className="py-4 px-8 text-sm text-slate-600 dark:text-gray-300 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
+                  <td className="py-4 px-8 text-sm text-emerald-600 dark:text-emerald-400 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}
@@ -262,8 +262,8 @@ export default function ManagerDashboardClient({
         subtitle="Full inventory status for all products"
         icon={<Package className="w-4 h-4" />}
       >
-        <table className="min-w-full divide-y divide-slate-100">
-          <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <table className="min-w-full divide-y divide-slate-100 dark:divide-[#2C2C2E]">
+          <thead className="bg-slate-50/80 dark:bg-[#252528]/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">
             <tr>
               <th className="py-4 px-8 text-left w-12">SN</th>
               <th className="py-4 px-8 text-left">Item</th>
@@ -271,24 +271,24 @@ export default function ManagerDashboardClient({
               <th className="py-4 px-8 text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-100">
+          <tbody className="bg-white dark:bg-[#1C1C1E] divide-y divide-slate-100 dark:divide-[#2C2C2E]">
             {filteredInventory.length === 0 ? (
-              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 italic">No products found.</td></tr>
+              <tr><td colSpan={4} className="py-16 text-center text-sm text-slate-400 dark:text-gray-500 italic">No products found.</td></tr>
             ) : (
               filteredInventory.map((p, idx) => {
                 const isLow = p.quantity < p.min_quantity;
                 return (
-                  <tr key={p.id} className={`transition-colors hover:bg-slate-50/50 ${isLow ? 'bg-red-50/30' : ''}`}>
-                    <td className="py-4 px-8 text-xs text-slate-400 font-mono italic">{idx + 1}</td>
-                    <td className="py-4 px-8 text-sm font-bold text-slate-900">{p.name}</td>
+                  <tr key={p.id} className={`transition-colors hover:bg-slate-50/50 dark:hover:bg-[#252528]/50 ${isLow ? 'bg-red-50/30 dark:bg-red-500/10' : ''}`}>
+                    <td className="py-4 px-8 text-xs text-slate-400 dark:text-gray-500 font-mono italic">{idx + 1}</td>
+                    <td className="py-4 px-8 text-sm font-bold text-slate-900 dark:text-white">{p.name}</td>
                     <td className="py-4 px-8 text-sm text-right">
-                      <span className={`font-mono font-bold ${isLow ? 'text-red-500' : 'text-slate-600'}`}>{p.quantity.toFixed(2)}</span>
+                      <span className={`font-mono font-bold ${isLow ? 'text-red-500 dark:text-red-400' : 'text-slate-600 dark:text-gray-300'}`}>{p.quantity.toFixed(2)}</span>
                     </td>
                     <td className="py-4 px-8 text-center">
                       {isLow ? (
-                        <span className="text-[10px] font-black text-red-600 bg-red-100 px-3 py-1 rounded-full uppercase tracking-tighter italic">Low Stock</span>
+                        <span className="text-[10px] font-black text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/20 px-3 py-1 rounded-full uppercase tracking-tighter italic">Low Stock</span>
                       ) : (
-                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-tighter">In Stock</span>
+                        <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full uppercase tracking-tighter">In Stock</span>
                       )}
                     </td>
                   </tr>
