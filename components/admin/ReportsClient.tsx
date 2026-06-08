@@ -126,7 +126,6 @@ export default function ReportsClient({
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [searchQuery, setSearchQuery] = useState("");
-  const [managerFilter, setManagerFilter] = useState("");
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
   const applyPreset = (range: string) => {
@@ -178,15 +177,12 @@ export default function ReportsClient({
       );
       if (!matches) return false;
     }
-    if (managerFilter && item.managerName !== managerFilter) {
-      return false;
-    }
     return true;
   };
 
   const filteredSales = useMemo(() => 
     sales.filter((item) => filterItem(item, "timestamp", ["productName", "managerName"]))
-  , [sales, startDate, endDate, searchQuery, managerFilter]);
+  , [sales, startDate, endDate, searchQuery]);
 
   // Grouping Logic
   const groupedSales = useMemo(() => {
@@ -302,7 +298,7 @@ export default function ReportsClient({
     }));
   }, []);
 
-  const managers = useMemo(() => Array.from(new Set(sales.map(s => s.managerName))).filter(Boolean).sort(), [sales]);
+
   const totalSalesRevenue = useMemo(() => filteredSales.reduce((sum, item) => sum + item.revenue, 0), [filteredSales]);
   const totalSalesProfit = useMemo(() => filteredSales.reduce((sum, item) => sum + item.profit, 0), [filteredSales]);
   const totalSalesQty = useMemo(() => filteredSales.reduce((sum, item) => sum + item.qty, 0), [filteredSales]);
@@ -318,7 +314,7 @@ export default function ReportsClient({
   }, [filteredSales]);
 
   return (
-    <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-gray-200 dark:border-[#2C2C2E] overflow-hidden flex flex-col h-[calc(100dvh-56px)] md:h-full min-h-[500px]">
+    <div className="flex flex-col gap-4 h-[calc(100dvh-56px)] md:h-full min-h-[500px]">
       <ReportsHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -326,9 +322,6 @@ export default function ReportsClient({
         setStartDate={setStartDate}
         endDate={endDate}
         setEndDate={setEndDate}
-        managerFilter={managerFilter}
-        setManagerFilter={setManagerFilter}
-        managers={managers}
         applyPreset={applyPreset}
         isClient={isClient}
         isPreparingExport={isPreparingExport}
@@ -342,7 +335,7 @@ export default function ReportsClient({
         canExportReports={canExportReports}
       />
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-gray-200 dark:border-[#2C2C2E] transition-colors">
         {groupedSales.length === 0 ? (
           <div className="py-20 text-center text-gray-500 dark:text-gray-400 italic font-medium">No sales found for this period.</div>
         ) : (

@@ -288,7 +288,7 @@ export default function AdminDashboardClient({
 
       {/* Premium Tab Switcher */}
       <div className="border-b border-gray-200 dark:border-[#2C2C2E] px-2 lg:px-0">
-        <div className="flex gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-thin">
+        <div className="flex justify-center gap-8 sm:gap-16 -mb-px overflow-x-auto scrollbar-thin">
           <button
             onClick={() => handleTabChange("overview")}
             className={`py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 whitespace-nowrap shrink-0 ${

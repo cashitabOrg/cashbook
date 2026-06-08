@@ -2,8 +2,8 @@
 
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState, useEffect } from "react";
-import { X, PlusCircle, Scale, Settings, History, TrendingUp, PackagePlus, AlertTriangle } from "lucide-react";
-import { addStock, adjustStock, editProduct, getPriceHistory } from "@/app/actions/products";
+import { X, PlusCircle, Scale, Settings, History, TrendingUp, PackagePlus, AlertTriangle, Trash2 } from "lucide-react";
+import { addStock, adjustStock, editProduct, getPriceHistory, deleteProduct } from "@/app/actions/products";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/format";
@@ -36,8 +36,9 @@ export default function ProductDetailsDrawer({
   storeSlug,
   product,
 }: ProductDetailsDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"restock" | "correction" | "identity" | "history">("restock");
+  const [activeTab, setActiveTab] = useState<"restock" | "correction" | "identity" | "history" | "archive">("restock");
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Restock Form States
   const [restockQty, setRestockQty] = useState<number>(0);
@@ -198,6 +199,28 @@ export default function ProductDetailsDrawer({
     }
     setLoading(false);
   };
+  
+  const handleArchiveProduct = async () => {
+    if (!product) return;
+    if (!confirm(`Archive "${product.name}"? It will be hidden from all active lists but its sales history and audit trail will be fully preserved.`)) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("id", product.id);
+    
+    const res = await deleteProduct(storeSlug, formData);
+    if (res?.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`"${product.name}" has been archived.`);
+      onClose();
+    }
+    setIsDeleting(false);
+    setLoading(false);
+  };
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -265,10 +288,10 @@ export default function ProductDetailsDrawer({
                   </div>
 
                   {/* Vertical Tab Select Strip */}
-                  <div className="flex bg-gray-100 dark:bg-[#252528] p-1 mx-6 mt-6 rounded-xl shrink-0 border border-gray-200/50 dark:border-[#3A3A3C]/50">
+                  <div className="flex bg-gray-100 dark:bg-[#252528] p-1 mx-6 mt-6 rounded-xl shrink-0 border border-gray-200/50 dark:border-[#3A3A3C]/50 gap-0.5">
                     <button
                       onClick={() => setActiveTab("restock")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
                         activeTab === "restock" ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
@@ -276,7 +299,7 @@ export default function ProductDetailsDrawer({
                     </button>
                     <button
                       onClick={() => setActiveTab("correction")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
                         activeTab === "correction" ? "bg-white dark:bg-[#3A3A3C] text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
@@ -284,7 +307,7 @@ export default function ProductDetailsDrawer({
                     </button>
                     <button
                       onClick={() => setActiveTab("identity")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
                         activeTab === "identity" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
@@ -292,11 +315,19 @@ export default function ProductDetailsDrawer({
                     </button>
                     <button
                       onClick={() => setActiveTab("history")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
                         activeTab === "history" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       <History className="w-3.5 h-3.5" /> Logs
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("archive")}
+                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
+                        activeTab === "archive" ? "bg-white dark:bg-[#3A3A3C] text-red-600 dark:text-red-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                      }`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Archive
                     </button>
                   </div>
 
@@ -677,6 +708,32 @@ export default function ProductDetailsDrawer({
                               </div>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {activeTab === "archive" && (
+                        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                          <h4 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <Trash2 className="w-4 h-4 text-red-600 dark:text-red-500" /> Archive Product
+                          </h4>
+
+                          <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl space-y-2">
+                            <p className="text-xs font-bold text-red-800 dark:text-red-400">Warning: Archiving is a structural action.</p>
+                            <p className="text-[11px] text-red-700 dark:text-red-300 leading-relaxed font-semibold">
+                              Archiving this product will hide it from all active catalogs and stock lists. 
+                              However, its sales transactions, history, and audit trail will be fully preserved for reporting purposes.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleArchiveProduct}
+                            disabled={loading}
+                            className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {isDeleting ? "Archiving Product..." : "Confirm Archive Product"}
+                          </button>
                         </div>
                       )}
                     </div>
