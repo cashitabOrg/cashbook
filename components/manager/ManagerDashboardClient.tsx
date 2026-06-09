@@ -58,6 +58,7 @@ export default function ManagerDashboardClient({
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [searchQuery, setSearchQuery] = useState("");
+  const [activePreset, setActivePreset] = useState("7d");
 
   const getDatePreset = (range: string) => {
     const today = new Date();
@@ -75,6 +76,7 @@ export default function ManagerDashboardClient({
 
   const applyPreset = (range: string) => {
     const today = new Date();
+    setActivePreset(range);
     if (range === "yesterday") {
       const yesterday = subDays(today, 1);
       setStartDate(format(yesterday, "yyyy-MM-dd"));
@@ -200,6 +202,7 @@ export default function ManagerDashboardClient({
         endDate={endDate}
         setEndDate={setEndDate}
         applyPreset={applyPreset}
+        activePreset={activePreset}
       />
       
       <div className="px-2 lg:px-0 space-y-6">

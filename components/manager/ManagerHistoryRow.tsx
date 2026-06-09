@@ -38,6 +38,7 @@ interface ManagerHistoryRowProps {
   isExpanded: boolean;
   onToggle: (dateStr: string) => void;
   availableProducts: { id: string; name: string; }[];
+  searchQuery?: string;
 }
 
 const ManagerHistoryRow = memo(function ManagerHistoryRow({
@@ -49,7 +50,8 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
   productBreakdown,
   isExpanded,
   onToggle,
-  availableProducts
+  availableProducts,
+  searchQuery = ""
 }: ManagerHistoryRowProps) {
   const router = useRouter();
 
@@ -57,13 +59,16 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
   const processedData = useMemo(() => {
     if (!isExpanded) return { dailyHistoryItems: [], breakdownArray: [], topProduct: null };
 
-    const breakdownArray = Object.values(productBreakdown).sort((a, b) => b.revenue - a.revenue);
-    
-    const topProduct = breakdownArray.length > 0 
+    const q = searchQuery.trim().toLowerCase();
+
+    let breakdownArray = Object.values(productBreakdown).sort((a, b) => b.revenue - a.revenue);
+    if (q) breakdownArray = breakdownArray.filter(p => p.productName.toLowerCase().includes(q));
+
+    const topProduct = breakdownArray.length > 0
       ? breakdownArray.reduce((prev, curr) => (curr.qtySold > prev.qtySold ? curr : prev))
       : null;
-      
-    const dailyHistoryItems = sessions.flatMap(session => 
+
+    let dailyHistoryItems = sessions.flatMap(session =>
       session.items.map(item => ({
         id: item.id || '',
         time: format(parseISO(item.createdAt || session.startedAt), "HH:mm"),
@@ -77,8 +82,10 @@ const ManagerHistoryRow = memo(function ManagerHistoryRow({
       }))
     ).sort((a, b) => a.timestamp - b.timestamp);
 
+    if (q) dailyHistoryItems = dailyHistoryItems.filter(i => i.productName.toLowerCase().includes(q));
+
     return { dailyHistoryItems, breakdownArray, topProduct };
-  }, [isExpanded, sessions, productBreakdown]);
+  }, [isExpanded, sessions, productBreakdown, searchQuery]);
 
   return (
     <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] overflow-hidden transition-all duration-200 mb-2">

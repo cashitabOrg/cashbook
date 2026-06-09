@@ -33,7 +33,8 @@ export default async function ManagerHistoryPage({
 
   return (
     <div className="max-w-full mx-auto pb-24">
-      <div className="bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] px-4 lg:px-6 py-4 flex items-center justify-between mb-2 shadow-sm relative overflow-hidden">
+      {/* Title header — desktop only, hidden on mobile (filter bar replaces it) */}
+      <div className="hidden lg:flex bg-white dark:bg-[#1C1C1E] lg:rounded-xl lg:shadow-sm lg:border border-slate-200 dark:border-[#2C2C2E] px-4 lg:px-6 py-4 items-center justify-between mb-2 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex items-center gap-4">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
