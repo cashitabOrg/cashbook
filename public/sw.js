@@ -1,4 +1,5 @@
 const CACHE_NAME = 'cashbook-cache-v3';
+let isDevMode = false;
 
 // Basic static shell pages cached initially
 const PRECACHE_ASSETS = [
@@ -44,7 +45,24 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 2. Skip hot-reloads and dev server components when running locally
-  if (url.pathname.startsWith('/_next/webpack-hmr') || url.pathname.includes('hot-update')) {
+  if (
+    url.pathname.includes('webpack-hmr') || 
+    url.pathname.includes('hot-update') ||
+    url.pathname.endsWith('._.js') ||
+    url.pathname.includes('/_next/static/development/')
+  ) {
+    if (!isDevMode) {
+      isDevMode = true;
+      console.log('[Service Worker] Next.js dev server detected. Clearing caches and disabling interceptor...');
+      caches.keys().then((names) => {
+        return Promise.all(names.map((name) => caches.delete(name)));
+      });
+    }
+    return;
+  }
+
+  // If we are flagged in dev mode, bypass service worker caching completely
+  if (isDevMode) {
     return;
   }
 
