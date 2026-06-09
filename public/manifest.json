@@ -2,7 +2,7 @@
   "name": "Cashitab Smart POS",
   "short_name": "Cashitab",
   "description": "Advanced POS, Inventory & Sales Management Platform for Modern Retail",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0284c7",

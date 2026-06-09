@@ -3,9 +3,11 @@ const CACHE_NAME = 'cashbook-cache-v3';
 // Basic static shell pages cached initially
 const PRECACHE_ASSETS = [
   '/',
+  '/login',
   '/favicon.ico',
   '/Logo_cashitab.png',
   '/logo-icon.png',
+  '/login-bg.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -58,9 +60,9 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Offline: try to serve the specific cached page, otherwise fallback to standard entry root '/'
+          // Offline: try to serve the specific cached page, otherwise fallback to standard entry root '/login'
           return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/');
+            return cachedResponse || caches.match('/login');
           });
         })
     );
