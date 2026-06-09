@@ -178,16 +178,6 @@ export default function SalesEntryTable({
 
       {/* Mobile Card List View */}
       <div className="md:hidden flex-1 flex flex-col overflow-x-hidden">
-        {/* Mobile Column Headers */}
-        <div 
-          className="grid items-center bg-slate-50/95 dark:bg-[#252528]/95 backdrop-blur-sm border-b border-slate-200 dark:border-[#2C2C2E] border-l-2 border-transparent p-3 gap-2 text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider sticky z-20"
-          style={{ gridTemplateColumns: "4.2fr 3.3fr 3.5fr 1.2fr", top: stickyTop }}
-        >
-          <div className="text-left pl-1">Product</div>
-          <div className="text-right">Qty Sold</div>
-          <div className="text-right">Total Price</div>
-          <div></div>
-        </div>
 
         {/* Mobile Row Map */}
         <div className="divide-y divide-slate-100 dark:divide-[#2C2C2E]">
