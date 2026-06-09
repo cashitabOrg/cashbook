@@ -163,7 +163,7 @@ export default function InstallAppButton({ variant = "hero", expanded = false }:
 
       {/* iOS Instructions Modal */}
       {showIOSInstructions && mounted && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" style={{ zIndex: 99999 }}>
           {/* Modal Card */}
           <div className="w-full sm:max-w-md bg-white dark:bg-[#1C1C1E] border border-transparent dark:border-slate-800 rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-6 sm:p-8 flex flex-col gap-6 relative transform transition-transform animate-slide-up">
             
