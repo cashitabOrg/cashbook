@@ -188,7 +188,7 @@ export default function SalesPointUI({
         .map((r, i) => (!r.synced ? i + 1 : -1))
         .filter(i => i !== -1);
       
-      toast.error("Cannot End Session", {
+      toast.error("Cannot Submit Session", {
         description: `Row(s) #${indices.join(", ")} are not filled correctly. Please complete them or remove them using the red X.`,
         duration: 5000
       });

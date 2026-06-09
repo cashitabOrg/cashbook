@@ -66,7 +66,7 @@ export default function SalesSummaryBar({
           className="relative z-10 inline-flex items-center rounded-xl bg-blue-600 px-3 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-black text-white shadow-lg hover:bg-blue-700 transition-all active:scale-95 gap-1.5 uppercase tracking-widest disabled:opacity-50 shrink-0"
         >
           <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-          {isEnding ? "Ending..." : "End Session"}
+          {isEnding ? "Submitting..." : "Submit"}
         </button>
       </div>
 
