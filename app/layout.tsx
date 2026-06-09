@@ -32,6 +32,19 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                window.dispatchEvent(new CustomEvent('pwa-install-prompt-available'));
+              });
+            `
+          }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <GlobalBroadcastBanner />
