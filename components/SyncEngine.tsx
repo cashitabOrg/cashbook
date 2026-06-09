@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { db } from "@/lib/db";
 import { createClient } from "@/lib/supabase";
 import { toast } from "sonner";
+import { deleteSalesSession } from "@/app/actions/sales";
 
 export default function SyncEngine() {
   const isSyncing = useRef(false);
@@ -216,6 +217,12 @@ export default function SyncEngine() {
             // Treat success as success
             success = !error;
           } 
+          
+          else if (item.type === "sale_session_delete") {
+            const { id } = item.payload;
+            const res = await deleteSalesSession(id);
+            success = !res.error;
+          }
           
           // The 'stock_decrement' type is now handled automatically by Database Triggers
           // when 'sale_item' records are synced. This prevent double-deduction.

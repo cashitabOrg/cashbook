@@ -15,7 +15,7 @@ export interface LocalProduct {
 export interface OfflineQueueItem {
   id?: number; // Auto-incremented local ID
   store_id: string;
-  type: 'sale_session' | 'sale_item' | 'stock_decrement' | 'sale_item_delete';
+  type: 'sale_session' | 'sale_item' | 'stock_decrement' | 'sale_item_delete' | 'sale_session_delete';
   payload: any;
   created_at: number;
   status: 'pending' | 'syncing' | 'failed' | 'fatal';

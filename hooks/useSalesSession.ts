@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { db } from '@/lib/db';
 import { toast } from 'sonner';
+import { deleteSalesSession } from '@/app/actions/sales';
 
 export type SaleRow = {
   localId: string; // for UI iteration
@@ -331,7 +332,46 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (!sessionId) return;
     setIsEnding(true);
 
-    // Offline-first
+    const hasCommittedSales = rows.some(r => r.synced);
+
+    if (!hasCommittedSales) {
+      // Find the start session queue item
+      const startSessionItem = await db.offlineQueue
+        .filter(item => item.type === 'sale_session' && item.payload?.id === sessionId && item.payload?.action !== 'close')
+        .first();
+
+      if (startSessionItem && startSessionItem.id && startSessionItem.status === 'pending') {
+        // Delete the start session action from the queue
+        await db.offlineQueue.delete(startSessionItem.id);
+        
+        // Also clean up any stray sale_item or sale_item_delete tasks for this session from the offline queue
+        await db.offlineQueue
+          .filter(item => (item.type === 'sale_item' || item.type === 'sale_item_delete') && item.payload?.session_id === sessionId)
+          .delete();
+      } else {
+        // The start session has already synced or wasn't found (started online). 
+        // Queue a deletion of this session in the database.
+        await db.offlineQueue.add({
+          store_id: storeId,
+          type: 'sale_session_delete',
+          payload: { id: sessionId },
+          created_at: Date.now(),
+          status: 'pending'
+        });
+      }
+
+      setSessionId(null);
+      setIsStale(false);
+      localStorage.removeItem(`session_${managerId}_${storeId}`);
+      localStorage.removeItem(`session_start_${managerId}_${storeId}`);
+      localStorage.removeItem(`session_rows_${managerId}_${storeId}`);
+      setRows([]);
+      setIsEnding(false);
+      toast.info("Empty session discarded.");
+      return;
+    }
+
+    // Offline-first (for sessions with active sales)
     await db.offlineQueue.add({
       store_id: storeId,
       type: 'sale_session',
@@ -389,6 +429,33 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     if (!orphanedSession) return;
     setIsRecovering(true);
     const supabase = createClient();
+
+    // Check if the orphaned session has any active sales
+    const { count, error: countError } = await supabase
+      .from('sale_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', orphanedSession.id)
+      .eq('is_deleted', false);
+
+    const hasSales = !countError && count && count > 0;
+
+    if (!hasSales) {
+      // It is empty - delete it from database or queue deletion
+      const res = await deleteSalesSession(orphanedSession.id);
+      if (res.error) {
+        await db.offlineQueue.add({
+          store_id: storeId,
+          type: 'sale_session_delete',
+          payload: { id: orphanedSession.id },
+          created_at: Date.now(),
+          status: 'pending'
+        });
+      }
+      setOrphanedSession(null);
+      setIsRecovering(false);
+      toast.info("Previous empty session discarded. You can now start a new one.");
+      return;
+    }
     
     // We queue it for safety but also attempt immediate cloud update
     const { error } = await supabase

@@ -281,3 +281,70 @@ export async function approveSession(sessionId: string, reason?: string): Promis
     return { error: err.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function deleteSalesSession(sessionId: string): Promise<ActionResponse> {
+  try {
+    const userRole = await requireRole(["manager", "admin", "super_admin"]);
+
+    if (!sessionId) {
+      return { error: 'Session ID is required.' };
+    }
+
+    // 1. Fetch the session
+    const { data: session, error: fetchError } = await supabaseAdmin
+      .from('sales_sessions')
+      .select('id, store_id, total_revenue')
+      .eq('id', sessionId)
+      .single();
+
+    if (fetchError || !session) {
+      // If the session doesn't exist in Supabase, we are done
+      return { success: true };
+    }
+
+    // 2. Security Check
+    if (userRole.role !== 'super_admin' && session.store_id !== userRole.storeId) {
+      return { error: 'Unauthorized permission to delete this record.' };
+    }
+
+    // 3. Verify there are no active (non-deleted) sale items in the session
+    const { count, error: countError } = await supabaseAdmin
+      .from('sale_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('is_deleted', false);
+
+    if (countError) {
+      return { error: 'Failed to check session sale items.' };
+    }
+
+    if (count && count > 0) {
+      return { error: 'Cannot delete a session that has active sale items.' };
+    }
+
+    // 4. Delete associated sale items first (to clear foreign key references, including soft-deleted ones)
+    const { error: itemsDeleteError } = await supabaseAdmin
+      .from('sale_items')
+      .delete()
+      .eq('session_id', sessionId);
+
+    if (itemsDeleteError) {
+      return { error: 'Failed to clean up session sale items from database.' };
+    }
+
+    // 5. Delete the session itself
+    const { error: deleteError } = await supabaseAdmin
+      .from('sales_sessions')
+      .delete()
+      .eq('id', sessionId);
+
+    if (deleteError) {
+      return { error: 'Failed to delete sales session from database.' };
+    }
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || 'An unexpected error occurred.' };
+  }
+}
