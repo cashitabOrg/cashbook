@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Download, X, Smartphone, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,8 +15,10 @@ export default function InstallAppButton({ variant = "hero", expanded = false }:
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOSDevice, setIsIOSDevice] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // 1. Detect if iOS
     const detectIOS = () => {
       if (typeof window === "undefined") return;
@@ -159,8 +162,8 @@ export default function InstallAppButton({ variant = "hero", expanded = false }:
       {renderButton()}
 
       {/* iOS Instructions Modal */}
-      {showIOSInstructions && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      {showIOSInstructions && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           {/* Modal Card */}
           <div className="w-full sm:max-w-md bg-white dark:bg-[#1C1C1E] border border-transparent dark:border-slate-800 rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-6 sm:p-8 flex flex-col gap-6 relative transform transition-transform animate-slide-up">
             
@@ -266,7 +269,8 @@ export default function InstallAppButton({ variant = "hero", expanded = false }:
               Got it
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Style overrides for custom keyframe animations */}
