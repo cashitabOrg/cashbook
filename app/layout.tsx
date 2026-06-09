@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import ImpersonationBanner from "@/components/super-admin/ImpersonationBanner";
 import GlobalBroadcastBanner from "@/components/GlobalBroadcastBanner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import PwaSplashScreen from "@/components/PwaSplashScreen";
 
 // Temporary system font stack to bypass Turbopack Windows crash
 const inter = { className: "sans-serif" };
@@ -47,6 +48,7 @@ export default async function RootLayout({
       </head>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <PwaSplashScreen />
           <GlobalBroadcastBanner />
           {isImpersonating && <ImpersonationBanner />}
           {children}
