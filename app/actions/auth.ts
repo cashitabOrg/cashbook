@@ -33,8 +33,19 @@ export async function registerAdmin(formData: FormData) {
     authData = data;
     authError = error;
 
-    if (error && (error.message.includes('fetch failed') || error.message.includes('ECONNRESET') || error.message.includes('timeout'))) {
-       await new Promise(resolve => setTimeout(resolve, 300));
+    const isNetworkError = error && (
+      error.message?.includes('fetch failed') ||
+      error.message?.includes('ECONNRESET') ||
+      error.message?.includes('timeout') ||
+      error.message?.includes('Timeout') ||
+      error.message?.includes('ENOTFOUND') ||
+      error.message?.includes('ConnectTimeout') ||
+      error.message?.includes('Connect Timeout') ||
+      error.status === 0
+    );
+
+    if (isNetworkError) {
+       await new Promise(resolve => setTimeout(resolve, 500));
        continue;
     }
     
@@ -120,9 +131,20 @@ export async function loginUser(formData: FormData) {
     authData = data;
     authError = error;
 
-    if (error && (error.message.includes('fetch failed') || error.message.includes('ECONNRESET') || error.message.includes('timeout'))) {
-       // Wait 300ms before retrying the network request
-       await new Promise(resolve => setTimeout(resolve, 300));
+    const isNetworkError = error && (
+      error.message?.includes('fetch failed') ||
+      error.message?.includes('ECONNRESET') ||
+      error.message?.includes('timeout') ||
+      error.message?.includes('Timeout') ||
+      error.message?.includes('ENOTFOUND') ||
+      error.message?.includes('ConnectTimeout') ||
+      error.message?.includes('Connect Timeout') ||
+      error.status === 0
+    );
+
+    if (isNetworkError) {
+       // Wait 500ms before retrying the network request
+       await new Promise(resolve => setTimeout(resolve, 500));
        continue;
     }
     
@@ -130,6 +152,13 @@ export async function loginUser(formData: FormData) {
   }
 
   if (authError) {
+    const isNetworkErr = authError.message?.includes('fetch failed') ||
+      authError.message?.includes('Connect Timeout') ||
+      authError.message?.includes('ENOTFOUND') ||
+      authError.status === 0;
+    if (isNetworkErr) {
+      return { error: 'Connection to server failed. Please check your internet and try again.' }
+    }
     return { error: authError.message }
   }
 

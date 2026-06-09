@@ -31,10 +31,10 @@ export default function ManagerBestSellers({ topProducts, onExpand }: ManagerBes
         <table className="min-w-full divide-y divide-slate-100 dark:divide-[#2C2C2E]">
           <thead className="bg-slate-50/80 dark:bg-[#252528]/80 sticky top-0 z-10 text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">
             <tr>
-              <th className="py-3 px-6 text-left w-12">SN</th>
-              <th className="py-3 px-6 text-left">Item Name</th>
-              <th className="py-3 px-6 text-right">Sold</th>
-              <th className="py-3 px-6 text-right">Total</th>
+              <th className="py-2 lg:py-3 px-2 lg:px-6 text-left w-8">SN</th>
+              <th className="py-2 lg:py-3 px-2 lg:px-6 text-left">Item Name</th>
+              <th className="py-2 lg:py-3 px-2 lg:px-6 text-right">Sold</th>
+              <th className="py-2 lg:py-3 px-2 lg:px-6 text-right">Total</th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-[#1C1C1E] divide-y divide-slate-100 dark:divide-[#2C2C2E]">
@@ -45,10 +45,10 @@ export default function ManagerBestSellers({ topProducts, onExpand }: ManagerBes
             ) : (
               topProducts.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-slate-50/50 dark:bg-[#252528]/50 transition-colors">
-                  <td className="py-4 px-6 text-[10px] text-slate-400 dark:text-gray-500 font-mono italic">{idx + 1}</td>
-                  <td className="py-4 px-6 text-sm font-bold text-slate-900 dark:text-white">{p.name}</td>
-                  <td className="py-4 px-6 text-sm text-slate-600 dark:text-gray-300 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
-                  <td className="py-4 px-6 text-sm text-emerald-600 dark:text-emerald-400 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
+                  <td className="py-2.5 lg:py-4 px-2 lg:px-6 text-[10px] text-slate-400 dark:text-gray-500 font-mono italic">{idx + 1}</td>
+                  <td className="py-2.5 lg:py-4 px-2 lg:px-6 text-xs lg:text-sm font-bold text-slate-900 dark:text-white">{p.name}</td>
+                  <td className="py-2.5 lg:py-4 px-2 lg:px-6 text-xs lg:text-sm text-slate-600 dark:text-gray-300 text-right font-mono">{p.total_qty_sold.toFixed(2)}</td>
+                  <td className="py-2.5 lg:py-4 px-2 lg:px-6 text-xs lg:text-sm text-emerald-600 dark:text-emerald-400 font-bold text-right">{formatCurrency(Number(p.total_revenue))}</td>
                 </tr>
               ))
             )}

@@ -48,7 +48,7 @@ export default function ManagerDashboardHeader({
         <div className="relative z-20 flex flex-row items-center justify-between gap-1.5 sm:gap-3 w-full">
           {/* Title + Search */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <h1 className="text-sm lg:text-base font-black text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap shrink-0">{title}</h1>
+            <h1 className="hidden lg:block text-sm lg:text-base font-black text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap shrink-0">{title}</h1>
             <div className="relative flex-1 min-w-0 max-w-[200px] group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 transition-colors" />
               <input

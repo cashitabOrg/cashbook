@@ -78,7 +78,25 @@ export default function SyncEngine() {
 
       // Only fetch user if we don't have one cached — avoids repeated gotrue lock acquisitions
       if (!currentUserRef.current) {
-        const { data: authData } = await supabase.auth.getUser();
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+
+        // If the refresh token is stale (e.g. after a dev server restart), clear
+        // the session and redirect to login so the user can re-authenticate cleanly.
+        if (
+          authErr &&
+          (authErr.message?.includes('refresh_token_not_found') ||
+           authErr.message?.includes('Invalid Refresh Token') ||
+           (authErr as any).code === 'refresh_token_not_found')
+        ) {
+          console.warn('[SyncEngine] Stale refresh token detected. Signing out and redirecting...');
+          await supabase.auth.signOut();
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          isSyncing.current = false;
+          return;
+        }
+
         currentUserRef.current = authData?.user ?? null;
       }
       const currentUser = currentUserRef.current;
