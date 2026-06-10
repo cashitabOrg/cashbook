@@ -82,7 +82,7 @@ export default function SalesEntryTable({
                     )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white text-right">
-                    <div className="flex items-center justify-end gap-2 group/qty">
+                    <div className="relative rounded-xl shadow-sm flex items-center justify-end group/qty">
                       <input
                         type="number"
                         disabled={row.synced || !row.productId}
@@ -92,10 +92,16 @@ export default function SalesEntryTable({
                         value={row.quantitySold}
                         onChange={(e) => updateRow(row.localId, "quantitySold", e.target.value)}
                         onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
-                        className="block w-28 rounded-xl border-2 border-slate-200 dark:border-[#2C2C2E] py-3 pr-4 text-right text-slate-900 dark:text-white shadow-sm focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 sm:text-sm font-mono font-bold transition-all disabled:opacity-50 disabled:bg-slate-100 dark:bg-[#2C2C2E] no-spinner"
+                        className="block w-full rounded-xl border-2 border-slate-200 dark:border-[#2C2C2E] py-3 pl-4 pr-14 text-right text-slate-900 dark:text-white shadow-sm focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 sm:text-sm font-mono font-bold transition-all disabled:opacity-50 disabled:bg-slate-100 dark:bg-[#2C2C2E] no-spinner"
                         placeholder="0.00"
                       />
-                      <span className="text-slate-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-widest w-8 text-left group-focus-within/qty:text-blue-600 dark:text-blue-400 transition-colors">{selectedProduct?.unit || ''}</span>
+                      {selectedProduct?.unit && (
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                          <span className="text-slate-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-widest group-focus-within/qty:text-blue-600 dark:text-blue-400 transition-colors">
+                            {selectedProduct.unit}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-900 dark:text-white text-right w-32">
@@ -222,7 +228,7 @@ export default function SalesEntryTable({
                       <span className="text-[8px] text-slate-400 dark:text-gray-500 uppercase font-medium ml-0.5">{selectedProduct?.unit || ''}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-end gap-1.5 group/qty w-full">
+                    <div className="relative rounded-lg shadow-sm flex items-center justify-end group/qty w-full">
                       <input
                         type="number"
                         disabled={row.synced || !row.productId}
@@ -232,13 +238,15 @@ export default function SalesEntryTable({
                         value={row.quantitySold}
                         onChange={(e) => updateRow(row.localId, "quantitySold", e.target.value)}
                         onBlur={() => { if (!row.synced && row.productId && row.subtotal && row.quantitySold) commitRow(row) }}
-                        className="block w-full rounded-lg border border-slate-200 dark:border-[#2C2C2E] py-1.5 px-2 text-right text-slate-900 dark:text-white shadow-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-500/10 text-xs font-mono font-bold transition-all disabled:opacity-50 disabled:bg-slate-100 dark:bg-[#2C2C2E] no-spinner"
+                        className="block w-full rounded-lg border border-slate-200 dark:border-[#2C2C2E] py-1.5 pl-2 pr-10 text-right text-slate-900 dark:text-white shadow-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-500/10 text-xs font-mono font-bold transition-all disabled:opacity-50 disabled:bg-slate-100 dark:bg-[#2C2C2E] no-spinner"
                         placeholder="0.00"
                       />
                       {selectedProduct?.unit && (
-                        <span className="text-slate-400 dark:text-gray-500 text-[8px] font-black uppercase tracking-tight w-6 text-left shrink-0 group-focus-within/qty:text-blue-600 dark:text-blue-400 transition-colors">
-                          {selectedProduct.unit}
-                        </span>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
+                          <span className="text-slate-400 dark:text-gray-500 text-[8px] font-black uppercase tracking-tight group-focus-within/qty:text-blue-600 dark:text-blue-400 transition-colors">
+                            {selectedProduct.unit}
+                          </span>
+                        </div>
                       )}
                     </div>
                   )}
