@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { fetchDashboardSaleItemsByRange, fetchDashboardSessionsByRange } from "@/app/actions/dashboard";
 import { 
   TrendingUp, 
   Package,
@@ -71,7 +72,9 @@ export default function AdminDashboardClient({
   initialEndDate?: string;
 }) {
   const [products, setProducts] = useState(initialProducts);
-  const [sessions, setSessions] = useState(rawSessions);
+  const [saleItems, setSaleItems] = useState(rawSaleItems);
+  const [fetchedSessions, setFetchedSessions] = useState(rawSessions);
+  const [dataLoading, setDataLoading] = useState(false);
   const [isBestSellersOpen, setIsBestSellersOpen] = useState(false);
   const [isStockOpen, setIsStockOpen] = useState(false);
 
@@ -165,7 +168,31 @@ export default function AdminDashboardClient({
     return () => { supabase.removeChannel(channel); };
   }, [storeId]);
 
-  // Real-time subscription to sales_sessions for instant revenue updates
+  // Fetch fresh data whenever date range changes (debounced)
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+    let cancelled = false;
+    setDataLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const [items, sess] = await Promise.all([
+          fetchDashboardSaleItemsByRange(storeId, startDate, endDate),
+          fetchDashboardSessionsByRange(storeId, startDate, endDate),
+        ]);
+        if (!cancelled) {
+          setSaleItems(items);
+          setFetchedSessions(sess);
+        }
+      } catch (err) {
+        console.error('[AdminDashboard] range fetch error:', err);
+      } finally {
+        if (!cancelled) setDataLoading(false);
+      }
+    }, 400);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [startDate, endDate, storeId]);
+
+  // Real-time: append newly closed sessions into fetchedSessions
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -177,13 +204,12 @@ export default function AdminDashboardClient({
         filter: `store_id=eq.${storeId}`,
       }, (payload) => {
         if (payload.eventType === "INSERT" && payload.new.status === "closed") {
-          // New closed session: add it to the list
-          setSessions(prev => [...prev, {
+          setFetchedSessions(prev => [...prev, {
             total_revenue: Number(payload.new.total_revenue || 0),
             started_at: payload.new.started_at,
           }]);
         } else if (payload.eventType === "UPDATE") {
-          setSessions(prev => prev.map(s =>
+          setFetchedSessions(prev => prev.map(s =>
             s.started_at === payload.new.started_at
               ? { ...s, total_revenue: Number(payload.new.total_revenue || 0) }
               : s
@@ -195,38 +221,20 @@ export default function AdminDashboardClient({
   }, [storeId]);
 
   const metrics = useMemo(() => {
-    let filteredSessions = sessions;
-    let filteredItems = rawSaleItems;
+    // Filter sessions and items within the selected date range
+    let filteredSessions = fetchedSessions;
+    let filteredItems = saleItems;
 
-    // 1. Date Range Filtering
-    if (startDate || endDate) {
-      const start = startDate ? new Date(startDate) : new Date(0);
-      if (startDate) start.setHours(0, 0, 0, 0);
-      
-      const end = endDate ? new Date(endDate) : new Date();
-      if (endDate) end.setHours(23, 59, 59, 999);
-
-      filteredSessions = rawSessions.filter(s => {
-        const d = new Date(s.started_at);
-        return d >= start && d <= end;
-      });
-
-      filteredItems = rawSaleItems.filter(item => {
-        const d = new Date(item.created_at);
-        return d >= start && d <= end;
-      });
-    }
-
-    // 2. Search Query Filtering (Performance Table)
+    // Search Query Filtering (Performance Table)
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
-      filteredItems = filteredItems.filter(item => 
+      filteredItems = filteredItems.filter(item =>
         item.products?.name?.toLowerCase().includes(lowerQuery)
       );
     }
 
     const totalRevenue = filteredSessions.reduce((acc, curr) => acc + Number(curr.total_revenue), 0);
-    
+
     // Aggregate Top Products
     const productStats: Record<string, { id: string, name: string, total_qty_sold: number, total_revenue: number }> = {};
     filteredItems.forEach(item => {
@@ -242,7 +250,7 @@ export default function AdminDashboardClient({
     const topProducts = Object.values(productStats).sort((a, b) => b.total_qty_sold - a.total_qty_sold);
 
     return { totalRevenue, topProducts };
-  }, [startDate, endDate, rawSessions, rawSaleItems, searchQuery, sessions]);
+  }, [fetchedSessions, saleItems, searchQuery]);
 
   // Inventory Table Search Filter
   const filteredInventory = useMemo(() => {
@@ -331,6 +339,7 @@ export default function AdminDashboardClient({
             <PerformanceTable 
               topProducts={metrics.topProducts}
               onExpand={() => setIsBestSellersOpen(true)}
+              isLoading={dataLoading}
             />
             <InventoryMonitorTable 
               filteredInventory={filteredInventory}
