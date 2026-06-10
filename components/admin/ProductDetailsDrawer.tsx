@@ -254,7 +254,7 @@ export default function ProductDetailsDrawer({
                   <div className="p-6 border-b border-gray-100 dark:border-[#2C2C2E] flex justify-between items-start shrink-0">
                     <div>
                       <Dialog.Title className="text-lg font-black text-gray-900 dark:text-white tracking-tight">
-                        Product Details
+                        Manage Product
                       </Dialog.Title>
                       <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1 truncate max-w-[280px]">
                         {product.name}
@@ -287,52 +287,68 @@ export default function ProductDetailsDrawer({
                     </div>
                   </div>
 
-                  {/* Vertical Tab Select Strip */}
-                  <div className="flex bg-gray-100 dark:bg-[#252528] p-1 mx-6 mt-6 rounded-xl shrink-0 border border-gray-200/50 dark:border-[#3A3A3C]/50 gap-0.5">
-                    <button
-                      onClick={() => setActiveTab("restock")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
-                        activeTab === "restock" ? "bg-white dark:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" /> Restock
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("correction")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
-                        activeTab === "correction" ? "bg-white dark:bg-[#3A3A3C] text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <Scale className="w-3.5 h-3.5" /> Adjust
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("identity")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
-                        activeTab === "identity" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <Settings className="w-3.5 h-3.5" /> Edit
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("history")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
-                        activeTab === "history" ? "bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <History className="w-3.5 h-3.5" /> Logs
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("archive")}
-                      className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1 ${
-                        activeTab === "archive" ? "bg-white dark:bg-[#3A3A3C] text-red-600 dark:text-red-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                      }`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Archive
-                    </button>
+                  {/* Tab Select Strip */}
+                  <div className="flex flex-col bg-gray-100 dark:bg-[#252528] p-1.5 mx-4 mt-5 rounded-2xl shrink-0 border border-gray-200/60 dark:border-[#3A3A3C]/60 gap-1">
+                    {/* Row 1: Restock + Adjust + Edit */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setActiveTab("restock")}
+                        className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          activeTab === "restock"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/30"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-white/60 dark:hover:bg-[#3A3A3C]/60 hover:text-blue-600 dark:hover:text-blue-400"
+                        }`}
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" /> Restock
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("correction")}
+                        className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          activeTab === "correction"
+                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-white/60 dark:hover:bg-[#3A3A3C]/60 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        }`}
+                      >
+                        <Scale className="w-3.5 h-3.5" /> Adjust
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("identity")}
+                        className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          activeTab === "identity"
+                            ? "bg-violet-600 text-white shadow-md shadow-violet-500/30"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-white/60 dark:hover:bg-[#3A3A3C]/60 hover:text-violet-600 dark:hover:text-violet-400"
+                        }`}
+                      >
+                        <Settings className="w-3.5 h-3.5" /> Edit
+                      </button>
+                    </div>
+                    {/* Row 2: Logs + Archive */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setActiveTab("history")}
+                        className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          activeTab === "history"
+                            ? "bg-amber-500 text-white shadow-md shadow-amber-500/30"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-white/60 dark:hover:bg-[#3A3A3C]/60 hover:text-amber-600 dark:hover:text-amber-400"
+                        }`}
+                      >
+                        <History className="w-3.5 h-3.5" /> Logs
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("archive")}
+                        className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          activeTab === "archive"
+                            ? "bg-red-600 text-white shadow-md shadow-red-500/30"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-white/60 dark:hover:bg-[#3A3A3C]/60 hover:text-red-600 dark:hover:text-red-400"
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Archive
+                      </button>
+                    </div>
                   </div>
 
                   {/* Drawer Scrollable Body Content */}
-                  <div className="flex-1 overflow-y-auto p-6 min-h-0">
+                  <div className="flex-1 overflow-y-auto px-4 py-5 min-h-0">
                     <div className="h-full">
                       {activeTab === "restock" && (
                         <form onSubmit={handleRestockSubmit} className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">

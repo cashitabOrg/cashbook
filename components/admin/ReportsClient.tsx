@@ -259,7 +259,7 @@ export default function ReportsClient({
 
   const handleApproveDay = useCallback(async (dateStr: string) => {
     setApprovingDate(dateStr);
-    const reason = window.prompt(`Approve all sales for ${dateStr}? This locks the data permanently. Note (optional):`);
+    const reason = window.prompt(`Aprove all sales for ${dateStr}? This locks the data permanently. Note (optional):`);
     if (reason === null) {
       setApprovingDate(null);
       return;
@@ -269,14 +269,14 @@ export default function ReportsClient({
     if (res?.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Approved all sales for ${dateStr}!`);
+      toast.success(`Aproved all sales for ${dateStr}!`);
     }
     setApprovingDate(null);
   }, [storeId]);
 
   const handleApproveSession = useCallback(async (sessionId: string, dateStr: string) => {
     setApprovingSessionId(sessionId);
-    const reason = window.prompt(`Approve this sales section? This locks the section's records permanently. Note (optional):`);
+    const reason = window.prompt(`Aprove this sales session? This locks the session's records permanently. Note (optional):`);
     if (reason === null) {
       setApprovingSessionId(null);
       return;
@@ -286,7 +286,7 @@ export default function ReportsClient({
     if (res?.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Approved section successfully!`);
+      toast.success(`Aproved session successfully!`);
     }
     setApprovingSessionId(null);
   }, []);

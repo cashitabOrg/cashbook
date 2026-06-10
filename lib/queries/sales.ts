@@ -136,7 +136,7 @@ export const getSaleItemsForAnalytics = unstable_cache(
           .select('product_id, quantity, subtotal, created_at, is_deleted, products(name)')
           .eq('store_id', storeId)
           .order('created_at', { ascending: false })
-          .limit(1000);
+          .limit(200);
         if (minDate) q = q.gte('created_at', minDate);
         return await q;
       },
