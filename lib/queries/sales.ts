@@ -252,26 +252,27 @@ export async function getManagerHistory(
   // 1. Fetch closed sessions for this manager
   const subStatus = await getStoreSubscriptionStatus(storeId);
 
-  let query = supabaseAdmin
-    .from('sales_sessions')
-    .select('id, started_at, ended_at, total_revenue, status, approval_status')
-    .eq('store_id', storeId)
-    .eq('manager_id', managerId)
-    .eq('status', 'closed')
-    .order('started_at', { ascending: false });
-
-  if (subStatus.plan === 'starter') {
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() - 90);
-    query = query.gte('started_at', minDate.toISOString());
-  } else if (subStatus.plan === 'growth') {
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() - 180);
-    query = query.gte('started_at', minDate.toISOString());
-  }
-
   const { data: sessions, error: sessionsError } = await withRetry<any[]>(
-    async () => await query,
+    async () => {
+      let q = supabaseAdmin
+        .from('sales_sessions')
+        .select('id, started_at, ended_at, total_revenue, status, approval_status')
+        .eq('store_id', storeId)
+        .eq('manager_id', managerId)
+        .eq('status', 'closed')
+        .order('started_at', { ascending: false });
+
+      if (subStatus.plan === 'starter') {
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() - 90);
+        q = q.gte('started_at', minDate.toISOString());
+      } else if (subStatus.plan === 'growth') {
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() - 180);
+        q = q.gte('started_at', minDate.toISOString());
+      }
+      return await q;
+    },
     'getManagerHistory:sessions'
   );
 
@@ -286,18 +287,25 @@ export async function getManagerHistory(
   const sessionIds = sessions.map((s: any) => s.id);
 
   // 2. Fetch sale items for those sessions
-  const { data: saleItems } = await withRetry<any[]>(
+  // We order by created_at descending and use a much larger limit (3000) so that
+  // the most recent session items are prioritized and not cut off if there is a lot of history.
+  const { data: saleItems, error: saleItemsError } = await withRetry<any[]>(
     async () =>
       await supabaseAdmin
         .from('sale_items')
         .select('id, session_id, product_id, quantity, subtotal, created_at, is_deleted, products(name)')
         .in('session_id', sessionIds)
-        .limit(500),
+        .order('created_at', { ascending: false })
+        .limit(3000),
     'getManagerHistory:saleItems'
   );
 
+  if (saleItemsError) {
+    return { dailyGroups: [], availableProducts: [], error: saleItemsError.message };
+  }
+
   // 3. Fetch available products for the edit modal
-  const { data: storeProducts } = await withRetry<ProductOption[]>(
+  const { data: storeProducts, error: productsError } = await withRetry<ProductOption[]>(
     async () =>
       await supabaseAdmin
         .from('products')
@@ -307,6 +315,10 @@ export async function getManagerHistory(
         .order('name', { ascending: true }),
     'getManagerHistory:products'
   );
+
+  if (productsError) {
+    return { dailyGroups: [], availableProducts: [], error: productsError.message };
+  }
 
   // 4. Group sessions by date
   const dailyGroupsMap: Record<string, DailyHistoryGroup> = {};
