@@ -7,16 +7,30 @@ import { editSaleItem, deleteSaleItem } from '@/app/actions/sales'
 import { formatCurrency } from "@/lib/format";
 
 interface EditSaleModalProps {
-  itemId: string;
+  itemId?: string;
+  localId?: string;
   productId?: string;
   initialQty: number;
   initialRevenue: number;
   productName: string;
   availableProducts?: { id: string; name: string }[];
   onSuccess?: () => void;
+  onSaveLocal?: (productId: string, qty: number, subtotal: number) => Promise<void>;
+  onDeleteLocal?: () => Promise<void>;
 }
 
-export default function EditSaleModal({ itemId, productId, initialQty, initialRevenue, productName, availableProducts = [], onSuccess }: EditSaleModalProps) {
+export default function EditSaleModal({ 
+  itemId, 
+  localId, 
+  productId, 
+  initialQty, 
+  initialRevenue, 
+  productName, 
+  availableProducts = [], 
+  onSuccess,
+  onSaveLocal,
+  onDeleteLocal
+}: EditSaleModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const sanQty = isNaN(Number(initialQty)) ? 0 : Number(initialQty);
@@ -46,31 +60,62 @@ export default function EditSaleModal({ itemId, productId, initialQty, initialRe
     }
 
     setIsSaving(true);
-    const res = await editSaleItem(itemId, qty, revenue, selectedProductId);
-    setIsSaving(false);
+    if (itemId) {
+      // Cloud mode
+      const res = await editSaleItem(itemId, qty, revenue, selectedProductId);
+      setIsSaving(false);
 
-    if (res?.error) {
-      toast.error(res.error);
-    } else {
-      toast.success('Sale record updated successfully. Inventory reconciled.');
-      setIsOpen(false);
-      onSuccess?.();
+      if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.success('Sale record updated successfully. Inventory reconciled.');
+        setIsOpen(false);
+        onSuccess?.();
+      }
+    } else if (onSaveLocal) {
+      // Local/Offline mode
+      try {
+        await onSaveLocal(selectedProductId, qty, revenue);
+        toast.success('Local sale record updated successfully.');
+        setIsOpen(false);
+        onSuccess?.();
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to update local record.');
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
   const handleDelete = async () => {
     setIsSaving(true);
-    const res = await deleteSaleItem(itemId);
-    setIsSaving(false);
+    if (itemId) {
+      // Cloud mode
+      const res = await deleteSaleItem(itemId);
+      setIsSaving(false);
 
-    if (res?.error) {
-       toast.error(res.error);
-       setConfirmDelete(false);
-    } else {
-       toast.success('Sale deleted perfectly. Stock refunded seamlessly.');
-       setConfirmDelete(false);
-       setIsOpen(false);
-       onSuccess?.();
+      if (res?.error) {
+         toast.error(res.error);
+         setConfirmDelete(false);
+      } else {
+         toast.success('Sale deleted perfectly. Stock refunded seamlessly.');
+         setConfirmDelete(false);
+         setIsOpen(false);
+         onSuccess?.();
+      }
+    } else if (onDeleteLocal) {
+      // Local/Offline mode
+      try {
+        await onDeleteLocal();
+        toast.success('Local sale record removed.');
+        setConfirmDelete(false);
+        setIsOpen(false);
+        onSuccess?.();
+      } catch (err: any) {
+         toast.error(err.message || 'Failed to delete local record.');
+      } finally {
+         setIsSaving(false);
+      }
     }
   };
 

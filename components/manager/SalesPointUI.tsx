@@ -162,7 +162,8 @@ export default function SalesPointUI({
     endSession,
     refreshSession,
     restoreOrphanedSession,
-    closeOrphanedSession
+    closeOrphanedSession,
+    editLocalRow
   } = useSalesSession(storeSlug, storeId, managerId);
 
   const handleOpenPicker = (rowId: string) => {
@@ -180,19 +181,22 @@ export default function SalesPointUI({
   };
 
   const handleEndSession = () => {
-    const incompleteRows = rows.filter(r => !r.synced);
+    const activeRows = rows.filter(r => r.productId || r.quantitySold || r.subtotal);
+    const incompleteRows = activeRows.filter(r => !r.synced);
     if (incompleteRows.length > 0) {
       setShowValidationErrors(true);
       // Find 1-indexed positions for messaging
       const indices = rows
-        .map((r, i) => (!r.synced ? i + 1 : -1))
+        .map((r, i) => (!r.synced && (r.productId || r.quantitySold || r.subtotal) ? i + 1 : -1))
         .filter(i => i !== -1);
       
-      toast.error("Cannot Submit Session", {
-        description: `Row(s) #${indices.join(", ")} are not filled correctly. Please complete them or remove them using the red X.`,
-        duration: 5000
-      });
-      return;
+      if (indices.length > 0) {
+        toast.error("Cannot Submit Session", {
+          description: `Row(s) #${indices.join(", ")} are not filled correctly. Please complete them or remove them using the red X.`,
+          duration: 5000
+        });
+        return;
+      }
     }
     endSession();
   };
@@ -240,6 +244,7 @@ export default function SalesPointUI({
           removeRow={removeRow}
           refreshSession={refreshSession}
           addEmptyRow={addEmptyRow}
+          editLocalRow={editLocalRow}
         />
 
         <ProductPickerModal 

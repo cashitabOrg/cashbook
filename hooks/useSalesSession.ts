@@ -328,6 +328,70 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     setRows(prev => prev.map(r => r.localId === localId ? { ...r, synced: false, dbId: undefined } : r));
   };
 
+  const editLocalRow = async (localId: string, productId: string, qty: number, subtotal: number) => {
+    const row = rows.find(r => r.localId === localId);
+    if (!row) return;
+
+    const oldQty = parseFloat(row.quantitySold.toString());
+    const oldPid = row.productId;
+
+    // 1. Calculate available stock for the new product, taking into account old item refund if they are the same product!
+    const newProd = await db.products.get(productId);
+    if (!newProd) {
+      throw new Error("Product not found in local cache.");
+    }
+
+    let availableStock = newProd.quantity;
+    if (productId === oldPid) {
+      availableStock += oldQty;
+    }
+
+    if (availableStock < qty) {
+      throw new Error(`Insufficient stock for ${newProd.name || 'this product'}. Available: ${availableStock.toFixed(2)}`);
+    }
+
+    // 2. Perform the stock adjustments
+    // Refund old
+    if (oldPid && !isNaN(oldQty)) {
+      const oldProd = await db.products.get(oldPid);
+      if (oldProd) {
+        await db.products.update(oldPid, { quantity: oldProd.quantity + oldQty });
+      }
+    }
+    // Deduct new
+    const updatedNewProd = await db.products.get(productId);
+    if (updatedNewProd) {
+      await db.products.update(productId, { quantity: updatedNewProd.quantity - qty });
+    }
+
+    // 3. Update offline queue payload
+    const queueItem = await db.offlineQueue
+      .filter(item => item.type === 'sale_item' && item.payload?.local_row_id === localId)
+      .first();
+
+    if (queueItem && queueItem.id) {
+      await db.offlineQueue.update(queueItem.id, {
+        payload: {
+          ...queueItem.payload,
+          product_id: productId,
+          quantity: qty,
+          subtotal: subtotal,
+          unit_price: newProd.selling_price || 0,
+          unit_cost: newProd.cost_price || 0
+        }
+      });
+    }
+
+    // 4. Update local state
+    setRows(prev => prev.map(r => r.localId === localId ? {
+      ...r,
+      productId,
+      productName: newProd.name || 'Unknown',
+      quantitySold: qty,
+      subtotal: subtotal
+    } : r));
+  };
+
   const endSession = async () => {
     if (!sessionId) return;
     setIsEnding(true);
@@ -500,6 +564,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     endSession,
     refreshSession,
     restoreOrphanedSession,
-    closeOrphanedSession
+    closeOrphanedSession,
+    editLocalRow
   };
 }

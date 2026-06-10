@@ -14,6 +14,7 @@ type SalesEntryTableProps = {
   removeRow: (id: string) => void;
   refreshSession: () => void;
   addEmptyRow: () => void;
+  editLocalRow: (localId: string, productId: string, qty: number, subtotal: number) => Promise<void>;
   stickyTop?: number;
 };
 
@@ -28,6 +29,7 @@ export default function SalesEntryTable({
   removeRow,
   refreshSession,
   addEmptyRow,
+  editLocalRow,
   stickyTop = 68
 }: SalesEntryTableProps) {
   return (
@@ -117,34 +119,24 @@ export default function SalesEntryTable({
                   <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     {row.synced ? (
                       <div className="flex items-center justify-end gap-2 pr-2">
-                         {row.dbId ? (
-                           <EditSaleModal 
-                              itemId={row.dbId} 
-                              initialQty={Number(row.quantitySold)} 
-                              initialRevenue={Number(row.subtotal)} 
-                              productName={selectedProduct?.name || "Product"} 
-                              onSuccess={refreshSession}
-                           />
-                         ) : (
-                           <div className="flex items-center gap-1">
-                             <button
-                               onClick={() => uncommitRow(row.localId)}
-                               className="text-amber-500 hover:text-amber-700 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded transition-colors"
-                               title="Edit recent sale"
-                             >
-                               <Pencil className="w-5 h-5" />
-                             </button>
-                             <button
-                               onClick={() => removeRow(row.localId)}
-                               className="text-rose-500 hover:text-rose-700 bg-rose-50 p-1.5 rounded transition-colors"
-                               title="Delete recent sale"
-                             >
-                               <Trash2 className="w-5 h-5" />
-                             </button>
-                           </div>
-                         )}
-                         <span className="sr-only">Saved</span>
-                       </div>
+                        <EditSaleModal 
+                          itemId={row.dbId}
+                          localId={row.localId}
+                          productId={row.productId}
+                          initialQty={Number(row.quantitySold)} 
+                          initialRevenue={Number(row.subtotal)} 
+                          productName={selectedProduct?.name || row.productName || "Product"} 
+                          availableProducts={products.map(p => ({ id: p.id, name: p.name }))}
+                          onSuccess={refreshSession}
+                          onSaveLocal={async (pid, qty, sub) => {
+                            await editLocalRow(row.localId, pid, qty, sub);
+                          }}
+                          onDeleteLocal={async () => {
+                            await removeRow(row.localId);
+                          }}
+                        />
+                        <span className="sr-only">Saved</span>
+                      </div>
                     ) : (
                       <button
                         onClick={() => removeRow(row.localId)}
@@ -281,32 +273,22 @@ export default function SalesEntryTable({
                 {/* Actions */}
                 <div className="flex items-center justify-end min-w-0">
                   {row.synced ? (
-                    row.dbId ? (
-                      <EditSaleModal 
-                         itemId={row.dbId} 
-                         initialQty={Number(row.quantitySold)} 
-                         initialRevenue={Number(row.subtotal)} 
-                         productName={selectedProduct?.name || "Product"} 
-                         onSuccess={refreshSession}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => uncommitRow(row.localId)}
-                          className="text-amber-500 hover:text-amber-700 bg-amber-50 dark:bg-amber-500/10 p-1 rounded transition-colors"
-                          title="Edit recent sale"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => removeRow(row.localId)}
-                          className="text-rose-500 hover:text-rose-700 bg-rose-50 p-1 rounded transition-colors"
-                          title="Delete recent sale"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )
+                    <EditSaleModal 
+                      itemId={row.dbId}
+                      localId={row.localId}
+                      productId={row.productId}
+                      initialQty={Number(row.quantitySold)} 
+                      initialRevenue={Number(row.subtotal)} 
+                      productName={selectedProduct?.name || row.productName || "Product"} 
+                      availableProducts={products.map(p => ({ id: p.id, name: p.name }))}
+                      onSuccess={refreshSession}
+                      onSaveLocal={async (pid, qty, sub) => {
+                        await editLocalRow(row.localId, pid, qty, sub);
+                      }}
+                      onDeleteLocal={async () => {
+                        await removeRow(row.localId);
+                      }}
+                    />
                   ) : (
                     <button
                       onClick={() => removeRow(row.localId)}
