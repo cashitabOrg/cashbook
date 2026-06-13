@@ -119,7 +119,7 @@ const DailySalesRow = memo(function DailySalesRow({
                     Daily Shifts & Sections
                   </h4>
                   <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                    Aprove individual manager sessions to lock their records permanently.
+                    Approve individual manager sessions to lock their records permanently.
                   </p>
                 </div>
                 {!data.isFullyApproved && (
@@ -128,7 +128,7 @@ const DailySalesRow = memo(function DailySalesRow({
                     disabled={approvingDate === dateStr}
                     className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 text-white text-[10px] font-black rounded-lg transition-all shadow-sm uppercase tracking-wider w-full sm:w-auto"
                   >
-                    {approvingDate === dateStr ? 'Aproving all...' : 'Aprove All'}
+                    {approvingDate === dateStr ? 'Approving all...' : 'Approve All'}
                   </button>
                 )}
               </div>
@@ -151,7 +151,7 @@ const DailySalesRow = memo(function DailySalesRow({
                               ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20'
                               : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20 animate-pulse'
                           }`}>
-                            {isSessApproved ? 'Aproved' : 'Pending'}
+                            {isSessApproved ? 'Approved' : 'Pending'}
                           </span>
                         </div>
                         <h5 className="text-[12px] font-black text-gray-900 dark:text-white mb-1.5 truncate">
@@ -167,7 +167,7 @@ const DailySalesRow = memo(function DailySalesRow({
 
                         {isSessApproved ? (
                           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Aproved
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Approved
                           </div>
                         ) : (
                           <button
@@ -175,7 +175,7 @@ const DailySalesRow = memo(function DailySalesRow({
                             disabled={approvingSessionId === session.id}
                             className="px-2.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white text-[10px] font-bold rounded-lg transition-all shadow-sm tracking-wide"
                           >
-                            {approvingSessionId === session.id ? 'Aproving...' : 'Aprove'}
+                            {approvingSessionId === session.id ? 'Approving...' : 'Approve'}
                           </button>
                         )}
                       </div>
