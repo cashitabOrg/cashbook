@@ -122,39 +122,44 @@ export default function ReportsClient({
     return () => { supabase.removeChannel(channel); };
   }, [storeId]);
   
-  // Robust Filtering State - Default to Last 7 Days
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  // Robust Filtering State - Default to Last 7 Days in Lagos Timezone
+  const [startDate, setStartDate] = useState(() => {
+    const todayLagos = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    return format(subDays(todayLagos, 7), "yyyy-MM-dd");
+  });
+  const [endDate, setEndDate] = useState(() => toLagosDateString(new Date()));
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
 
   const applyPreset = (range: string) => {
-    const today = new Date();
-    setEndDate(format(today, "yyyy-MM-dd"));
+    const todayLagos = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    const todayStr = toLagosDateString(new Date());
+    setEndDate(todayStr);
     
     switch (range) {
       case "today":
-        setStartDate(format(today, "yyyy-MM-dd"));
+        setStartDate(todayStr);
         break;
       case "yesterday":
-        const yesterday = subDays(today, 1);
-        setStartDate(format(yesterday, "yyyy-MM-dd"));
-        setEndDate(format(yesterday, "yyyy-MM-dd"));
+        const yesterday = subDays(todayLagos, 1);
+        const yesterdayStr = toLagosDateString(yesterday);
+        setStartDate(yesterdayStr);
+        setEndDate(yesterdayStr);
         break;
       case "7d":
-        setStartDate(format(subDays(today, 7), "yyyy-MM-dd"));
+        setStartDate(toLagosDateString(subDays(todayLagos, 7)));
         break;
       case "1m":
-        setStartDate(format(subMonths(today, 1), "yyyy-MM-dd"));
+        setStartDate(toLagosDateString(subMonths(todayLagos, 1)));
         break;
       case "3m":
-        setStartDate(format(subMonths(today, 3), "yyyy-MM-dd"));
+        setStartDate(toLagosDateString(subMonths(todayLagos, 3)));
         break;
       case "6m":
-        setStartDate(format(subMonths(today, 6), "yyyy-MM-dd"));
+        setStartDate(toLagosDateString(subMonths(todayLagos, 6)));
         break;
       case "1y":
-        setStartDate(format(subYears(today, 1), "yyyy-MM-dd"));
+        setStartDate(toLagosDateString(subYears(todayLagos, 1)));
         break;
     }
   };

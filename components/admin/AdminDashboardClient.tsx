@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { toLagosDateString } from "@/lib/date-utils";
 import { fetchDashboardSaleItemsByRange, fetchDashboardSessionsByRange } from "@/app/actions/dashboard";
 import { 
   TrendingUp, 
@@ -104,48 +105,50 @@ export default function AdminDashboardClient({
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const clientToday = format(new Date(), "yyyy-MM-dd");
-    setStartDate(clientToday);
-    setEndDate(clientToday);
+    const todayLagos = toLagosDateString(new Date());
+    setStartDate(todayLagos);
+    setEndDate(todayLagos);
   }, []);
 
   const getActivePreset = () => {
     if (!startDate || !endDate) return "today";
-    const today = format(new Date(), "yyyy-MM-dd");
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+    const todayLagos = toLagosDateString(new Date());
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    const yesterdayLagos = toLagosDateString(subDays(todayLagosDate, 1));
     
-    if (startDate === today && endDate === today) return "today";
-    if (startDate === yesterday && endDate === yesterday) return "yesterday";
-    if (startDate === format(subDays(new Date(), 7), "yyyy-MM-dd") && endDate === today) return "7d";
-    if (startDate === format(subMonths(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1m";
-    if (startDate === format(subMonths(new Date(), 3), "yyyy-MM-dd") && endDate === today) return "3m";
-    if (startDate === format(subMonths(new Date(), 6), "yyyy-MM-dd") && endDate === today) return "6m";
-    if (startDate === format(subYears(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1y";
+    if (startDate === todayLagos && endDate === todayLagos) return "today";
+    if (startDate === yesterdayLagos && endDate === yesterdayLagos) return "yesterday";
+    if (startDate === toLagosDateString(subDays(todayLagosDate, 7)) && endDate === todayLagos) return "7d";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 1)) && endDate === todayLagos) return "1m";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 3)) && endDate === todayLagos) return "3m";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 6)) && endDate === todayLagos) return "6m";
+    if (startDate === toLagosDateString(subYears(todayLagosDate, 1)) && endDate === todayLagos) return "1y";
     return ""; // Custom or un-mapped range
   };
 
   const getDatePreset = (range: string) => {
-    const today = new Date();
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
     switch (range) {
-      case "today": return format(today, "yyyy-MM-dd");
-      case "yesterday": return format(subDays(today, 1), "yyyy-MM-dd");
-      case "7d": return format(subDays(today, 7), "yyyy-MM-dd");
-      case "1m": return format(subMonths(today, 1), "yyyy-MM-dd");
-      case "3m": return format(subMonths(today, 3), "yyyy-MM-dd");
-      case "6m": return format(subMonths(today, 6), "yyyy-MM-dd");
-      case "1y": return format(subYears(today, 1), "yyyy-MM-dd");
-      default: return format(subDays(today, 7), "yyyy-MM-dd");
+      case "today": return toLagosDateString(todayLagosDate);
+      case "yesterday": return toLagosDateString(subDays(todayLagosDate, 1));
+      case "7d": return toLagosDateString(subDays(todayLagosDate, 7));
+      case "1m": return toLagosDateString(subMonths(todayLagosDate, 1));
+      case "3m": return toLagosDateString(subMonths(todayLagosDate, 3));
+      case "6m": return toLagosDateString(subMonths(todayLagosDate, 6));
+      case "1y": return toLagosDateString(subYears(todayLagosDate, 1));
+      default: return toLagosDateString(subDays(todayLagosDate, 7));
     }
   };
 
   const applyPreset = (range: string) => {
-    const today = new Date();
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    const todayLagosStr = toLagosDateString(todayLagosDate);
     if (range === "yesterday") {
-      const yesterday = subDays(today, 1);
-      setStartDate(format(yesterday, "yyyy-MM-dd"));
-      setEndDate(format(yesterday, "yyyy-MM-dd"));
+      const yesterdayStr = toLagosDateString(subDays(todayLagosDate, 1));
+      setStartDate(yesterdayStr);
+      setEndDate(yesterdayStr);
     } else {
-      setEndDate(format(today, "yyyy-MM-dd"));
+      setEndDate(todayLagosStr);
       setStartDate(getDatePreset(range));
     }
   };

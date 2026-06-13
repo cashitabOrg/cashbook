@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Calendar, ChevronDown, RotateCcw } from "lucide-react";
+import { toLagosDateString } from "@/lib/date-utils";
 
 type ManagerDashboardHeaderProps = {
   title: string;
@@ -32,8 +33,9 @@ export default function ManagerDashboardHeader({
 
   const handleSelectChange = (value: string) => {
     if (value === "") {
-      setTempStartDate(startDate || new Date().toISOString().split("T")[0]);
-      setTempEndDate(endDate || new Date().toISOString().split("T")[0]);
+      const todayLagos = toLagosDateString(new Date());
+      setTempStartDate(startDate || todayLagos);
+      setTempEndDate(endDate || todayLagos);
       setIsCustomModalOpen(true);
     } else {
       applyPreset(value);

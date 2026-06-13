@@ -216,7 +216,7 @@ export async function getReportSalesData(storeId: string): Promise<{
     const salesData: ReportSaleRow[] = Array.from(uniqueSalesMap.values()).map((sale: any) => {
       const sessionRaw = sale.sales_sessions;
       const session = Array.isArray(sessionRaw) ? sessionRaw[0] : sessionRaw;
-      const timestamp = sale.created_at || session?.started_at || new Date().toISOString();
+      const timestamp = session?.started_at || sale.created_at || new Date().toISOString();
       return {
         id: sale.id,
         timestamp,
@@ -324,7 +324,7 @@ export async function getManagerHistory(
   const dailyGroupsMap: Record<string, DailyHistoryGroup> = {};
 
   (sessions as any[]).forEach((session: any) => {
-    const dateStr = toLagosDateString(session.ended_at || session.started_at);
+    const dateStr = toLagosDateString(session.started_at);
 
     if (!dailyGroupsMap[dateStr]) {
       dailyGroupsMap[dateStr] = {
@@ -418,7 +418,7 @@ export async function getSessionDates(storeId: string): Promise<string[]> {
     return [];
   }
 
-  return Array.from(new Set((data || []).map((s: any) => s.started_at.split('T')[0])))
+  return Array.from(new Set((data || []).map((s: any) => toLagosDateString(s.started_at))))
     .sort()
     .reverse();
 }

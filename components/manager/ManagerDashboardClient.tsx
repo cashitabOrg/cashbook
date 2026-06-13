@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import { createClient } from "@/lib/supabase";
+import { toLagosDateString } from "@/lib/date-utils";
 import { 
   TrendingUp, 
   Package
@@ -54,35 +55,39 @@ export default function ManagerDashboardClient({
   const [isBestSellersOpen, setIsBestSellersOpen] = useState(false);
   const [isStockOpen, setIsStockOpen] = useState(false);
 
-  // Filtering State - Default to Last 7 Days
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  // Filtering State - Default to Last 7 Days in Lagos Timezone
+  const [startDate, setStartDate] = useState(() => {
+    const todayLagos = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    return format(subDays(todayLagos, 7), "yyyy-MM-dd");
+  });
+  const [endDate, setEndDate] = useState(() => toLagosDateString(new Date()));
   const [searchQuery, setSearchQuery] = useState("");
   const [activePreset, setActivePreset] = useState("7d");
 
   const getDatePreset = (range: string) => {
-    const today = new Date();
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
     switch (range) {
-      case "today": return format(today, "yyyy-MM-dd");
-      case "yesterday": return format(subDays(today, 1), "yyyy-MM-dd");
-      case "7d": return format(subDays(today, 7), "yyyy-MM-dd");
-      case "1m": return format(subMonths(today, 1), "yyyy-MM-dd");
-      case "3m": return format(subMonths(today, 3), "yyyy-MM-dd");
-      case "6m": return format(subMonths(today, 6), "yyyy-MM-dd");
-      case "1y": return format(subYears(today, 1), "yyyy-MM-dd");
-      default: return format(subDays(today, 7), "yyyy-MM-dd");
+      case "today": return toLagosDateString(todayLagosDate);
+      case "yesterday": return toLagosDateString(subDays(todayLagosDate, 1));
+      case "7d": return toLagosDateString(subDays(todayLagosDate, 7));
+      case "1m": return toLagosDateString(subMonths(todayLagosDate, 1));
+      case "3m": return toLagosDateString(subMonths(todayLagosDate, 3));
+      case "6m": return toLagosDateString(subMonths(todayLagosDate, 6));
+      case "1y": return toLagosDateString(subYears(todayLagosDate, 1));
+      default: return toLagosDateString(subDays(todayLagosDate, 7));
     }
   };
 
   const applyPreset = (range: string) => {
-    const today = new Date();
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    const todayLagosStr = toLagosDateString(todayLagosDate);
     setActivePreset(range);
     if (range === "yesterday") {
-      const yesterday = subDays(today, 1);
-      setStartDate(format(yesterday, "yyyy-MM-dd"));
-      setEndDate(format(yesterday, "yyyy-MM-dd"));
+      const yesterdayStr = toLagosDateString(subDays(todayLagosDate, 1));
+      setStartDate(yesterdayStr);
+      setEndDate(yesterdayStr);
     } else {
-      setEndDate(format(today, "yyyy-MM-dd"));
+      setEndDate(todayLagosStr);
       setStartDate(getDatePreset(range));
     }
   };

@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import AdminDashboardClient from "@/components/admin/AdminDashboardClient";
 import { getAdminDashboardData } from "@/lib/queries/dashboard";
+import { toLagosDateString } from "@/lib/date-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function AdminDashboardPage({
     staffCount,
   } = dashboardData;
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = toLagosDateString(new Date());
 
   return (
     <div className="lg:p-8 max-w-full mx-auto pb-24">

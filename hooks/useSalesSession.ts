@@ -60,11 +60,20 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
         // Keep unsynced drafting rows
         const draftingRows = prevRows.filter(r => !r.synced);
-        
-        // Keep synced rows that are STILL in the offline queue (not yet in Supabase)
         const pendingOfflineRows = prevRows.filter(r => r.synced && pendingLocalIds.includes(r.localId));
         
-        return [...existingRows, ...pendingOfflineRows, ...draftingRows];
+        const combined = [...existingRows, ...pendingOfflineRows, ...draftingRows];
+        if (combined.length === 0) {
+          return [{
+            localId: crypto.randomUUID(),
+            productId: '',
+            productName: '',
+            quantitySold: '',
+            subtotal: '',
+            synced: false
+          }];
+        }
+        return combined;
       });
     }
   }, [sessionId]);
@@ -78,15 +87,27 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
       // Restore rows from local storage immediately
       const savedRowsStr = localStorage.getItem(`session_rows_${managerId}_${storeId}`);
+      let rowsLoaded = false;
       if (savedRowsStr) {
         try {
           const parsed = JSON.parse(savedRowsStr);
-          if (Array.isArray(parsed)) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             setRows(parsed);
+            rowsLoaded = true;
           }
         } catch(e) {
           console.error("Failed to parse saved session rows", e);
         }
+      }
+      if (!rowsLoaded) {
+        setRows([{
+          localId: crypto.randomUUID(),
+          productId: '',
+          productName: '',
+          quantitySold: '',
+          subtotal: '',
+          synced: false
+        }]);
       }
 
       // Check if session is from a previous day (WAT)
@@ -178,7 +199,14 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     // but SyncEngine's interval/online handler catches it.
     
     setIsStarting(false);
-    setRows([]);
+    setRows([{
+      localId: crypto.randomUUID(),
+      productId: '',
+      productName: '',
+      quantitySold: '',
+      subtotal: '',
+      synced: false
+    }]);
   };
 
   const addEmptyRow = () => {

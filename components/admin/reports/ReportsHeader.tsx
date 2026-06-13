@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Calendar, RotateCcw, Download, ChevronDown } from "lucide-react";
 import { format, subDays, subMonths, subYears } from "date-fns";
+import { toLagosDateString } from "@/lib/date-utils";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 
@@ -58,16 +59,17 @@ export default function ReportsHeader({
 
   const getActivePreset = () => {
     if (!startDate || !endDate) return "7d";
-    const today = format(new Date(), "yyyy-MM-dd");
-    const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+    const todayLagos = toLagosDateString(new Date());
+    const todayLagosDate = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos' }).format(new Date()));
+    const yesterdayLagos = toLagosDateString(subDays(todayLagosDate, 1));
     
-    if (startDate === today && endDate === today) return "today";
-    if (startDate === yesterday && endDate === yesterday) return "yesterday";
-    if (startDate === format(subDays(new Date(), 7), "yyyy-MM-dd") && endDate === today) return "7d";
-    if (startDate === format(subMonths(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1m";
-    if (startDate === format(subMonths(new Date(), 3), "yyyy-MM-dd") && endDate === today) return "3m";
-    if (startDate === format(subMonths(new Date(), 6), "yyyy-MM-dd") && endDate === today) return "6m";
-    if (startDate === format(subYears(new Date(), 1), "yyyy-MM-dd") && endDate === today) return "1y";
+    if (startDate === todayLagos && endDate === todayLagos) return "today";
+    if (startDate === yesterdayLagos && endDate === yesterdayLagos) return "yesterday";
+    if (startDate === toLagosDateString(subDays(todayLagosDate, 7)) && endDate === todayLagos) return "7d";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 1)) && endDate === todayLagos) return "1m";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 3)) && endDate === todayLagos) return "3m";
+    if (startDate === toLagosDateString(subMonths(todayLagosDate, 6)) && endDate === todayLagos) return "6m";
+    if (startDate === toLagosDateString(subYears(todayLagosDate, 1)) && endDate === todayLagos) return "1y";
     return ""; // Custom or un-mapped range
   };
 
@@ -75,8 +77,9 @@ export default function ReportsHeader({
 
   const handleSelectChange = (value: string) => {
     if (value === "") {
-      setTempStartDate(startDate || new Date().toISOString().split("T")[0]);
-      setTempEndDate(endDate || new Date().toISOString().split("T")[0]);
+      const todayLagos = toLagosDateString(new Date());
+      setTempStartDate(startDate || todayLagos);
+      setTempEndDate(endDate || todayLagos);
       setIsCustomModalOpen(true);
     } else {
       applyPreset(value);
