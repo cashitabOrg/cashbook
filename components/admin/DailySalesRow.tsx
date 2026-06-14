@@ -133,13 +133,13 @@ const DailySalesRow = memo(function DailySalesRow({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="flex flex-row overflow-x-auto gap-3 pb-1 snap-x scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {sessionsList.map((session: any) => {
                   const isSessApproved = session.approvalStatus === 'approved';
                   return (
                     <div 
                       key={session.id}
-                      className="bg-white dark:bg-[#1C1C1E] border border-gray-150 dark:border-[#2C2C2E] p-3.5 rounded-xl shadow-sm flex flex-col justify-between transition-all hover:shadow-md hover:scale-[1.01] hover:border-gray-300 dark:hover:border-[#3A3A3C] duration-200"
+                      className="bg-white dark:bg-[#1C1C1E] border border-gray-150 dark:border-[#2C2C2E] p-3.5 rounded-xl shadow-sm flex flex-col justify-between transition-all hover:shadow-md hover:scale-[1.01] hover:border-gray-300 dark:hover:border-[#3A3A3C] duration-200 w-64 flex-shrink-0 snap-start"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-2">
