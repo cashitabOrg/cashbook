@@ -121,6 +121,14 @@ export default function SyncEngine() {
                 .update({ status: "closed", ended_at: p.ended_at, total_revenue: p.total_revenue })
                 .eq("id", p.id);
               success = !error;
+              if (error) {
+                if (error.code === '42703' || error.message?.includes('session_id') || error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('permission denied')) {
+                  console.warn("SyncEngine: Session close is unauthorized, locked, or failing due to database trigger issues. Cancelling sync:", error.message);
+                  if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
+                  continue;
+                }
+                console.error('SyncEngine: Session close failed:', error.message, error.code);
+              }
             } else {
               // Use upsert with ignoreDuplicates so re-syncing an already-inserted
               // session is silently ignored (INSERT ... ON CONFLICT DO NOTHING).
@@ -129,7 +137,7 @@ export default function SyncEngine() {
                 .from("sales_sessions")
                 .upsert({
                   id: p.id,
-                  store_id: item.store_id,
+                  store_id: item.store_id || p.store_id || currentUser?.user_metadata?.store_id,
                   manager_id: p.manager_id,
                   started_at: p.started_at,
                   status: "open",
@@ -137,7 +145,14 @@ export default function SyncEngine() {
                 }, { onConflict: 'id', ignoreDuplicates: true });
               // Treat unique violations (409) as success since it means the record is already there
               success = !error || error?.code === '23505' || error?.message?.includes('duplicate');
-              if (!success) console.error('SyncEngine: Session upsert failed:', error?.message, error?.code);
+              if (!success && error) {
+                if (error.code === '42703' || error.message?.includes('session_id') || error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('permission denied')) {
+                  console.warn("SyncEngine: Session upsert is unauthorized, locked, or failing due to database trigger issues. Cancelling sync:", error.message);
+                  if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
+                  continue;
+                }
+                console.error('SyncEngine: Session upsert failed:', error.message, error.code);
+              }
             }
           } 
           
@@ -178,7 +193,7 @@ export default function SyncEngine() {
             // to support editing already-synced rows via the offline queue.
             const { error } = await supabase.from("sale_items").upsert({
               id: local_row_id, // Use the POS-generated UUID as the DB primary key
-              store_id: item.store_id,
+              store_id: item.store_id || payload.store_id || currentUser?.user_metadata?.store_id,
               session_id: payload.session_id,
               product_id: payload.product_id,
               quantity: payload.quantity,
@@ -189,21 +204,22 @@ export default function SyncEngine() {
             }, { onConflict: 'id', ignoreDuplicates: false });
             success = !error || error?.code === '23505' || error?.message?.includes('duplicate');
             
-            if (!success) {
-              console.error('SyncEngine: Sale item rejected:', error.message, error.code);
-              
+            if (!success && error) {
               if (error.code === '23503') {
                 // 23503 is Foreign Key Violation. The product or session was deleted from the DB!
-                console.error("FATAL: Product or Session no longer exists in DB. Cancelling sync for this item.");
+                console.warn("SyncEngine: Product or Session no longer exists in DB. Cancelling sync for this item:", error.message);
                 if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
                 continue;
               }
               
-              if (error.message.includes('permission denied') || error.message.includes('trigger') || error.message.includes('APPROVED session')) {
-                console.warn("SyncEngine: Item is LOCKED by database. Cancelling sync.");
+              if (error.code === '42703' || error.message?.includes('session_id') || error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('permission denied') || error.message?.includes('trigger') || error.message?.includes('APPROVED session')) {
+                console.warn("SyncEngine: Item is locked, unauthorized, or failing due to database trigger issues. Cancelling sync:", error.message);
                 if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
                 continue;
               }
+
+              // Only print console.error for actual failed syncing items that will be retried
+              console.error('SyncEngine: Sale item rejected:', error.message, error.code);
             }
           } 
           
@@ -216,6 +232,14 @@ export default function SyncEngine() {
               .eq("id", local_row_id);
             // Treat success as success
             success = !error;
+            if (error) {
+              if (error.code === '42703' || error.message?.includes('session_id') || error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('permission denied')) {
+                console.warn("SyncEngine: Sale item deletion is unauthorized, locked, or failing due to database trigger issues. Cancelling sync:", error.message);
+                if (item.id) await db.offlineQueue.update(item.id, { status: "fatal" });
+                continue;
+              }
+              console.error('SyncEngine: Sale item delete failed:', error.message, error.code);
+            }
           } 
           
           else if (item.type === "sale_session_delete") {

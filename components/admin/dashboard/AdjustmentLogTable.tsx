@@ -12,8 +12,18 @@ import {
 import { format } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+export type Adjustment = {
+  id: string | number;
+  created_at: string;
+  quantity_change: number;
+  reason: string;
+  note?: string | null;
+  products?: { name: string } | null;
+  users?: { full_name: string } | null;
+};
+
 type AdjustmentLogTableProps = {
-  recentAdjustments?: any[];
+  recentAdjustments?: Adjustment[];
 };
 
 export default function AdjustmentLogTable({

@@ -8,6 +8,7 @@ export interface SubscriptionStatus {
   isExpired: boolean;
   expiryDate: string | null;
   isExempt: boolean;
+  daysRemaining?: number | null;
 }
 
 export async function getStoreSubscriptionStatus(storeId: string): Promise<SubscriptionStatus> {
@@ -26,6 +27,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
       isExpired: true,
       expiryDate: null,
       isExempt: false,
+      daysRemaining: 0,
     };
   }
 
@@ -37,6 +39,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
       isExpired: false,
       expiryDate: null,
       isExempt: true,
+      daysRemaining: null,
     };
   }
 
@@ -61,6 +64,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
   if (sub && sub.status === 'active' && sub.current_period_end) {
     const periodEnd = new Date(sub.current_period_end);
     const isExpired = periodEnd.getTime() < now.getTime();
+    const daysRemaining = Math.max(0, Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
     
     // Check if the plan matches one of our starter, growth, business plans
     let planId = (sub.plan_id || 'starter') as PlanType;
@@ -73,6 +77,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
       isExpired: isExpired,
       expiryDate: sub.current_period_end,
       isExempt: false,
+      daysRemaining: daysRemaining,
     };
   }
 
@@ -85,6 +90,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
       isExpired: false,
       expiryDate: trialEndDate.toISOString(),
       isExempt: false,
+      daysRemaining: trialDaysLeft,
     };
   }
 
@@ -96,6 +102,7 @@ export async function getStoreSubscriptionStatus(storeId: string): Promise<Subsc
     isExpired: true,
     expiryDate: null,
     isExempt: false,
+    daysRemaining: 0,
   };
 }
 

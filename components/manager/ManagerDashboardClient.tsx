@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { format, subDays, subMonths, subYears } from "date-fns";
-import { createClient } from "@/lib/supabase";
 import { toLagosDateString } from "@/lib/date-utils";
 import { 
   TrendingUp, 
@@ -92,49 +91,14 @@ export default function ManagerDashboardClient({
     }
   };
 
-  // Real-time subscription to products
+  // Synchronize state with fresh server props when Next.js refreshes in the background
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel("manager-dashboard-products")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `store_id=eq.${storeId}` }, (payload) => {
-        if (payload.eventType === "UPDATE") {
-          setProducts((prev) => prev.map((p) => (p.id === payload.new.id ? { ...p, ...payload.new } : p)));
-        } else if (payload.eventType === "INSERT") {
-          setProducts((prev) => [...prev, payload.new as Product]);
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
-  // Real-time subscription to sales_sessions for instant revenue updates
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel("manager-dashboard-sessions")
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "sales_sessions",
-        filter: `store_id=eq.${storeId}`,
-      }, (payload) => {
-        if (payload.eventType === "INSERT" && payload.new.status === "closed") {
-          setSessions(prev => [...prev, {
-            total_revenue: Number(payload.new.total_revenue || 0),
-            started_at: payload.new.started_at,
-          }]);
-        } else if (payload.eventType === "UPDATE") {
-          setSessions(prev => prev.map(s =>
-            s.started_at === payload.new.started_at
-              ? { ...s, total_revenue: Number(payload.new.total_revenue || 0) }
-              : s
-          ));
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
+    setSessions(rawSessions);
+  }, [rawSessions]);
 
   // Dynamic Metrics Calculation
   const metrics = useMemo(() => {

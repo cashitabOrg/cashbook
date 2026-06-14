@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { format, subDays, subMonths, subYears } from "date-fns";
+import { subDays, subMonths, subYears } from "date-fns";
 import { useSearchParams, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
 import { toLagosDateString } from "@/lib/date-utils";
 import { fetchDashboardSaleItemsByRange, fetchDashboardSessionsByRange } from "@/app/actions/dashboard";
 import { 
@@ -18,7 +17,7 @@ import DashboardHeader from "./dashboard/DashboardHeader";
 import MetricsBar from "./dashboard/MetricsBar";
 import PerformanceTable from "./dashboard/PerformanceTable";
 import InventoryMonitorTable from "./dashboard/InventoryMonitorTable";
-import AdjustmentLogTable from "./dashboard/AdjustmentLogTable";
+import AdjustmentLogTable, { Adjustment } from "./dashboard/AdjustmentLogTable";
 import LedgerClient from "./LedgerClient";
 import { formatCurrency } from "@/lib/format";
 
@@ -63,7 +62,7 @@ export default function AdminDashboardClient({
   initialProducts: Product[];
   rawSessions: RawSession[];
   rawSaleItems: RawSaleItem[];
-  recentAdjustments?: any[];
+  recentAdjustments?: Adjustment[];
   title: string;
   subtitle: string;
   plan?: string;
@@ -153,23 +152,18 @@ export default function AdminDashboardClient({
     }
   };
 
-  // Real-time subscription to products for local cache
+  // Synchronize state with fresh server props when Next.js refreshes in the background
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel("admin-dashboard-products")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `store_id=eq.${storeId}` }, (payload) => {
-        if (payload.eventType === "UPDATE") {
-          setProducts((prev) => prev.map((p) => (p.id === payload.new.id ? { ...p, ...payload.new } : p)));
-        } else if (payload.eventType === "INSERT") {
-          setProducts((prev) => [...prev, payload.new as Product]);
-        } else if (payload.eventType === "DELETE") {
-          setProducts((prev) => prev.filter(p => p.id !== payload.old.id));
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
+    setProducts(initialProducts);
+  }, [initialProducts]);
+
+  useEffect(() => {
+    setSaleItems(rawSaleItems);
+  }, [rawSaleItems]);
+
+  useEffect(() => {
+    setFetchedSessions(rawSessions);
+  }, [rawSessions]);
 
   // Fetch fresh data whenever date range changes (debounced)
   useEffect(() => {
@@ -195,37 +189,9 @@ export default function AdminDashboardClient({
     return () => { cancelled = true; clearTimeout(timer); };
   }, [startDate, endDate, storeId]);
 
-  // Real-time: append newly closed sessions into fetchedSessions
-  useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel("admin-dashboard-sessions")
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "sales_sessions",
-        filter: `store_id=eq.${storeId}`,
-      }, (payload) => {
-        if (payload.eventType === "INSERT" && payload.new.status === "closed") {
-          setFetchedSessions(prev => [...prev, {
-            total_revenue: Number(payload.new.total_revenue || 0),
-            started_at: payload.new.started_at,
-          }]);
-        } else if (payload.eventType === "UPDATE") {
-          setFetchedSessions(prev => prev.map(s =>
-            s.started_at === payload.new.started_at
-              ? { ...s, total_revenue: Number(payload.new.total_revenue || 0) }
-              : s
-          ));
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
-
   const metrics = useMemo(() => {
     // Filter sessions and items within the selected date range
-    let filteredSessions = fetchedSessions;
+    const filteredSessions = fetchedSessions;
     let filteredItems = saleItems;
 
     // Search Query Filtering (Performance Table)

@@ -48,7 +48,7 @@ export default function LedgerClient({
         table: 'inventory_movements',
         filter: `store_id=eq.${storeId}`,
       }, (payload) => {
-        const row = payload.new as any;
+        const row = payload.new as Record<string, unknown>;
         const tx: LedgerTransaction = {
           id: String(row.id ?? ''),
           store_id: String(row.store_id ?? ''),
@@ -72,6 +72,16 @@ export default function LedgerClient({
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [storeId]);
+
+  // Listen to global realtime-sync CustomEvents (from RealtimeSyncListener) to re-fetch ledger data
+  useEffect(() => {
+    const handleSync = () => {
+      console.log("[LedgerClient] Real-time sync event received, reloading data...");
+      loadData();
+    };
+    window.addEventListener("realtime-sync", handleSync);
+    return () => window.removeEventListener("realtime-sync", handleSync);
+  }, [loadData]);
 
   const toggleDay = (dateLabel: string) => {
     setOpenDays(prev => ({ ...prev, [dateLabel]: !prev[dateLabel] }));

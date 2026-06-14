@@ -13,6 +13,8 @@ import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
 import LockoutClient from "@/components/admin/LockoutClient";
 import TrialBanner from "@/components/layout/TrialBanner";
 
+import RealtimeSyncListener from "@/components/shared/RealtimeSyncListener";
+
 export default async function ManagerLayout({
   children,
   params,
@@ -65,6 +67,7 @@ export default async function ManagerLayout({
 
   return (
     <div className="flex h-[100dvh] bg-white dark:bg-[#0A0A0A] overflow-hidden text-gray-900 dark:text-gray-100">
+      <RealtimeSyncListener storeId={store.id} />
       <UnifiedSidebar 
         storeName={store.name}
         roleLabel="POS"
@@ -85,7 +88,7 @@ export default async function ManagerLayout({
               <button type="submit" className="text-gray-500 hover:text-red-500 p-2">
                 <LogOut className="w-5 h-5" />
               </button>
-            </form>
+             </form>
            </div>
         </div>
         
@@ -100,7 +103,7 @@ export default async function ManagerLayout({
           <BillingBanner 
             storeSlug={storeSlug}
             plan={store.plan}
-            daysRemaining={subStatus.expiryDate ? Math.ceil((new Date(subStatus.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null}
+            daysRemaining={subStatus.daysRemaining ?? null}
             isExempt={store.is_billing_exempt}
             isTrial={subStatus.isTrial}
           />

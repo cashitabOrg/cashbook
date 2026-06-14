@@ -59,10 +59,14 @@ export async function deleteSaleItem(itemId: string) {
          .single();
          
        if (session) {
-         await supabaseAdmin
+         const { error: sessErr } = await supabaseAdmin
            .from('sales_sessions')
            .update({ total_revenue: Math.max(0, Number(session.total_revenue) - Number(item.subtotal)) })
            .eq('id', item.session_id);
+         
+         if (sessErr) {
+           console.warn('deleteSaleItem: Failed to update session total_revenue (likely database trigger misconfiguration):', sessErr.message);
+         }
        }
     }
 
@@ -144,10 +148,14 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
          
        if (session) {
          const newRevenue = Math.max(0, Number(session.total_revenue) + revDiff);
-         await supabaseAdmin
+         const { error: sessErr } = await supabaseAdmin
            .from('sales_sessions')
            .update({ total_revenue: newRevenue })
            .eq('id', item.session_id);
+         
+         if (sessErr) {
+           console.warn('editSaleItem: Failed to update session total_revenue (likely database trigger misconfiguration):', sessErr.message);
+         }
        }
     }
 
@@ -231,6 +239,9 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
       .in('id', sessionIdsToApprove);
 
     if (updateError) {
+      if (updateError.code === '42703' || updateError.message?.includes('session_id')) {
+        return { error: 'Failed to update approval: A database trigger (trg_master_sale_sync) is incorrectly configured on the sales_sessions table. Please ask your administrator to run the database trigger fix.' };
+      }
       return { error: 'Failed to update approval status.' };
     }
 
@@ -278,6 +289,9 @@ export async function approveSession(sessionId: string, reason?: string): Promis
       .eq('id', sessionId);
 
     if (updateError) {
+      if (updateError.code === '42703' || updateError.message?.includes('session_id')) {
+        return { error: 'Failed to update session: A database trigger (trg_master_sale_sync) is incorrectly configured on the sales_sessions table. Please ask your administrator to run the database trigger fix.' };
+      }
       return { error: 'Failed to update session approval status.' };
     }
 
