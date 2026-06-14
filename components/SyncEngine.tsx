@@ -174,8 +174,8 @@ export default function SyncEngine() {
               }
             }
 
-            // Use upsert + ignoreDuplicates so re-syncing the same sale item
-            // after a page refresh doesn't cause a 409 Conflict.
+            // Use upsert and overwrite on conflict (ignoreDuplicates: false)
+            // to support editing already-synced rows via the offline queue.
             const { error } = await supabase.from("sale_items").upsert({
               id: local_row_id, // Use the POS-generated UUID as the DB primary key
               store_id: item.store_id,
@@ -186,7 +186,7 @@ export default function SyncEngine() {
               unit_price: payload.unit_price || 0,
               unit_cost: payload.unit_cost || 0,
               created_at: new Date(item.created_at).toISOString()
-            }, { onConflict: 'id', ignoreDuplicates: true });
+            }, { onConflict: 'id', ignoreDuplicates: false });
             success = !error || error?.code === '23505' || error?.message?.includes('duplicate');
             
             if (!success) {

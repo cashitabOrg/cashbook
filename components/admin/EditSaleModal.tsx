@@ -54,26 +54,18 @@ export default function EditSaleModal({
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (qty < 0 || revenue < 0) {
-      toast.error('Values cannot be negative.');
+    if (qty <= 0) {
+      toast.error('Quantity sold must be a positive number.');
+      return;
+    }
+    if (revenue <= 0) {
+      toast.error('Total price must be a positive number.');
       return;
     }
 
     setIsSaving(true);
-    if (itemId) {
-      // Cloud mode
-      const res = await editSaleItem(itemId, qty, revenue, selectedProductId);
-      setIsSaving(false);
-
-      if (res?.error) {
-        toast.error(res.error);
-      } else {
-        toast.success('Sale record updated successfully. Inventory reconciled.');
-        setIsOpen(false);
-        onSuccess?.();
-      }
-    } else if (onSaveLocal) {
-      // Local/Offline mode
+    if (onSaveLocal) {
+      // Local/Offline mode (preferred for offline-first sales point)
       try {
         await onSaveLocal(selectedProductId, qty, revenue);
         toast.success('Local sale record updated successfully.');
@@ -84,13 +76,38 @@ export default function EditSaleModal({
       } finally {
         setIsSaving(false);
       }
+    } else if (itemId) {
+      // Cloud mode (fallback for history logs)
+      const res = await editSaleItem(itemId, qty, revenue, selectedProductId);
+      setIsSaving(false);
+
+      if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.success('Sale record updated successfully. Inventory reconciled.');
+        setIsOpen(false);
+        onSuccess?.();
+      }
     }
   };
 
   const handleDelete = async () => {
     setIsSaving(true);
-    if (itemId) {
-      // Cloud mode
+    if (onDeleteLocal) {
+      // Local/Offline mode (preferred for offline-first sales point)
+      try {
+        await onDeleteLocal();
+        toast.success('Local sale record removed.');
+        setConfirmDelete(false);
+        setIsOpen(false);
+        onSuccess?.();
+      } catch (err: any) {
+         toast.error(err.message || 'Failed to delete local record.');
+      } finally {
+         setIsSaving(false);
+      }
+    } else if (itemId) {
+      // Cloud mode (fallback for history logs)
       const res = await deleteSaleItem(itemId);
       setIsSaving(false);
 
@@ -102,19 +119,6 @@ export default function EditSaleModal({
          setConfirmDelete(false);
          setIsOpen(false);
          onSuccess?.();
-      }
-    } else if (onDeleteLocal) {
-      // Local/Offline mode
-      try {
-        await onDeleteLocal();
-        toast.success('Local sale record removed.');
-        setConfirmDelete(false);
-        setIsOpen(false);
-        onSuccess?.();
-      } catch (err: any) {
-         toast.error(err.message || 'Failed to delete local record.');
-      } finally {
-         setIsSaving(false);
       }
     }
   };

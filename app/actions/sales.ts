@@ -38,7 +38,7 @@ export async function deleteSaleItem(itemId: string) {
       .single();
 
     const isApproved = sessionData?.approval_status === 'approved';
-    if (isApproved && userRole.role === 'manager') {
+    if (isApproved) {
       return { error: 'This sale has been approved by an administrator and can no longer be modified.' };
     }
 
@@ -120,7 +120,7 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
       .single();
 
     const isApproved = sessionData?.approval_status === 'approved';
-    if (isApproved && userRole.role === 'manager') {
+    if (isApproved) {
       return { error: 'This sale has been approved by an administrator and can no longer be modified.' };
     }
 
@@ -128,17 +128,9 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
       return { error: 'Unauthorized permission to edit this record.' };
     }
 
-    const qtyDiff = newQty - Number(item.quantity);
     const revDiff = newSubtotal - Number(item.subtotal);
 
-    // 2. Resolve new product ID (needed before stock sync)
-    const effectiveProductId = (newProductId && newProductId !== item.product_id) ? newProductId : item.product_id;
-
-    // qtyDiff for stock: if new qty INCREASED, we sold more → stock goes DOWN (negative)
-    // if new qty DECREASED, we sold less → stock goes UP (positive)
-    const stockDiff = Number(item.quantity) - newQty; // inverse of qtyDiff: positive = refund, negative = more consumed
-
-    // Stock adjustment is handled atomically by the DB trigger 'trg_master_sale_sync'.
+    // Note: Stock adjustment is handled atomically by the DB trigger 'trg_master_sale_sync'.
     // DO NOT add any application-level stock diff here — trigger is the single source
     // of truth. A duplicate app-level adjustment causes double-deduction.
 
@@ -203,7 +195,7 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
 
     const { data: allSessions, error: fetchError } = await supabaseAdmin
       .from('sales_sessions')
-      .select('id, started_at')
+      .select('id, started_at, approval_status')
       .eq('store_id', storeId)
       .eq('status', 'closed');
       
@@ -211,13 +203,22 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
       return { error: 'Failed to fetch sessions for approval.' };
     }
 
-    const sessionIdsToApprove = allSessions.filter(s => {
+    const sessionsForDate = allSessions.filter(s => {
       const sDateStr = toLagosDateString(s.started_at);
       return sDateStr === dateStr;
-    }).map(s => s.id);
+    });
+
+    if (sessionsForDate.length === 0) {
+      return { error: 'No closed sessions found for this date.' };
+    }
+
+    const sessionIdsToApprove = sessionsForDate
+      .filter(s => s.approval_status !== 'approved')
+      .map(s => s.id);
 
     if (sessionIdsToApprove.length === 0) {
-      return { error: 'No closed sessions found for this date.' };
+      // All sessions for this date are already approved — return success immediately to avoid database trigger crash
+      return { success: true };
     }
 
     const { error: updateError } = await supabaseAdmin
@@ -262,6 +263,11 @@ export async function approveSession(sessionId: string, reason?: string): Promis
       return { error: 'Unauthorized permission to approve this session.' };
     }
 
+    // AVOID CRASH: If session is already approved, just return success!
+    if (session.approval_status === 'approved') {
+      return { success: true };
+    }
+
     const { error: updateError } = await supabaseAdmin
       .from('sales_sessions')
       .update({
@@ -293,13 +299,18 @@ export async function deleteSalesSession(sessionId: string): Promise<ActionRespo
     // 1. Fetch the session
     const { data: session, error: fetchError } = await supabaseAdmin
       .from('sales_sessions')
-      .select('id, store_id, total_revenue')
+      .select('id, store_id, total_revenue, approval_status')
       .eq('id', sessionId)
       .single();
 
     if (fetchError || !session) {
       // If the session doesn't exist in Supabase, we are done
       return { success: true };
+    }
+
+    // Block deletion of approved sessions to avoid trigger error / data inconsistency
+    if (session.approval_status === 'approved') {
+      return { error: 'Cannot delete an approved sales session.' };
     }
 
     // 2. Security Check

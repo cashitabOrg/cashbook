@@ -44,19 +44,31 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
         .toArray();
       const pendingLocalIds = pendingQueueItems.map(q => q.payload?.local_row_id);
 
+      // Find which rows have pending deletions in the queue
+      const pendingDeletes = await db.offlineQueue
+        .filter(q => q.type === 'sale_item_delete' && q.status === 'pending')
+        .toArray();
+      const deletedLocalIds = pendingDeletes.map(q => q.payload?.local_row_id);
+
       setRows(prevRows => {
-        const existingRows: SaleRow[] = data.map((item: any) => {
-          const existing = prevRows.find(r => r.dbId === item.id);
-          return {
-            localId: existing ? existing.localId : crypto.randomUUID(),
-            dbId: item.id,
-            productId: item.product_id,
-            productName: item.products?.name || 'Unknown',
-            quantitySold: Number(item.quantity),
-            subtotal: Number(item.subtotal),
-            synced: true
-          };
-        });
+        const existingRows: SaleRow[] = data
+          .filter((item: any) => {
+            const existing = prevRows.find(r => r.dbId === item.id);
+            const isPendingDelete = deletedLocalIds.includes(item.id) || (existing && deletedLocalIds.includes(existing.localId));
+            return !isPendingDelete;
+          })
+          .map((item: any) => {
+            const existing = prevRows.find(r => r.dbId === item.id);
+            return {
+              localId: existing ? existing.localId : crypto.randomUUID(),
+              dbId: item.id,
+              productId: item.product_id,
+              productName: item.products?.name || 'Unknown',
+              quantitySold: Number(item.quantity),
+              subtotal: Number(item.subtotal),
+              synced: true
+            };
+          });
 
         // Keep unsynced drafting rows
         const draftingRows = prevRows.filter(r => !r.synced);
@@ -231,7 +243,20 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const qty = parseFloat(row.quantitySold.toString());
     const sub = parseFloat(row.subtotal.toString());
 
-    if (!sessionId || !row.productId || isNaN(qty) || isNaN(sub)) return;
+    if (!sessionId || !row.productId) return;
+
+    if (isNaN(qty) || qty <= 0) {
+      toast.error("Invalid Quantity", {
+        description: "Quantity sold must be a positive number."
+      });
+      return;
+    }
+    if (isNaN(sub) || sub <= 0) {
+      toast.error("Invalid Total Price", {
+        description: "Total price must be a positive number."
+      });
+      return;
+    }
     
     // PREVENTION: Prevent duplicate commits if row is already synced or already in process
     if (row.synced || row.dbId || committingIds.has(row.localId)) {
@@ -305,7 +330,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
         await db.offlineQueue.add({
           store_id: storeId,
           type: 'sale_item_delete',
-          payload: { local_row_id: localId },
+          payload: { local_row_id: row.dbId || localId },
           created_at: Date.now(),
           status: 'pending'
         });
@@ -345,7 +370,7 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     await db.offlineQueue.add({
       store_id: storeId,
       type: 'sale_item_delete',
-      payload: { local_row_id: localId },
+      payload: { local_row_id: row.dbId || localId },
       created_at: Date.now(),
       status: 'pending'
     });
@@ -407,6 +432,23 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
           unit_price: newProd.selling_price || 0,
           unit_cost: newProd.cost_price || 0
         }
+      });
+    } else {
+      // It is already synced. Queue an update task in the offline queue!
+      await db.offlineQueue.add({
+        store_id: storeId,
+        type: 'sale_item',
+        payload: {
+          session_id: sessionId,
+          product_id: productId,
+          quantity: qty,
+          subtotal: subtotal,
+          unit_price: newProd.selling_price || 0,
+          unit_cost: newProd.cost_price || 0,
+          local_row_id: row.dbId || localId
+        },
+        created_at: Date.now(),
+        status: 'pending'
       });
     }
 
