@@ -15,6 +15,7 @@ function fetchWithTimeout(
 
   return fetch(url, {
     ...options,
+    cache: 'no-store',
     signal: controller.signal
   }).finally(() => {
     clearTimeout(id);

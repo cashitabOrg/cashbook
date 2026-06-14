@@ -37,7 +37,7 @@ export default function SalesEntryTable({
       {/* Desktop/Tablet Table View */}
       <div className="hidden md:block overflow-x-auto flex-1 lg:rounded-2xl">
         <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50/95 dark:bg-[#252528]/95 backdrop-blur-sm border-b border-slate-100 dark:border-[#2C2C2E] sticky z-20" style={{ top: stickyTop }}>
+          <thead className="bg-slate-50 dark:bg-[#252528] border-b border-slate-100 dark:border-[#2C2C2E]">
             <tr>
               <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 dark:text-white sm:pl-6 w-12 text-center">#</th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-white w-1/3">Product</th>

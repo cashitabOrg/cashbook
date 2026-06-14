@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { requireRole } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { toLagosDateString } from '@/lib/date-utils'
 
 interface ActionResponse {
@@ -82,6 +82,7 @@ export async function deleteSaleItem(itemId: string) {
 
     // 5. Invalidate sales-related pages so all dashboards reflect the change
     revalidatePath('/', 'layout');
+    revalidateTag('sales', 'max');
 
     return { success: true };
   } catch (err: any) {
@@ -186,6 +187,7 @@ export async function editSaleItem(itemId: string, newQtyRaw: number, newSubtota
 
     // 5. Invalidate sales-related pages so all dashboards reflect the change
     revalidatePath('/', 'layout');
+    revalidateTag('sales', 'max');
 
     return { success: true };
   } catch (err: any) {
@@ -246,6 +248,7 @@ export async function approveDailySales(dateStr: string, storeId: string, reason
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('sales', 'max');
     return { success: true };
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred.' };
@@ -296,6 +299,7 @@ export async function approveSession(sessionId: string, reason?: string): Promis
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('sales', 'max');
     return { success: true };
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred.' };
@@ -368,6 +372,7 @@ export async function deleteSalesSession(sessionId: string): Promise<ActionRespo
     }
 
     revalidatePath('/', 'layout');
+    revalidateTag('sales', 'max');
     return { success: true };
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred.' };

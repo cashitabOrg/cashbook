@@ -38,15 +38,15 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       .eq('is_deleted', false);
       
     if (data && !error) {
-      // Find which of our local rows are still pending in the queue
+      // Find which of our local rows are still pending in the queue (pending or currently syncing)
       const pendingQueueItems = await db.offlineQueue
-        .filter(q => q.type === 'sale_item' && q.status === 'pending')
+        .filter(q => q.type === 'sale_item' && (q.status === 'pending' || q.status === 'syncing'))
         .toArray();
       const pendingLocalIds = pendingQueueItems.map(q => q.payload?.local_row_id);
 
       // Find which rows have pending deletions in the queue
       const pendingDeletes = await db.offlineQueue
-        .filter(q => q.type === 'sale_item_delete' && q.status === 'pending')
+        .filter(q => q.type === 'sale_item_delete' && (q.status === 'pending' || q.status === 'syncing'))
         .toArray();
       const deletedLocalIds = pendingDeletes.map(q => q.payload?.local_row_id);
 
@@ -54,11 +54,30 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
         const existingRows: SaleRow[] = data
           .filter((item: any) => {
             const existing = prevRows.find(r => r.dbId === item.id);
-            const isPendingDelete = deletedLocalIds.includes(item.id) || (existing && deletedLocalIds.includes(existing.localId));
+            const isPendingDelete = deletedLocalIds.includes(item.id) || (existing ? deletedLocalIds.includes(existing.localId) : false);
             return !isPendingDelete;
           })
           .map((item: any) => {
             const existing = prevRows.find(r => r.dbId === item.id);
+            
+            // Check if there is a pending edit in the offline queue for this item
+            const pendingEdit = pendingQueueItems.find(q => 
+              q.payload?.local_row_id === item.id || 
+              (existing ? q.payload?.local_row_id === existing.localId : false)
+            );
+
+            if (pendingEdit) {
+              return {
+                localId: existing ? existing.localId : crypto.randomUUID(),
+                dbId: item.id,
+                productId: pendingEdit.payload.product_id,
+                productName: existing ? existing.productName : 'Unknown',
+                quantitySold: Number(pendingEdit.payload.quantity),
+                subtotal: Number(pendingEdit.payload.subtotal),
+                synced: true
+              };
+            }
+
             return {
               localId: existing ? existing.localId : crypto.randomUUID(),
               dbId: item.id,
@@ -72,7 +91,8 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
 
         // Keep unsynced drafting rows
         const draftingRows = prevRows.filter(r => !r.synced);
-        const pendingOfflineRows = prevRows.filter(r => r.synced && pendingLocalIds.includes(r.localId));
+        // Only keep local rows that are marked synced but have not been assigned a dbId yet
+        const pendingOfflineRows = prevRows.filter(r => r.synced && !r.dbId && pendingLocalIds.includes(r.localId));
         
         const combined = [...existingRows, ...pendingOfflineRows, ...draftingRows];
         if (combined.length === 0) {
@@ -317,20 +337,21 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const qty = parseFloat(row.quantitySold.toString());
 
     if (row.synced && row.productId && !isNaN(qty)) {
-      // Check if the insertion is still pending in the offline queue (not yet synced to cloud)
-      const pendingInsert = await db.offlineQueue
-        .filter(item => item.type === 'sale_item' && item.payload?.local_row_id === localId)
-        .first();
+      // Check if there are pending insert or edit tasks for this item in the offline queue
+      const pendingTasks = await db.offlineQueue
+        .filter(item => item.type === 'sale_item' && (item.payload?.local_row_id === localId || (row.dbId ? item.payload?.local_row_id === row.dbId : false)))
+        .toArray();
 
-      if (pendingInsert && pendingInsert.id) {
-        // Safe-delete the pending insert task from the queue altogether
-        await db.offlineQueue.delete(pendingInsert.id);
-      } else {
-        // Already synced or in flight. Queue a soft-deletion in the cloud
+      for (const task of pendingTasks) {
+        if (task.id) await db.offlineQueue.delete(task.id);
+      }
+
+      if (row.dbId) {
+        // If already synced to cloud, queue a soft-deletion task in the cloud
         await db.offlineQueue.add({
           store_id: storeId,
           type: 'sale_item_delete',
-          payload: { local_row_id: row.dbId || localId },
+          payload: { local_row_id: row.dbId },
           created_at: Date.now(),
           status: 'pending'
         });
@@ -357,8 +378,14 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     const qty = row ? parseFloat(row.quantitySold.toString()) : NaN;
     if (!row || !row.synced || !row.productId || isNaN(qty)) return;
 
-    // Remove the sale item from the queue safely if it matches our localId
-    await db.offlineQueue.filter(item => item.payload?.local_row_id === localId).delete();
+    // Remove the sale item or edit from the queue safely if it matches our localId or dbId
+    const pendingTasks = await db.offlineQueue
+      .filter(item => item.type === 'sale_item' && (item.payload?.local_row_id === localId || (row.dbId ? item.payload?.local_row_id === row.dbId : false)))
+      .toArray();
+
+    for (const task of pendingTasks) {
+      if (task.id) await db.offlineQueue.delete(task.id);
+    }
 
     // Refund the stock locally
     const p = await db.products.get(row.productId);
@@ -367,16 +394,15 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
     }
 
     // Queue a deletion in the cloud (in case it already synced)
-    await db.offlineQueue.add({
-      store_id: storeId,
-      type: 'sale_item_delete',
-      payload: { local_row_id: row.dbId || localId },
-      created_at: Date.now(),
-      status: 'pending'
-    });
-
-    // 2. The stock refund is handled by the server trigger if the sale already synced.
-    // If it hasn't synced, we simply deleted it from the queue above.
+    if (row.dbId) {
+      await db.offlineQueue.add({
+        store_id: storeId,
+        type: 'sale_item_delete',
+        payload: { local_row_id: row.dbId },
+        created_at: Date.now(),
+        status: 'pending'
+      });
+    }
 
     setRows(prev => prev.map(r => r.localId === localId ? { ...r, synced: false, dbId: undefined } : r));
   };
@@ -417,9 +443,9 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
       await db.products.update(productId, { quantity: updatedNewProd.quantity - qty });
     }
 
-    // 3. Update offline queue payload
+    // 3. Update offline queue payload (check both localId and dbId)
     const queueItem = await db.offlineQueue
-      .filter(item => item.type === 'sale_item' && item.payload?.local_row_id === localId)
+      .filter(item => item.type === 'sale_item' && (item.payload?.local_row_id === localId || (row.dbId ? item.payload?.local_row_id === row.dbId : false)))
       .first();
 
     if (queueItem && queueItem.id) {

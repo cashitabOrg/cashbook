@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, Search, ChevronDown, RotateCcw, Filter } from "lucide-react";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import ManagerHistoryRow from "./ManagerHistoryRow";
@@ -40,6 +41,29 @@ export default function ManagerHistoryClient({
   dailyGroups: DailyGroup[];
   availableProducts?: { id: string; name: string; }[];
 }) {
+  const router = useRouter();
+
+  // Polling fallback: if any displayed session is pending, poll for changes in background
+  useEffect(() => {
+    // Check if there are any sessions in dailyGroups that are not approved
+    const hasPendingSessions = dailyGroups.some((group) =>
+      group.sessions.some((session) => session.approvalStatus !== "approved")
+    );
+
+    if (!hasPendingSessions) return;
+
+    console.log("[ManagerHistoryClient] Pending sessions found. Starting realtime polling...");
+    const interval = setInterval(() => {
+      console.log("[ManagerHistoryClient] Polling server for history updates...");
+      router.refresh();
+    }, 10000); // Poll every 10 seconds
+
+    return () => {
+      console.log("[ManagerHistoryClient] Stopping realtime polling...");
+      clearInterval(interval);
+    };
+  }, [dailyGroups, router]);
+
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
     dailyGroups.length > 0 ? { [dailyGroups[0].dateStr]: true } : {}
   );
