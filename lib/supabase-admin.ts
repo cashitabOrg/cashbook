@@ -3,14 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 function fetchWithTimeout(
   url: string | URL | Request,
   options: RequestInit = {},
-  timeoutMs = 15000
+  timeoutMs = 45000
 ): Promise<Response> {
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
+  const id = setTimeout(() => {
+    controller.abort(new DOMException(`Request timed out after ${timeoutMs}ms`, "TimeoutError"));
+  }, timeoutMs);
 
   const signal = options.signal;
   if (signal) {
-    signal.addEventListener('abort', () => controller.abort());
+    signal.addEventListener('abort', () => {
+      controller.abort(signal.reason || new DOMException("Request aborted by user", "AbortError"));
+    });
   }
 
   return fetch(url, {
@@ -33,7 +37,7 @@ export const supabaseAdmin = createClient(
       persistSession: false
     },
     global: {
-      fetch: (url, options) => fetchWithTimeout(url, options, 15000)
+      fetch: (url, options) => fetchWithTimeout(url, options, 45000)
     }
   }
 )

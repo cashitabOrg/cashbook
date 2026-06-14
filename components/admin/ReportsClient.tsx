@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { format, subDays, subMonths, subYears, parseISO } from "date-fns";
 import { toLagosDateString } from "@/lib/date-utils";
 import { approveDailySales, approveSession } from "@/app/actions/sales";
@@ -73,6 +74,7 @@ export default function ReportsClient({
   isBillingExempt: boolean;
   salesData: SaleRecord[];
 }) {
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [sales, setSales] = useState<SaleRecord[]>(salesData);
   const [approvingDate, setApprovingDate] = useState<string | null>(null);
@@ -94,33 +96,45 @@ export default function ReportsClient({
     setSales(salesData);
   }, [salesData]);
 
-  // Real-time subscription on sale_items — updates report instantly on delete/edit
+  // Real-time subscription on sale_items and sales_sessions — updates report instantly
   useEffect(() => {
     if (!storeId) return;
     const supabase = createClient();
     const channel = supabase
-      .channel(`reports-sale-items-${storeId}`)
+      .channel(`reports-realtime-${storeId}`)
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: '*',
         schema: 'public',
         table: 'sale_items',
         filter: `store_id=eq.${storeId}`,
-      }, (payload) => {
-        const updated = payload.new as any;
-        setSales(prev => prev.map(s =>
-          s.id === updated.id
-            ? {
-                ...s,
-                qty: Number(updated.quantity),
-                revenue: Number(updated.subtotal),
-                isDeleted: updated.is_deleted || false,
-              }
-            : s
-        ));
+      }, () => {
+        console.log("[ReportsClient] Realtime change on sale_items, refreshing server data...");
+        router.refresh();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sales_sessions',
+        filter: `store_id=eq.${storeId}`,
+      }, () => {
+        console.log("[ReportsClient] Realtime change on sales_sessions, refreshing server data...");
+        router.refresh();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
+  }, [storeId, router]);
+
+  // Polling fallback to keep reports up-to-date if realtime connection drops
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("[ReportsClient] Polling reports data update...");
+      router.refresh();
+    }, 10000); // Poll every 10 seconds
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [router]);
   
   // Robust Filtering State - Default to Last 7 Days in Lagos Timezone
   const [startDate, setStartDate] = useState(() => {
