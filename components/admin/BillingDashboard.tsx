@@ -114,7 +114,7 @@ export default function BillingDashboard({
     const savings = cycle === 'annual' ? (plan.priceMonthly * 12) - plan.priceAnnual : 0;
 
     return (
-      <div className={`relative flex flex-col p-8 bg-white dark:bg-[#1C1C1E] rounded-3xl border transition-all duration-300 overflow-hidden ${
+      <div className={`relative flex flex-col p-6 lg:p-8 bg-white dark:bg-[#1C1C1E] rounded-3xl border transition-all duration-300 overflow-hidden ${
         isCurrent && !isExpired ? 'border-blue-500 shadow-md shadow-blue-500/10' : 'border-gray-200 dark:border-[#2C2C2E] shadow-sm hover:border-gray-300 dark:hover:border-[#3A3A3C]'
       }`}>
         {id === 'growth' && (
@@ -137,9 +137,9 @@ export default function BillingDashboard({
         <p className="text-gray-500 dark:text-gray-400 text-xs mt-1 h-8 leading-relaxed mb-6">{plan.description}</p>
 
         <div className="mb-8">
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{formatCurrency(price)}</span>
-            <span className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest">/ {cycle === 'monthly' ? 'mo' : 'yr'}</span>
+          <div className="flex flex-wrap items-baseline gap-1">
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{formatCurrency(price)}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest whitespace-nowrap">/ {cycle === 'monthly' ? 'mo' : 'yr'}</span>
           </div>
           {savings > 0 && (
             <div className="mt-2 inline-flex bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-2 py-0.5 rounded-lg border border-emerald-100 dark:border-emerald-500/20">
@@ -273,13 +273,13 @@ export default function BillingDashboard({
       </div>
 
       {/* Plan Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
          {(['starter', 'growth', 'business'] as PlanType[]).map(id => (
            <PlanCard key={id} id={id} plan={PLAN_LIMITS[id]} />
          ))}
 
          {/* Enterprise Card */}
-         <div className="relative flex flex-col p-8 bg-gradient-to-br from-[#0B0F19] to-[#161D30] border border-slate-800 text-white rounded-3xl transition-all duration-300">
+         <div className="relative flex flex-col p-6 lg:p-8 bg-gradient-to-br from-[#0B0F19] to-[#161D30] border border-slate-800 text-white rounded-3xl transition-all duration-300">
             <h3 className="text-xl font-bold mb-2">Enterprise Plan</h3>
             <p className="text-slate-400 text-xs mt-1 leading-relaxed mb-6">Need more than 3 stores or custom solution?</p>
             <div className="space-y-4 flex-1 mb-8">
