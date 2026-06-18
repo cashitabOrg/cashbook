@@ -8,7 +8,7 @@ import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import BillingBanner from "@/components/layout/BillingBanner";
 import MobileThemeToggle from "@/components/layout/MobileThemeToggle";
 import InstallAppButton from "@/components/landing/InstallAppButton";
-import { getSubscriptionData } from "@/app/actions/billing";
+
 import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
 import LockoutClient from "@/components/admin/LockoutClient";
 import TrialBanner from "@/components/layout/TrialBanner";

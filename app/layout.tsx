@@ -37,6 +37,21 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              try {
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const currentCookie = document.cookie.split('; ').find(row => row.startsWith('user-timezone='));
+                if (!currentCookie || currentCookie.split('=')[1] !== tz) {
+                  document.cookie = 'user-timezone=' + tz + '; path=/; max-age=31536000; SameSite=Lax';
+                }
+              } catch (e) {
+                console.error('Failed to set timezone cookie:', e);
+              }
+            `
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
               window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 window.deferredPrompt = e;

@@ -153,11 +153,15 @@ export async function checkPlanLimit(
       return { allowed: true, limit: 1, current: 1 };
     }
 
-    // Count user accounts with the same email address across stores
+    // Count only ADMIN-role accounts for this email — each store creates exactly one
+    // admin account per owner email. Counting all user roles (including managers/staff
+    // who share the same email) incorrectly inflates the tally and blocks legitimate
+    // store creation.
     const { count, error } = await supabaseAdmin
       .from('users')
       .select('*', { count: 'exact', head: true })
-      .eq('email', ownerEmail);
+      .eq('email', ownerEmail)
+      .eq('role', 'admin');
 
     const currentCount = count || 0;
     const limit = limits.maxStores;

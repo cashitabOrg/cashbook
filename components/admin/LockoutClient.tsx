@@ -46,11 +46,12 @@ export default function LockoutClient({
         },
         onCancel: () => {
           toast.info("Payment closed.");
-          setLoading(false);
         },
       });
     } catch (err: any) {
       toast.error(err?.message || "Failed to initialize payment.");
+    } finally {
+      // Always reset loading — covers browser-back dismissal, onCancel, and errors
       setLoading(false);
     }
   };

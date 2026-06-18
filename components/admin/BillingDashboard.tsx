@@ -28,6 +28,7 @@ interface BillingDashboardProps {
   };
   storeId: string;
   userEmail: string;
+  subStatus: any;
 }
 
 export default function BillingDashboard({
@@ -36,7 +37,8 @@ export default function BillingDashboard({
   subscription,
   usage,
   storeId,
-  userEmail
+  userEmail,
+  subStatus
 }: BillingDashboardProps) {
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly');
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
@@ -51,10 +53,33 @@ export default function BillingDashboard({
   const daysRemaining = expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
   const isExpired = daysRemaining < 0;
 
+  // Defensive fallback for subStatus to prevent runtime crashes
+  const sub = {
+    plan: subStatus?.plan || currentPlan || 'free',
+    isTrial: !!subStatus?.isTrial,
+    trialDaysLeft: subStatus?.trialDaysLeft || 0,
+    isExpired: subStatus?.isExpired ?? isExpired,
+    expiryDate: subStatus?.expiryDate || expiryDate,
+    isExempt: !!subStatus?.isExempt,
+    daysRemaining: subStatus?.daysRemaining ?? daysRemaining
+  };
+
+  // Plan hierarchy for downgrade detection
+  const PLAN_RANK: Record<string, number> = { free: 0, starter: 1, growth: 2, business: 3 };
+
   const handleUpgrade = async (planId: PlanType) => {
     if (planId === normalizedPlan && !isExpired) {
       toast.info("You are already on this plan!");
       return;
+    }
+
+    // Warn before downgrading an active subscription
+    if (!isExpired && PLAN_RANK[planId] < PLAN_RANK[normalizedPlan]) {
+      const confirmed = window.confirm(
+        `You are about to downgrade from ${normalizedPlan.toUpperCase()} to ${planId.toUpperCase()}.\n\n` +
+        `This will reduce your staff and history limits immediately after payment is processed. Are you sure you want to continue?`
+      );
+      if (!confirmed) return;
     }
 
     setCheckoutPlan(planId);
@@ -188,20 +213,38 @@ export default function BillingDashboard({
          {/* Mini usage stats */}
          <div className="flex items-center gap-6 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-[#2C2C2E] px-6 py-4 rounded-2xl shadow-sm">
             <div className="flex flex-col">
-               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Staff</span>
+               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Staff Members</span>
                <span className="text-sm font-bold text-gray-900 dark:text-white">
                  {usage.staff} / {limits.maxStaff >= 1000 ? '∞' : limits.maxStaff}
                </span>
             </div>
             <div className="w-px h-8 bg-gray-200 dark:bg-[#3A3A3C]" />
             <div className="flex flex-col">
-               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Status</span>
+               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Plan Status</span>
                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${normalizedPlan === 'free' ? 'bg-gray-400' : isExpired ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-                  <span className="text-sm font-bold text-gray-900 dark:text-white">
-                     {normalizedPlan === 'free' ? 'Free Trial' : isExpired ? 'Expired' : 'Active'}
+                  <span className={`w-2 h-2 rounded-full ${
+                    sub.isExpired ? 'bg-rose-500' : 'bg-emerald-500'
+                  }`} />
+                  <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">
+                    {sub.isTrial ? 'Free Trial' : sub.isExpired ? 'Expired' : 'Active'}
                   </span>
                </div>
+            </div>
+            <div className="w-px h-8 bg-gray-200 dark:bg-[#3A3A3C]" />
+            <div className="flex flex-col">
+               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
+                 {sub.isTrial ? 'Trial Days Left' : 'Renewal Date'}
+               </span>
+               <span className="text-sm font-bold text-gray-900 dark:text-white">
+                 {sub.isExempt 
+                   ? 'Unlimited' 
+                   : sub.isTrial 
+                     ? `${sub.trialDaysLeft} days` 
+                     : sub.expiryDate 
+                       ? new Date(sub.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                       : 'None'
+                 }
+               </span>
             </div>
          </div>
       </div>

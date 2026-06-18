@@ -37,7 +37,7 @@ export default function SalesSummaryBar({
           <div className="flex flex-row items-center gap-3 sm:gap-5 flex-nowrap whitespace-nowrap">
             <div className="flex items-baseline gap-1">
               <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Total Items</span>
-              <span className="text-xs sm:text-lg font-black text-slate-900 dark:text-white leading-none">{totalItems.toFixed(2)}</span>
+              <span className="text-xs sm:text-lg font-black text-slate-900 dark:text-white leading-none">{Number.isInteger(totalItems) ? totalItems : totalItems.toFixed(2)}</span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Session Revenue</span>

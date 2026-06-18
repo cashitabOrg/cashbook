@@ -119,17 +119,17 @@ export async function requireRole(allowedRoles: string[]) {
   if (!profile) {
     const detail = pError ? `${pError.code}: ${pError.message}` : 'User missing from database.';
     console.error('requireRole: Profile lookup failed for user ID:', user.id, detail);
-    throw new Error(`Unauthorized: Profile access failed. Details: ${detail}`);
+    redirect('/login?error=profile_error');
   }
 
   if (!allowedRoles.includes(profile.role)) {
     console.warn(`requireRole: Role mismatch. User role: ${profile.role}, Allowed: ${allowedRoles.join(', ')}`);
-    throw new Error('Unauthorized: Insufficient permissions.');
+    redirect('/login?error=unauthorized');
   }
 
   if (!profile.is_active) {
     console.warn('requireRole: Account is deactivated', user.id);
-    throw new Error('Account Deactivated: Please contact your administrator.');
+    redirect('/login?error=deactivated');
   }
 
   let activeStoreId = profile.store_id;

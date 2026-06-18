@@ -94,6 +94,7 @@ export function getPlanLimits(plan: string | null | undefined): PlanLimits {
   // Backward compatibility mappings
   if ((p as string) === 'basic') return PLAN_LIMITS.growth;
   if ((p as string) === 'pro') return PLAN_LIMITS.business;
+  if ((p as string) === 'premium') return PLAN_LIMITS.business;
   return PLAN_LIMITS[p] || PLAN_LIMITS.free;
 }
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Calendar, Search, ChevronDown, RotateCcw, Filter } from "lucide-react";
 import { format, subDays, subMonths, subYears } from "date-fns";
 import ManagerHistoryRow from "./ManagerHistoryRow";
+import { toTimeZoneDateString } from "@/lib/date-utils";
 
 type ItemDetail = {
   id?: string;
@@ -37,32 +38,14 @@ type DailyGroup = {
 export default function ManagerHistoryClient({
   dailyGroups,
   availableProducts = [],
+  timezone = "Africa/Lagos",
 }: {
   dailyGroups: DailyGroup[];
   availableProducts?: { id: string; name: string; }[];
+  timezone?: string;
 }) {
   const router = useRouter();
 
-  // Polling fallback: if any displayed session is pending, poll for changes in background
-  useEffect(() => {
-    // Check if there are any sessions in dailyGroups that are not approved
-    const hasPendingSessions = dailyGroups.some((group) =>
-      group.sessions.some((session) => session.approvalStatus !== "approved")
-    );
-
-    if (!hasPendingSessions) return;
-
-    console.log("[ManagerHistoryClient] Pending sessions found. Starting realtime polling...");
-    const interval = setInterval(() => {
-      console.log("[ManagerHistoryClient] Polling server for history updates...");
-      router.refresh();
-    }, 10000); // Poll every 10 seconds
-
-    return () => {
-      console.log("[ManagerHistoryClient] Stopping realtime polling...");
-      clearInterval(interval);
-    };
-  }, [dailyGroups, router]);
 
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
     dailyGroups.length > 0 ? { [dailyGroups[0].dateStr]: true } : {}
@@ -80,33 +63,35 @@ export default function ManagerHistoryClient({
 
   // ── Preset Application ─────────────────────────────────────────
   const applyPreset = useCallback((range: string) => {
-    const today = new Date();
-    const todayStr = format(today, "yyyy-MM-dd");
+    const todayLagosStr = toTimeZoneDateString(new Date(), timezone);
+    const baseDate = new Date(todayLagosStr);
+    
     setActivePreset(range);
     if (range === "all") {
       setStartDate(""); setEndDate("");
     } else if (range === "today") {
-      setStartDate(todayStr); setEndDate(todayStr);
+      setStartDate(todayLagosStr); setEndDate(todayLagosStr);
     } else if (range === "yesterday") {
-      const y = format(subDays(today, 1), "yyyy-MM-dd");
+      const y = toTimeZoneDateString(subDays(baseDate, 1), timezone);
       setStartDate(y); setEndDate(y);
     } else if (range === "7d") {
-      setStartDate(format(subDays(today, 7), "yyyy-MM-dd")); setEndDate(todayStr);
+      setStartDate(toTimeZoneDateString(subDays(baseDate, 7), timezone)); setEndDate(todayLagosStr);
     } else if (range === "1m") {
-      setStartDate(format(subMonths(today, 1), "yyyy-MM-dd")); setEndDate(todayStr);
+      setStartDate(toTimeZoneDateString(subMonths(baseDate, 1), timezone)); setEndDate(todayLagosStr);
     } else if (range === "3m") {
-      setStartDate(format(subMonths(today, 3), "yyyy-MM-dd")); setEndDate(todayStr);
+      setStartDate(toTimeZoneDateString(subMonths(baseDate, 3), timezone)); setEndDate(todayLagosStr);
     } else if (range === "6m") {
-      setStartDate(format(subMonths(today, 6), "yyyy-MM-dd")); setEndDate(todayStr);
+      setStartDate(toTimeZoneDateString(subMonths(baseDate, 6), timezone)); setEndDate(todayLagosStr);
     } else if (range === "1y") {
-      setStartDate(format(subYears(today, 1), "yyyy-MM-dd")); setEndDate(todayStr);
+      setStartDate(toTimeZoneDateString(subYears(baseDate, 1), timezone)); setEndDate(todayLagosStr);
     }
-  }, []);
+  }, [timezone]);
 
   const handleSelectChange = (value: string) => {
     if (value === "") {
-      setTempStartDate(startDate || format(new Date(), "yyyy-MM-dd"));
-      setTempEndDate(endDate || format(new Date(), "yyyy-MM-dd"));
+      const todayStr = toTimeZoneDateString(new Date(), timezone);
+      setTempStartDate(startDate || todayStr);
+      setTempEndDate(endDate || todayStr);
       setIsCustomModalOpen(true);
     } else {
       applyPreset(value);

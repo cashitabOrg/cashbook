@@ -89,7 +89,7 @@ export async function loginUser(formData: FormData) {
 
   if (emailMatch) {
     email = emailMatch.email
-    console.log(`[Auth] Resolved via Step 1: Exact Email Match (${email})`)
+    console.log(`[Auth] Resolved via Step 1: Exact Email Match`)
   } else {
     // 2. Check for EXACT Username Match (Existing behavior)
     const { data: exactUsername } = await supabaseAdmin
@@ -100,7 +100,7 @@ export async function loginUser(formData: FormData) {
 
     if (exactUsername) {
       email = exactUsername.email
-      console.log(`[Auth] Resolved via Step 2: Exact Username Match (${email})`)
+      console.log(`[Auth] Resolved via Step 2: Exact Username Match`)
     } else {
       // 3. Check for CASE-INSENSITIVE Username Match (New improvement)
       const { data: ilikeMatches } = await supabaseAdmin
@@ -110,7 +110,7 @@ export async function loginUser(formData: FormData) {
 
       if (ilikeMatches && ilikeMatches.length === 1) {
         email = ilikeMatches[0].email
-        console.log(`[Auth] Resolved via Step 3: Case-Insensitive Username Match (${email})`)
+        console.log(`[Auth] Resolved via Step 3: Case-Insensitive Username Match`)
       } else if (ilikeMatches && ilikeMatches.length > 1) {
         console.log(`[Auth] Ambiguous username lookup (${ilikeMatches.length} matches). Falling back to raw input.`)
       } else {

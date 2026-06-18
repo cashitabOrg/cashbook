@@ -104,10 +104,12 @@ export default function AdminDashboardClient({
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const todayLagos = toLagosDateString(new Date());
-    setStartDate(todayLagos);
-    setEndDate(todayLagos);
-  }, []);
+    if (!initialStartDate) {
+      const todayLagos = toLagosDateString(new Date());
+      setStartDate(todayLagos);
+      setEndDate(todayLagos);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getActivePreset = () => {
     if (!startDate || !endDate) return "today";

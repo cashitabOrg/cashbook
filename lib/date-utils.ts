@@ -15,6 +15,19 @@ export function toLagosDateString(dateInput: Date | string | number): string {
 }
 
 /**
+ * Utility to format dates consistently to YYYY-MM-DD using a specified timezone.
+ */
+export function toTimeZoneDateString(dateInput: Date | string | number, timeZone: string): string {
+  const date = new Date(dateInput);
+  return new Intl.DateTimeFormat('en-CA', { 
+    timeZone, 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  }).format(date);
+}
+
+/**
  * Formats a date for display using Lagos timezone.
  */
 export function toLagosDisplayDate(dateInput: Date | string | number, showTime: boolean = false): string {

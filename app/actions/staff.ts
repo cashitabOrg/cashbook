@@ -185,8 +185,10 @@ export async function deleteManager(storeSlug: string, id: string) {
 
   // Delete from users table is typically handled via cascade if set up, but we can double check
   // The SQL schema has: id uuid PRIMARY KEY -- Maps to auth.users.id
-  // Usually it cascades, but just in case:
-  await adminClient.from("users").delete().eq("id", id);
+  const { error: dbDelError } = await adminClient.from("users").delete().eq("id", id);
+  if (dbDelError) {
+    console.warn('[deleteManager] Auth user deleted but DB row removal failed:', dbDelError.message);
+  }
 
   revalidatePath(`/${storeSlug}/admin/staff`);
   return { success: true };

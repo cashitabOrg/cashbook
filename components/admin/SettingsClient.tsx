@@ -21,6 +21,7 @@ interface SettingsClientProps {
   };
   storeId: string;
   userEmail: string;
+  subStatus: any;
 }
 
 export default function SettingsClient({
@@ -33,7 +34,8 @@ export default function SettingsClient({
   subscription,
   usage,
   storeId,
-  userEmail
+  userEmail,
+  subStatus
 }: SettingsClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -106,6 +108,7 @@ export default function SettingsClient({
             usage={usage}
             storeId={storeId}
             userEmail={userEmail}
+            subStatus={subStatus}
           />
         )}
       </div>

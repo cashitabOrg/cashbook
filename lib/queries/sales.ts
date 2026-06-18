@@ -12,7 +12,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { format, parseISO } from 'date-fns';
-import { toLagosDateString } from '@/lib/date-utils';
+import { toLagosDateString, toTimeZoneDateString } from '@/lib/date-utils';
 import { unstable_cache } from 'next/cache';
 import {
   RawSession,
@@ -162,42 +162,46 @@ export async function getReportSalesData(storeId: string): Promise<{
 }> {
     const subStatus = await getStoreSubscriptionStatus(storeId);
 
-    let query = supabaseAdmin
-      .from('sale_items')
-      .select(`
-        id,
-        quantity,
-        subtotal,
-        unit_price,
-        unit_cost,
-        created_at,
-        is_deleted,
-        products (name),
-        sales_sessions!inner (
-          id,
-          started_at,
-          status,
-          approval_status,
-          users!manager_id (full_name)
-        )
-      `)
-      .eq('store_id', storeId)
-      .eq('sales_sessions.status', 'closed')
-      .order('created_at', { ascending: false })
-      .limit(500);
+    // Pre-compute the date cutoffs so they are stable across retries.
+    const minDate90 = new Date(Date.now() - 90 * 86_400_000).toISOString();
+    const minDate180 = new Date(Date.now() - 180 * 86_400_000).toISOString();
 
-    if (subStatus.plan === 'starter') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 90);
-      query = query.gte('created_at', minDate.toISOString());
-    } else if (subStatus.plan === 'growth') {
-      const minDate = new Date();
-      minDate.setDate(minDate.getDate() - 180);
-      query = query.gte('created_at', minDate.toISOString());
-    }
-
+    // IMPORTANT: The entire query object must be built INSIDE the callback.
+    // Supabase's PostgrestBuilder caches its internal fetch promise after the
+    // first await, so re-using the same instance on a retry always returns
+    // the cached failure — the retry is a no-op. Building fresh each time
+    // ensures a real network request is made on every attempt.
     const { data: salesRaw, error } = await withRetry<any[]>(
-      async () => await query,
+      async () => {
+        let q = supabaseAdmin
+          .from('sale_items')
+          .select(`
+            id,
+            quantity,
+            subtotal,
+            unit_price,
+            unit_cost,
+            created_at,
+            is_deleted,
+            products (name),
+            sales_sessions!inner (
+              id,
+              started_at,
+              status,
+              approval_status,
+              users!manager_id (full_name)
+            )
+          `)
+          .eq('store_id', storeId)
+          .eq('sales_sessions.status', 'closed')
+          .order('created_at', { ascending: false })
+          .limit(500);
+
+        if (subStatus.plan === 'starter') q = q.gte('created_at', minDate90);
+        else if (subStatus.plan === 'growth') q = q.gte('created_at', minDate180);
+
+        return await q;
+      },
       'getReportSalesData'
     );
 
@@ -243,11 +247,13 @@ export async function getReportSalesData(storeId: string): Promise<{
  */
 export async function getManagerHistory(
   storeId: string,
-  managerId: string
+  managerId: string,
+  userTimezone: string = 'Africa/Lagos'
 ): Promise<{
   dailyGroups: DailyHistoryGroup[];
   availableProducts: ProductOption[];
   error: string | null;
+  truncated: boolean;
 }> {
   // 1. Fetch closed sessions for this manager
   const subStatus = await getStoreSubscriptionStatus(storeId);
@@ -277,18 +283,21 @@ export async function getManagerHistory(
   );
 
   if (sessionsError) {
-    return { dailyGroups: [], availableProducts: [], error: sessionsError.message };
+    return { dailyGroups: [], availableProducts: [], error: sessionsError.message, truncated: false };
   }
 
   if (!sessions || sessions.length === 0) {
-    return { dailyGroups: [], availableProducts: [], error: null };
+    return { dailyGroups: [], availableProducts: [], error: null, truncated: false };
   }
 
   const sessionIds = sessions.map((s: any) => s.id);
 
   // 2. Fetch sale items for those sessions
-  // We order by created_at descending and use a much larger limit (3000) so that
-  // the most recent session items are prioritized and not cut off if there is a lot of history.
+  // We order by created_at descending and use a larger limit so that
+  // the most recent session items are prioritized and not cut off.
+  // 5000 covers most stores comfortably; a truncated flag is returned
+  // if the limit is hit so the UI can surface a notice.
+  const SALE_ITEMS_LIMIT = 5000;
   const { data: saleItems, error: saleItemsError } = await withRetry<any[]>(
     async () =>
       await supabaseAdmin
@@ -296,12 +305,13 @@ export async function getManagerHistory(
         .select('id, session_id, product_id, quantity, subtotal, created_at, is_deleted, products(name)')
         .in('session_id', sessionIds)
         .order('created_at', { ascending: false })
-        .limit(3000),
+        .limit(SALE_ITEMS_LIMIT),
     'getManagerHistory:saleItems'
   );
+  const isTruncated = (saleItems?.length ?? 0) === SALE_ITEMS_LIMIT;
 
   if (saleItemsError) {
-    return { dailyGroups: [], availableProducts: [], error: saleItemsError.message };
+    return { dailyGroups: [], availableProducts: [], error: saleItemsError.message, truncated: false };
   }
 
   // 3. Fetch available products for the edit modal
@@ -317,14 +327,14 @@ export async function getManagerHistory(
   );
 
   if (productsError) {
-    return { dailyGroups: [], availableProducts: [], error: productsError.message };
+    return { dailyGroups: [], availableProducts: [], error: productsError.message, truncated: false };
   }
 
   // 4. Group sessions by date
   const dailyGroupsMap: Record<string, DailyHistoryGroup> = {};
 
   (sessions as any[]).forEach((session: any) => {
-    const dateStr = toLagosDateString(session.started_at);
+    const dateStr = toTimeZoneDateString(session.started_at, userTimezone);
 
     if (!dailyGroupsMap[dateStr]) {
       dailyGroupsMap[dateStr] = {
@@ -399,6 +409,7 @@ export async function getManagerHistory(
     dailyGroups,
     availableProducts: storeProducts || [],
     error: null,
+    truncated: isTruncated,
   };
 }
 

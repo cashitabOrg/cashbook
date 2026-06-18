@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { getStaffPageData } from "@/lib/queries/staff";
 import { getBillingPageData } from "@/lib/queries/store";
 import { PlanType } from "@/lib/plans";
+import { getStoreSubscriptionStatus } from "@/lib/planEnforcement";
 import SettingsClient from "@/components/admin/SettingsClient";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +15,11 @@ export default async function AdminSettingsPage({
   const { storeSlug } = await params;
   const userRole = await requireRole(["admin", "super_admin"]);
 
-  // Fetch staff page data and billing subscription page data in parallel
-  const [staffData, billingData] = await Promise.all([
+  // Fetch staff page data, billing page data, and subscription status in parallel
+  const [staffData, billingData, subStatus] = await Promise.all([
     getStaffPageData(userRole.storeId),
     getBillingPageData(storeSlug),
+    getStoreSubscriptionStatus(userRole.storeId),
   ]);
 
   if (staffData.error) {
@@ -43,6 +45,7 @@ export default async function AdminSettingsPage({
         usage={billingData.usage}
         storeId={userRole.storeId}
         userEmail={userRole.email}
+        subStatus={subStatus}
       />
     </div>
   );

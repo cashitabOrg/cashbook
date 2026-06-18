@@ -131,6 +131,31 @@ export async function deleteProduct(storeSlug: string, formData: FormData) {
 
   const supabase = userRole.role === "super_admin" ? supabaseAdmin : await createClient();
 
+  // Guard: Block archiving if the product appears in any currently-open sales session.
+  // If a manager has queued this product in their offline POS, archiving it now would
+  // cause the SyncEngine to fail with a fatal error and silently lose those sales.
+  const { data: openSessions } = await supabaseAdmin
+    .from('sales_sessions')
+    .select('id')
+    .eq('store_id', userRole.storeId)
+    .eq('status', 'open');
+
+  if (openSessions && openSessions.length > 0) {
+    const openSessionIds = openSessions.map((s: any) => s.id);
+    const { count: activeItemCount } = await supabaseAdmin
+      .from('sale_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('product_id', id)
+      .eq('is_deleted', false)
+      .in('session_id', openSessionIds);
+
+    if (activeItemCount && activeItemCount > 0) {
+      return {
+        error: 'Cannot archive this product: it is currently referenced in an active sales session. Ask the manager to close their session first, then try again.'
+      };
+    }
+  }
+
   // Soft-archive: set is_archived=true instead of hard DELETE.
   // This preserves all sale_items, inventory_movements, and audit history
   // that reference this product — the FK constraint is never violated.

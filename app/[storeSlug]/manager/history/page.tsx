@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/auth";
+import { cookies } from "next/headers";
 import ManagerHistoryClient from "@/components/manager/ManagerHistoryClient";
 import { History } from "lucide-react";
 import { getManagerHistory } from "@/lib/queries/sales";
@@ -13,10 +14,14 @@ export default async function ManagerHistoryPage({
   const { storeSlug } = await params;
   const userRole = await requireRole(["manager", "admin", "super_admin"]);
 
+  const cookieStore = await cookies();
+  const userTimezone = cookieStore.get("user-timezone")?.value || "Africa/Lagos";
+
   // Fetch sorted daily session groups and edit options via the centralized query layer
-  const { dailyGroups, availableProducts, error: historyError } = await getManagerHistory(
+  const { dailyGroups, availableProducts, error: historyError, truncated } = await getManagerHistory(
     userRole.storeId,
-    userRole.id
+    userRole.id,
+    userTimezone
   );
 
   if (historyError) {
@@ -48,9 +53,15 @@ export default async function ManagerHistoryPage({
       </div>
 
       <div className="px-2 lg:px-0">
+        {truncated && (
+          <div className="mb-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-[10px] font-bold text-amber-700 dark:text-amber-400 text-center">
+            ⚠️ Showing only the most recent records. Use date filters to view older history.
+          </div>
+        )}
         <ManagerHistoryClient 
           dailyGroups={dailyGroups || []} 
           availableProducts={availableProducts || []}
+          timezone={userTimezone}
         />
       </div>
     </div>

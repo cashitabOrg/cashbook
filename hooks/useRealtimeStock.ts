@@ -28,6 +28,8 @@ export function useRealtimeStock(storeId: string) {
               unit: product.unit,
               quantity: product.quantity,
               min_quantity: product.min_quantity,
+              cost_price: product.cost_price ?? 0,
+              selling_price: product.selling_price ?? 0,
               last_synced: Date.now()
             });
           } else if (payload.eventType === 'DELETE') {
