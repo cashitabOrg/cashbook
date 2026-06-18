@@ -138,7 +138,7 @@ export default function BillingDashboard({
 
         <div className="mb-8">
           <div className="flex flex-wrap items-baseline gap-1">
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{formatCurrency(price)}</span>
+            <span className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight">{formatCurrency(price)}</span>
             <span className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest whitespace-nowrap">/ {cycle === 'monthly' ? 'mo' : 'yr'}</span>
           </div>
           {savings > 0 && (
