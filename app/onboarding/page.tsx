@@ -107,7 +107,7 @@ export default function OnboardingPage() {
               <label className="text-sm font-medium text-slate-300">Store URL Prefix</label>
               <div className="flex border border-slate-800 rounded-xl overflow-hidden bg-slate-950/50 shadow-inner focus-within:ring-2 focus-within:ring-cyan-500/50 transition-all">
                 <span className="bg-slate-900/80 text-slate-500 px-4 py-3 font-mono text-sm border-r border-slate-800 flex items-center select-none">
-                  frozenpos.com/
+                  cashitab.shop/
                 </span>
                 <input
                   type="text"

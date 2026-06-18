@@ -70,7 +70,7 @@ export default function SuperAdminPlansClient({
                   <td className="py-4 px-6 whitespace-nowrap text-sm text-slate-900">
                     <div className="flex flex-col">
                       <span className="font-semibold text-slate-800">{store.name}</span>
-                      <span className="text-xs text-slate-500 font-mono">{store.slug}.frozenpos.com</span>
+                      <span className="text-xs text-slate-500 font-mono">cashitab.shop/{store.slug}</span>
                     </div>
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap text-sm text-slate-600">
