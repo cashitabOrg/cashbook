@@ -6,7 +6,7 @@ async function testInQuery() {
   
   const envFile = fs.readFileSync('.env.local', 'utf8').replace(/\r/g, '');
   const envVars: any = {};
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line: string) => {
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) envVars[match[1].trim()] = match[2].trim();
   });
@@ -31,8 +31,9 @@ async function testInQuery() {
     console.error('❌ Error:', error);
   } else {
     console.log(`✅ Success! Count: ${data?.length}`);
-    data?.forEach(item => {
-      console.log(`Item ID: ${item.id} | Session ID: ${item.session_id} | Product: ${item.products?.name} | Subtotal: ${item.subtotal}`);
+    data?.forEach((item: any) => {
+      const prodName = Array.isArray(item.products) ? item.products[0]?.name : (item.products as any)?.name;
+      console.log(`Item ID: ${item.id} | Session ID: ${item.session_id} | Product: ${prodName} | Subtotal: ${item.subtotal}`);
     });
   }
 

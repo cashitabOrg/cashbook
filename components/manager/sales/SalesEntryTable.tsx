@@ -133,7 +133,6 @@ export default function SalesEntryTable({
                           initialRevenue={Number(row.subtotal)} 
                           productName={selectedProduct?.name || row.productName || "Product"} 
                           availableProducts={products.map(p => ({ id: p.id, name: p.name }))}
-                          onSuccess={refreshSession}
                           onSaveLocal={async (pid, qty, sub) => {
                             await editLocalRow(row.localId, pid, qty, sub);
                           }}
@@ -289,7 +288,6 @@ export default function SalesEntryTable({
                       initialRevenue={Number(row.subtotal)} 
                       productName={selectedProduct?.name || row.productName || "Product"} 
                       availableProducts={products.map(p => ({ id: p.id, name: p.name }))}
-                      onSuccess={refreshSession}
                       onSaveLocal={async (pid, qty, sub) => {
                         await editLocalRow(row.localId, pid, qty, sub);
                       }}

@@ -1,20 +1,18 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import { getManagerHistory } from '../lib/queries/sales';
 
 // 1. Load env variables synchronously before requiring any module
 const envPath = path.resolve(process.cwd(), '.env.local');
 if (fs.existsSync(envPath)) {
   const envFile = fs.readFileSync(envPath, 'utf8').replace(/\r/g, '');
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line: string) => {
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) {
       process.env[match[1].trim()] = match[2].trim();
     }
   });
 }
-
-// 2. Require the queries module procedurally
-const { getManagerHistory } = require('../lib/queries/sales');
 
 async function main() {
   console.log('--- TESTING getManagerHistory WITH Dynamic Require ---');
@@ -31,11 +29,11 @@ async function main() {
 
   console.log('✅ Query succeeded!');
   console.log(`dailyGroups length: ${result.dailyGroups.length}`);
-  result.dailyGroups.forEach((group, gIdx) => {
+  result.dailyGroups.forEach((group: any, gIdx: number) => {
     console.log(`Group [${gIdx}] Date: ${group.dateStr} | Total Revenue: ₦${group.dailyTotalRevenue} | Total Items: ${group.dailyTotalItems}`);
-    group.sessions.forEach((sess) => {
+    group.sessions.forEach((sess: any) => {
       console.log(`    Session ID: ${sess.id} | Status: ${sess.approvalStatus} | Revenue: ₦${sess.totalRevenue} | Items Count: ${sess.itemsCount} | Items details: ${sess.items.length} items`);
-      sess.items.forEach((item, iIdx) => {
+      sess.items.forEach((item: any, iIdx: number) => {
         console.log(`      [${iIdx}] ${item.productName} - Qty: ${item.qtySold}, Rev: ₦${item.revenue}, Deleted: ${item.isDeleted}`);
       });
     });
@@ -45,7 +43,9 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
+main().catch((err: any) => {
   console.error(err);
   process.exit(1);
 });
+
+export {};

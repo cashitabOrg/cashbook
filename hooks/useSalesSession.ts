@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import { db } from '@/lib/db';
 import { toast } from 'sonner';
@@ -24,89 +24,102 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
   const [isStale, setIsStale] = useState(false);
   const [orphanedSession, setOrphanedSession] = useState<any | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
+  // Concurrency guard — prevents multiple simultaneous refreshSession() calls
+  // from racing each other and overwriting optimistic local state.
+  const isRefreshingRef = useRef(false);
 
   // 1. Fetching logic refactored for re-use
   const refreshSession = useCallback(async () => {
     if (!sessionId) return;
+    // Concurrency guard: if already refreshing, skip this call entirely
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
     
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('sale_items')
-      .select('id, product_id, quantity, subtotal, created_at, products(name)')
-      .order('created_at', { ascending: true })
-      .eq('session_id', sessionId)
-      .eq('is_deleted', false);
-      
-    if (data && !error) {
-      // Find which of our local rows are still pending in the queue (pending or currently syncing)
-      const pendingQueueItems = await db.offlineQueue
-        .filter(q => q.type === 'sale_item' && (q.status === 'pending' || q.status === 'syncing'))
-        .toArray();
-      const pendingLocalIds = pendingQueueItems.map(q => q.payload?.local_row_id);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('sale_items')
+        .select('id, product_id, quantity, subtotal, created_at, products(name)')
+        .order('created_at', { ascending: true })
+        .eq('session_id', sessionId)
+        .eq('is_deleted', false);
+        
+      if (data && !error) {
+        // Find which of our local rows are still pending in the queue (pending or currently syncing)
+        const pendingQueueItems = await db.offlineQueue
+          .filter(q => q.type === 'sale_item' && (q.status === 'pending' || q.status === 'syncing'))
+          .toArray();
+        const pendingLocalIds = pendingQueueItems.map(q => q.payload?.local_row_id);
 
-      // Find which rows have pending deletions in the queue
-      const pendingDeletes = await db.offlineQueue
-        .filter(q => q.type === 'sale_item_delete' && (q.status === 'pending' || q.status === 'syncing'))
-        .toArray();
-      const deletedLocalIds = pendingDeletes.map(q => q.payload?.local_row_id);
+        // Find which rows have pending deletions in the queue
+        const pendingDeletes = await db.offlineQueue
+          .filter(q => q.type === 'sale_item_delete' && (q.status === 'pending' || q.status === 'syncing'))
+          .toArray();
+        const deletedLocalIds = pendingDeletes.map(q => q.payload?.local_row_id);
 
-      setRows(prevRows => {
-        const existingRows: SaleRow[] = data
-          .filter((item: any) => {
-            const existing = prevRows.find(r => r.dbId === item.id);
-            const isPendingDelete = deletedLocalIds.includes(item.id) || (existing ? deletedLocalIds.includes(existing.localId) : false);
-            return !isPendingDelete;
-          })
-          .map((item: any) => {
-            const existing = prevRows.find(r => r.dbId === item.id);
-            
-            // Check if there is a pending edit in the offline queue for this item
-            const pendingEdit = pendingQueueItems.find(q => 
-              q.payload?.local_row_id === item.id || 
-              (existing ? q.payload?.local_row_id === existing.localId : false)
-            );
+        setRows(prevRows => {
+          const existingRows: SaleRow[] = data
+            .filter((item: any) => {
+              const existing = prevRows.find(r => r.dbId === item.id);
+              const isPendingDelete = deletedLocalIds.includes(item.id) || (existing ? deletedLocalIds.includes(existing.localId) : false);
+              return !isPendingDelete;
+            })
+            .map((item: any) => {
+              const existing = prevRows.find(r => r.dbId === item.id);
+              
+              // If there is a pending edit in the offline queue for this item, use its
+              // values so the optimistic local state is not overwritten by stale server data.
+              const pendingEdit = pendingQueueItems.find(q => 
+                q.payload?.local_row_id === item.id || 
+                (existing ? q.payload?.local_row_id === existing.localId : false)
+              );
 
-            if (pendingEdit) {
+              if (pendingEdit) {
+                return {
+                  localId: existing ? existing.localId : crypto.randomUUID(),
+                  dbId: item.id,
+                  productId: pendingEdit.payload.product_id,
+                  // Prefer existing productName (set by editLocalRow's setRows call) over server name
+                  productName: existing ? existing.productName : (item.products?.name || 'Unknown'),
+                  quantitySold: Number(pendingEdit.payload.quantity),
+                  subtotal: Number(pendingEdit.payload.subtotal),
+                  synced: true
+                };
+              }
+
               return {
                 localId: existing ? existing.localId : crypto.randomUUID(),
                 dbId: item.id,
-                productId: pendingEdit.payload.product_id,
-                productName: existing ? existing.productName : 'Unknown',
-                quantitySold: Number(pendingEdit.payload.quantity),
-                subtotal: Number(pendingEdit.payload.subtotal),
+                productId: item.product_id,
+                productName: item.products?.name || 'Unknown',
+                quantitySold: Number(item.quantity),
+                subtotal: Number(item.subtotal),
                 synced: true
               };
-            }
+            });
 
-            return {
-              localId: existing ? existing.localId : crypto.randomUUID(),
-              dbId: item.id,
-              productId: item.product_id,
-              productName: item.products?.name || 'Unknown',
-              quantitySold: Number(item.quantity),
-              subtotal: Number(item.subtotal),
-              synced: true
-            };
-          });
-
-        // Keep unsynced drafting rows
-        const draftingRows = prevRows.filter(r => !r.synced);
-        // Only keep local rows that are marked synced but have not been assigned a dbId yet
-        const pendingOfflineRows = prevRows.filter(r => r.synced && !r.dbId && pendingLocalIds.includes(r.localId));
-        
-        const combined = [...existingRows, ...pendingOfflineRows, ...draftingRows];
-        if (combined.length === 0) {
-          return [{
-            localId: crypto.randomUUID(),
-            productId: '',
-            productName: '',
-            quantitySold: '',
-            subtotal: '',
-            synced: false
-          }];
-        }
-        return combined;
-      });
+          // Keep unsynced drafting rows
+          const draftingRows = prevRows.filter(r => !r.synced);
+          // Only keep local rows that are marked synced but have not been assigned a dbId yet
+          const pendingOfflineRows = prevRows.filter(r => r.synced && !r.dbId && pendingLocalIds.includes(r.localId));
+          
+          const combined = [...existingRows, ...pendingOfflineRows, ...draftingRows];
+          if (combined.length === 0) {
+            return [{
+              localId: crypto.randomUUID(),
+              productId: '',
+              productName: '',
+              quantitySold: '',
+              subtotal: '',
+              synced: false
+            }];
+          }
+          return combined;
+        });
+      }
+    } finally {
+      // Always release the lock so future calls can proceed
+      isRefreshingRef.current = false;
     }
   }, [sessionId]);
 
@@ -460,18 +473,20 @@ export function useSalesSession(storeSlug: string, storeId: string, managerId: s
         }
       });
     } else {
-      // It is already synced. Queue an update task in the offline queue!
+      // It is already synced. Queue an update (upsert) task using the existing dbId.
+      // store_id is required here for the SyncEngine upsert to pass RLS.
       await db.offlineQueue.add({
         store_id: storeId,
         type: 'sale_item',
         payload: {
+          store_id: storeId,
           session_id: sessionId,
           product_id: productId,
           quantity: qty,
           subtotal: subtotal,
           unit_price: newProd.selling_price || 0,
           unit_cost: newProd.cost_price || 0,
-          local_row_id: row.dbId || localId
+          local_row_id: row.dbId  // MUST be the real DB id for upsert to hit the correct row
         },
         created_at: Date.now(),
         status: 'pending'

@@ -39,6 +39,7 @@ export default function EditSaleModal({
   useEffect(() => {
     setMounted(true);
   }, []);
+
   const sanQty = isNaN(Number(initialQty)) ? 0 : Number(initialQty);
   const sanRev = isNaN(Number(initialRevenue)) ? 0 : Number(initialRevenue);
 
@@ -46,6 +47,20 @@ export default function EditSaleModal({
   const [revenue, setRevenue] = useState(sanRev);
   const [selectedProductId, setSelectedProductId] = useState(productId || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Reset form state every time the modal opens so it reflects the latest prop
+  // values. Without this, the form shows stale data if the parent re-rendered
+  // with updated initialQty/initialRevenue between two modal openings.
+  useEffect(() => {
+    if (isOpen) {
+      const freshQty = isNaN(Number(initialQty)) ? 0 : Number(initialQty);
+      const freshRev = isNaN(Number(initialRevenue)) ? 0 : Number(initialRevenue);
+      setQty(freshQty);
+      setRevenue(freshRev);
+      setSelectedProductId(productId || '');
+      setConfirmDelete(false);
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derive unit price from sanitized values for auto-recalculation
   const unitPrice = sanQty > 0 ? sanRev / sanQty : 0;

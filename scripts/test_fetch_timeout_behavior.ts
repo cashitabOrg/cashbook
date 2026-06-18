@@ -1,11 +1,12 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 // Load env
 const envPath = path.resolve(process.cwd(), '.env.local');
 if (fs.existsSync(envPath)) {
   const envFile = fs.readFileSync(envPath, 'utf8').replace(/\r/g, '');
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line: string) => {
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) {
       process.env[match[1].trim()] = match[2].trim();
@@ -13,13 +14,11 @@ if (fs.existsSync(envPath)) {
   });
 }
 
-const { createClient } = require('@supabase/supabase-js');
-
 function fetchWithTimeout(
-  url,
-  options = {},
+  url: string | URL | Request,
+  options: RequestInit = {},
   timeoutMs = 15000
-) {
+): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -37,8 +36,8 @@ function fetchWithTimeout(
 }
 
 async function runTest() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
   console.log('1. Querying WITHOUT custom fetch...');
   const clientNormal = createClient(url, key);
@@ -48,7 +47,7 @@ async function runTest() {
   console.log('\n2. Querying WITH custom fetch...');
   const clientTimeout = createClient(url, key, {
     global: {
-      fetch: (u, o) => fetchWithTimeout(u, o, 15000)
+      fetch: (u: string | URL | Request, o?: RequestInit) => fetchWithTimeout(u, o, 15000)
     }
   });
   const resTimeout = await clientTimeout.from('sale_items').select('id').limit(5);
@@ -58,3 +57,5 @@ async function runTest() {
 }
 
 runTest().catch(console.error);
+
+export {};

@@ -1,11 +1,12 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 // Load env variables synchronously before requiring any module
 const envPath = path.resolve(process.cwd(), '.env.local');
 if (fs.existsSync(envPath)) {
   const envFile = fs.readFileSync(envPath, 'utf8').replace(/\r/g, '');
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line: string) => {
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) {
       process.env[match[1].trim()] = match[2].trim();
@@ -13,8 +14,7 @@ if (fs.existsSync(envPath)) {
   });
 }
 
-const { createClient } = require('@supabase/supabase-js');
-const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
 async function testPrintHistoryItems() {
   console.log('--- PRINTING INTERMEDIATE VALUES OF getManagerHistory ---');
@@ -33,7 +33,7 @@ async function testPrintHistoryItems() {
     .limit(5);
 
   console.log('SESSIONS FOUND:', sessions?.length);
-  const sessionIds = sessions ? sessions.map(x => x.id) : [];
+  const sessionIds = sessions ? sessions.map((x: any) => x.id) : [];
   console.log('Session IDs:', sessionIds);
 
   // 2. Fetch sale items
@@ -47,15 +47,16 @@ async function testPrintHistoryItems() {
   console.log('ITEMS COUNT:', saleItems?.length);
   if (saleItems) {
     console.log('First 5 items details:');
-    saleItems.slice(0, 5).forEach((item, idx) => {
-      console.log(`[${idx}] Item ID: ${item.id} | Session ID: ${item.session_id} | Product Name: ${item.products?.name} | Subtotal: ${item.subtotal} | Deleted: ${item.is_deleted}`);
+    saleItems.slice(0, 5).forEach((item: any, idx: number) => {
+      const prodName = Array.isArray(item.products) ? item.products[0]?.name : (item.products as any)?.name;
+      console.log(`[${idx}] Item ID: ${item.id} | Session ID: ${item.session_id} | Product Name: ${prodName} | Subtotal: ${item.subtotal} | Deleted: ${item.is_deleted}`);
     });
   }
 
   // 3. Simulating mapping logic
   console.log('\n--- SIMULATING MAPPING ---');
-  sessions.forEach(session => {
-    const sessionItemsData = (saleItems || []).filter((item) => item.session_id === session.id);
+  sessions?.forEach((session: any) => {
+    const sessionItemsData = (saleItems || []).filter((item: any) => item.session_id === session.id);
     console.log(`Session ${session.id}: found ${sessionItemsData.length} items`);
   });
 
@@ -64,3 +65,5 @@ async function testPrintHistoryItems() {
 }
 
 testPrintHistoryItems().catch(console.error);
+
+export {};
