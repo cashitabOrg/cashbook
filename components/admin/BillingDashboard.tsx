@@ -294,7 +294,7 @@ export default function BillingDashboard({
             </div>
             <div className="space-y-3">
               <a
-                href={process.env.NEXT_PUBLIC_CONTACT_WHATSAPP || "https://wa.me/"}
+                href={process.env.NEXT_PUBLIC_CONTACT_WHATSAPP || "https://wa.me/2349061814608"}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white"

@@ -385,7 +385,7 @@ export default function PublicPricingPage() {
 
             <div className="space-y-3">
               <a
-                href={process.env.NEXT_PUBLIC_CONTACT_WHATSAPP || "https://wa.me/"}
+                href={process.env.NEXT_PUBLIC_CONTACT_WHATSAPP || "https://wa.me/2349061814608"}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/15"
