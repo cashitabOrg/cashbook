@@ -10,42 +10,36 @@ FrozenPOS uses a hybrid client-server model optimized for edge deployments, real
 
 ```mermaid
 graph TD
-    %% Styling Classes
-    classDef pageNode fill:#7c3aed,stroke:#a78bfa,color:#fff,stroke-width:2px;
-    classDef clientNode fill:#2563eb,stroke:#60a5fa,color:#fff,stroke-width:2px;
-    classDef syncNode fill:#0d9488,stroke:#2dd4bf,color:#fff,stroke-width:2px;
-    classDef serverNode fill:#9333ea,stroke:#c084fc,color:#fff,stroke-width:2px;
-    classDef dbNode fill:#b91c1c,stroke:#f87171,color:#fff,stroke-width:2px;
-
     %% Subgraphs
     subgraph access["Access Control Layer (Edge)"]
-        middleware["Edge Router Middleware<br>(proxy.ts)"]:::serverNode
-        authGate["Auth Handshake Validator<br>(lib/auth.ts)"]:::serverNode
+        middleware["Edge Router Middleware<br/>(proxy.ts)"]
+        authGate["Auth Handshake Validator<br/>(lib/auth.ts)"]
     end
 
     subgraph webUI["Next.js View Layer (Frontend)"]
-        adminPanel["Admin Dashboard & Views<br>(/[storeSlug]/admin)"]:::pageNode
-        posClient["POS Manager Interface<br>(/[storeSlug]/manager)"]:::pageNode
+        adminPanel["Admin Dashboard & Views<br/>(/{storeSlug}/admin)"]
+        posClient["POS Manager Interface<br/>(/{storeSlug}/manager)"]
     end
 
     subgraph offlineStore["Local Browser Storage (Offline First)"]
-        dexieDB["Dexie Local Database<br>(IndexedDB)"]:::clientNode
-        serviceWorker["Service Worker Cache Shell<br>(sw.js)"]:::clientNode
-        syncEngine["Cron Sync Engine<br>(SyncEngine.tsx)"]:::syncNode
+        dexieDB["Dexie Local Database<br/>(IndexedDB)"]
+        serviceWorker["Service Worker Cache Shell<br/>(sw.js)"]
+        syncEngine["Cron Sync Engine<br/>(SyncEngine.tsx)"]
     end
 
     subgraph cloudLayer["Server & Cloud Logic (Backend)"]
-        serverActions["Server Actions<br>(app/actions/*)"]:::serverNode
-        readQueries["Cached Server Queries<br>(lib/queries/*)"]:::serverNode
-        paystackAPI["Paystack Billing Gateway"]:::serverNode
+        serverActions["Server Actions<br/>(app/actions/...)"]
+        readQueries["Cached Server Queries<br/>(lib/queries/...)"]
+        paystackAPI["Paystack Billing Gateway"]
     end
 
     subgraph persistence["Database Tier"]
-        supabaseDB["Supabase Postgres Instance<br>(RLS + Triggers)"]:::dbNode
+        supabaseDB["Supabase Postgres Instance<br/>(RLS + Triggers)"]
     end
 
     %% Flow Layout Connections
-    middleware -->|"Routing & Redirects"| webUI
+    middleware -->|"Routing & Redirects"| adminPanel
+    middleware -->|"Routing & Redirects"| posClient
     authGate -->|"Protects & Resolves Roles"| serverActions
     
     adminPanel -->|"Reads data from cache"| readQueries
@@ -61,6 +55,20 @@ graph TD
     serverActions -->|"Writes to database"| supabaseDB
     serverActions -->|"Triggers subscriptions check"| paystackAPI
     paystackAPI -->|"Webhooks dispatch renewals"| supabaseDB
+
+    %% Styling Classes
+    classDef pageNode fill:#7c3aed,stroke:#a78bfa,color:#fff,stroke-width:2px
+    classDef clientNode fill:#2563eb,stroke:#60a5fa,color:#fff,stroke-width:2px
+    classDef syncNode fill:#0d9488,stroke:#2dd4bf,color:#fff,stroke-width:2px
+    classDef serverNode fill:#9333ea,stroke:#c084fc,color:#fff,stroke-width:2px
+    classDef dbNode fill:#b91c1c,stroke:#f87171,color:#fff,stroke-width:2px
+
+    %% Apply Styling Classes
+    class adminPanel,posClient pageNode
+    class dexieDB,serviceWorker clientNode
+    class syncEngine syncNode
+    class middleware,authGate,serverActions,readQueries,paystackAPI serverNode
+    class supabaseDB dbNode
 ```
 
 ### Core Layers:
